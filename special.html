@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>주니어솔로몬학원 방학 특강</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="주니어솔로몬학원 2027 겨울 특강 — 문학으로 마음여행, 생각의 실험실, 리딩오션 무제한반, 소포스 프라이빗.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&amp;family=Noto+Sans+KR:wght@300;400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#FFFFFF}
+*{box-sizing:border-box}
+h1,h2,h3,p{word-break:keep-all;overflow-wrap:break-word}
+h1,h2,h3{text-wrap:balance}
+p{text-wrap:pretty}
+a{color:#5F3D66}a:hover{color:#3E2743}
+</style>
+<script src="dc-lite.js" defer></script>
+</head>
+<body>
+<template id="dc-tpl">
+
+<div style="font-family: 'Noto Sans KR', sans-serif; color: #1E1A22; background: #FFFFFF; width: 100%; position: relative">
+
+<header style="border-bottom: 1px solid #EEEAF0">
+<div style="max-width: 1200px; margin: 0 auto; padding: 22px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+<a href="index.html" style="text-decoration: none; display: flex; align-items: baseline; gap: 10px; color: #1E1A22">
+<img src="assets/72a8395471aabda28e6789de3e27b503.png" alt="주니어솔로몬학원" style="display: block; height: 46px; width: auto">
+</a>
+<nav aria-label="특강 메뉴" style="display: flex; flex-wrap: wrap; align-items: center; gap: 24px; font-size: 15px">
+<a href="#current" style="color: #3A3440; text-decoration: none">진행 중인 특강</a>
+<a href="#archive" style="color: #3A3440; text-decoration: none">지난 특강</a>
+<a href="index.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 22px; border-radius: 999px; border: 1px solid #CFC8D4; color: #1E1A22; text-decoration: none">← 메인으로</a>
+</nav>
+</div>
+</header>
+
+<section id="current" style="max-width: 1200px; margin: 0 auto; padding: 104px 24px 96px">
+<p style="margin: 0 0 20px; font-size: 13px; letter-spacing: 0.2em; color: #6E6676">SPECIAL</p>
+<h1 style="margin: 0; font-family: 'Noto Serif KR', serif; font-weight: 600; font-size: clamp(36px, 5vw, 64px); line-height: 1.25; letter-spacing: -0.035em">{{ heading }}</h1>
+<p style="margin: 20px 0 0; font-size: 18px; line-height: 1.85; color: #5E5866">{{ subheading }}</p>
+
+<sc-if value="{{ hasCurrent }}" hint-placeholder-val="{{ true }}">
+<div style="margin-top: 56px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px">
+<sc-for list="{{ current }}" as="item" hint-placeholder-count="4">
+<button type="button" onClick="{{ item.open }}" aria-label="{{ item.title }} 포스터 보기" style="all: unset; cursor: pointer; display: flex; flex-direction: column; border: 1px solid #EEEAF0; border-radius: 20px; overflow: hidden; background: #FFFFFF">
+<div style="position: relative; aspect-ratio: 210 / 297; background: #F6F3F7; overflow: hidden">
+<img src="{{ item.thumb }}" alt="" style="width: 100%; height: 100%; object-fit: cover; object-position: top; display: block">
+<span style="position: absolute; top: 14px; left: 14px; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; background: {{ item.badgeBg }}; color: {{ item.badgeColor }}">{{ item.badge }}</span>
+</div>
+<div style="padding: 24px 22px 26px">
+<h3 style="margin: 0 0 8px; font-family: 'Noto Serif KR', serif; font-size: 21px; font-weight: 600; color: #1E1A22">{{ item.title }}</h3>
+<p style="margin: 0 0 14px; font-size: 15px; line-height: 1.7; color: #5E5866">{{ item.sub }}</p>
+<span style="font-size: 14px; color: #5F3D66">포스터 보기 →</span>
+</div>
+</button>
+</sc-for>
+</div>
+<p style="margin: 32px 0 0; font-size: 15px; color: #5E5866">1세션 1/11–1/22 · 2세션 1/25–2/5 · 3세션 2/15–2/26</p>
+</sc-if>
+
+<sc-if value="{{ eventOpen }}" hint-placeholder-val="{{ true }}">
+<div id="note-event" style="margin-top: 72px">
+<p style="margin: 0 0 8px; font-size: 13px; letter-spacing: 0.2em; color: #A3233A">CHRISTMAS GIFT · 12월 15일(화)까지</p>
+<h2 style="margin: 0 0 24px; font-family: 'Noto Serif KR', serif; font-size: clamp(26px, 3vw, 36px); font-weight: 600">크리스마스 반짝 노트 선물</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px">
+<a href="assets/03b20bf0d8abd195548f67557be817d4.jpg" target="_blank" rel="noopener" style="display: block; border-radius: 16px; overflow: hidden; border: 1px solid #EEE4D6"><img src="assets/03b20bf0d8abd195548f67557be817d4.jpg" alt="크리스마스 반짝 노트 선물 포스터. 주니어솔로몬 학생 전원과 12월 15일까지 겨울방학특강 얼리 등록 친구에게 자기주도 노트 반짝 조약돌과 독서 노트 반짝 비행기를 드립니다. 받는 날 12월 21일부터 26일" style="display: block; width: 100%; height: auto"></a>
+<a href="assets/955a510be0512b0b5310a247c01c99b6.jpg" target="_blank" rel="noopener" style="display: block; border-radius: 16px; overflow: hidden; border: 1px solid #EEE4D6"><img src="assets/955a510be0512b0b5310a247c01c99b6.jpg" alt="노트 안을 펼쳐 볼까요 포스터. 하루 한 쪽 자기주도 노트와 독서 노트 소개, 숨은 친구 찾기 미션" style="display: block; width: 100%; height: auto"></a>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ sophosGiftOpen }}" hint-placeholder-val="{{ true }}">
+<div id="sophos-gift" style="margin-top: 72px">
+<p style="margin: 0 0 8px; font-size: 13px; letter-spacing: 0.2em; color: #A3233A">SOPHOS EDU · EVENT · 2027년 2월 28일(일)까지</p>
+<h2 style="margin: 0 0 12px; font-family: 'Noto Serif KR', serif; font-size: clamp(26px, 3vw, 36px); font-weight: 600">소포스의 문장을 선물합니다</h2>
+<p style="margin: 0 0 24px; font-size: 17px; line-height: 1.8; color: #5E5866">소포스 프라이빗 얼리 등록, 소포스에듀 신규 등록 상담 고객께 응원 문장 3색 볼펜 1자루와 명언 L파일 1장을 한 세트로 드립니다.</p>
+<a href="assets/0f9d29382158b1b52d3697f3654cb8a8.jpg" target="_blank" rel="noopener" style="display: block; max-width: 640px; border-radius: 16px; overflow: hidden; border: 1px solid #EEE4D6"><img src="assets/0f9d29382158b1b52d3697f3654cb8a8.jpg" alt="소포스에듀 등록 선물 이벤트 포스터. 얼리 등록과 신규 등록 상담 고객께 응원 문장 3색 볼펜 1자루와 명언 L파일 1장을 드립니다. 이벤트 기간 2027년 2월 28일까지, 1인 1세트, 수량 소진 시 종료" style="display: block; width: 100%; height: auto"></a>
+</div>
+</sc-if>
+
+<sc-if value="{{ noCurrent }}" hint-placeholder-val="{{ false }}">
+<div style="margin-top: 48px; padding: 40px 32px; border-radius: 20px; background: #FAF8FB">
+<p style="margin: 0; font-size: 17px; line-height: 1.8; color: #3A3440">다음 방학 특강은 준비 중입니다. 모집이 시작되면 이곳과 메인 화면에 안내합니다.</p>
+</div>
+</sc-if>
+</section>
+
+<sc-if value="{{ hasArchive }}" hint-placeholder-val="{{ false }}">
+<section id="archive" style="background: #FAF8FB">
+<div style="max-width: 1200px; margin: 0 auto; padding: 96px 24px">
+<p style="margin: 0 0 20px; font-size: 13px; letter-spacing: 0.2em; color: #6E6676">ARCHIVE</p>
+<h2 style="margin: 0; font-family: 'Noto Serif KR', serif; font-weight: 600; font-size: clamp(30px, 3.6vw, 48px); line-height: 1.3; letter-spacing: -0.03em">지난 특강</h2>
+<p style="margin: 16px 0 0; font-size: 17px; line-height: 1.8; color: #5E5866">함께 읽고 생각한 시간이 이렇게 쌓여 갑니다.</p>
+<div style="margin-top: 48px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px">
+<sc-for list="{{ archive }}" as="a" hint-placeholder-count="4">
+<div style="border-radius: 20px; background: #FFFFFF; border: 1px solid #EEEAF0; overflow: hidden">
+<div style="aspect-ratio: 4 / 3; background: #EFEAF2; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #6E6676">수업 사진 자리</div>
+<div style="padding: 22px">
+<p style="margin: 0 0 6px; font-size: 13px; color: #6E6676">{{ a.period }}</p>
+<h3 style="margin: 0 0 8px; font-family: 'Noto Serif KR', serif; font-size: 20px; font-weight: 600">{{ a.title }}</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.7; color: #5E5866">{{ a.sub }}</p>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</section>
+</sc-if>
+
+<footer style="max-width: 1200px; margin: 0 auto; padding: 48px 24px">
+<p style="margin: 0; font-size: 13px; line-height: 2; color: #6E6676">주니어솔로몬학원 · 학원 등록번호 중부교육지원청 제3336호 · 교습과정 학교교과교습학원 보습·논술 · 교습비 <a href="fees.html">교습비 안내 보기</a></p>
+<p style="margin: 8px 0 0; font-size: 12px; line-height: 1.9; color: #6E6676">© 주니어솔로몬. 무단 복제·전재·배포·변형 및 생성형 AI를 이용한 학습·분석·유사·파생 콘텐츠 제작을 금합니다.<br>위반 시 관련 법령에 따른 책임을 물을 수 있습니다. · 주니어솔로몬®(상표등록 제40-1582862호)</p>
+</footer>
+
+<sc-if value="{{ lightbox }}" hint-placeholder-val="{{ false }}">
+<div role="dialog" aria-modal="true" aria-label="{{ selTitle }} 포스터" style="position: fixed; inset: 0; z-index: 50; background: rgba(20, 16, 24, 0.86); overflow-y: auto">
+<div style="max-width: 760px; margin: 0 auto; padding: 32px 20px 48px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px">
+<p style="margin: 0; font-family: 'Noto Serif KR', serif; font-size: 22px; font-weight: 600; color: #FFFFFF">{{ selTitle }}</p>
+<button type="button" onClick="{{ close }}" aria-label="닫기" style="all: unset; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: #FFFFFF">
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1E1A22" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 16px">
+<sc-for list="{{ selPosters }}" as="p" hint-placeholder-count="2">
+<img src="{{ p }}" alt="{{ selTitle }} 포스터" style="width: 100%; height: auto; display: block; border-radius: 8px; background: #FFFFFF">
+</sc-for>
+</div>
+<sc-if value="{{ selHasGuide }}" hint-placeholder-val="{{ false }}">
+<p style="margin: 28px 0 12px; font-family: 'Noto Serif KR', serif; font-size: 20px; font-weight: 600; color: #FFFFFF">등록하신 학부모님께 · 수업 준비 안내</p>
+<img src="{{ selGuide }}" alt="{{ selTitle }} 수업 준비 안내. 반별 수업 시간, 세션별 첫 수업 날짜, 준비물" style="width: 100%; height: auto; display: block; border-radius: 8px; background: #FFFFFF">
+</sc-if>
+<div style="margin-top: 24px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center">
+<button type="button" onClick="{{ selGo }}" style="all: unset; cursor: pointer; display: inline-flex; align-items: center; min-height: 52px; padding: 0 32px; border-radius: 999px; background: #FEE500; color: #191919; font-size: 16px; font-weight: 700">{{ selCta }}</button>
+<a href="tel:027948123" style="display: inline-flex; align-items: center; min-height: 52px; padding: 0 32px; border-radius: 999px; border: 1px solid #B9A6C0; color: #FFFFFF; text-decoration: none; font-size: 16px">02-794-8123</a>
+<a href="sms:01032128123" style="display: inline-flex; align-items: center; min-height: 52px; padding: 0 28px; border-radius: 999px; border: 1px solid #B9A6C0; color: #FFFFFF; text-decoration: none; font-size: 16px">010-3212-8123 문자·카톡</a>
+</div>
+<sc-if value="{{ copied }}" hint-placeholder-val="{{ false }}">
+<p style="margin: 14px 0 0; text-align: center; font-size: 15px; color: #FFFFFF">상담 문장이 복사되었습니다. 카톡 채팅창에 붙여 넣고 보내 주세요.</p>
+</sc-if>
+</div>
+</div>
+</sc-if>
+
+</div>
+</template>
+<script type="text/x-dc" data-dc-script data-props='{"previewDate":{"editor":"enum","options":["오늘","2026-12-26","2027-03-01"],"default":"오늘","section":"미리보기 날짜"},"$preview":{"width":1440,"height":2600}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { open: null, copied: false };
+  }
+  renderVals() {
+    var pick = this.props.previewDate || '오늘';
+    var today = pick === '오늘' ? new Date() : new Date(pick + 'T12:00:00');
+    var day = function (s) { return new Date(s + 'T23:59:59'); };
+    var specials = [
+      { id: 'maum', title: '문학으로 마음여행', sub: '장화연 원장 직강 하브루타', period: '2027 겨울 · 1/11–2/26', deadline: '2026-12-24', end: '2027-02-26', posters: ['assets/dcb4db7c1b9ba97096b7767217a25911.jpg', 'assets/b2a64420c63d9c6c119a2d3d6b3ffafe.jpg'], guide: 'assets/8da441d4dc827fd6e8347646fafe95b4.jpg' },
+      { id: 'lab', title: '생각의 실험실', sub: '장화연 원장 직강 비문학 사고력 · 초등 3–6학년', period: '2027 겨울 · 1/11–2/26', deadline: '2026-12-24', end: '2027-02-26', posters: ['assets/02b5641ea51b63ecc224680ccee75fe9.jpg', 'assets/a45f7301b153464d7f515eff664526ab.jpg'], guide: 'assets/4698cf8e4f7bb404ad73b833ca9e2697.jpg' },
+      { id: 'ocean', title: '리딩오션 겨울 무제한반', sub: '방학 동안 매일 읽는 집중 독서', period: '2027 겨울 · 1–2월', deadline: null, end: '2027-02-26', posters: ['assets/dc3435e2570ee55d68f38de69477dcfd.jpg'] },
+      { id: 'sophos', title: '소포스 프라이빗', sub: '중고등 국어·수학 소수정예 코칭', period: '2027 겨울', deadline: '2026-12-30', end: '2027-02-26', posters: ['assets/ea1914603b99f184d13eca3d2b77aedf.jpg', 'assets/d3b8b140d3d1e4d8e132ee148bdcc67c.jpg'] }
+    ];
+    var self = this;
+    var current = [];
+    var archive = [];
+    specials.forEach(function (s) {
+      if (today > day(s.end)) { archive.push(s); return; }
+      var closed = s.deadline && today > day(s.deadline);
+      current.push({
+        title: s.title, sub: s.sub, thumb: s.posters[0],
+        badge: closed ? '모집 마감' : '모집 중',
+        badgeBg: closed ? '#E4DEE8' : '#5F3D66',
+        badgeColor: closed ? '#3A3440' : '#FFFFFF',
+        open: function () { self.setState({ open: s.id, copied: false }); }
+      });
+    });
+    var sel = null;
+    specials.forEach(function (s) { if (s.id === self.state.open) sel = s; });
+    var selClosed = sel && sel.deadline && today > day(sel.deadline);
+    return {
+      heading: current.length ? '2027 겨울 특강' : '방학 특강',
+      subheading: current.length ? '2주 단위 세션으로 골라 등록합니다. 카드를 누르면 포스터가 열립니다.' : '지금은 모집 중인 특강이 없습니다.',
+      current: current,
+      hasCurrent: current.length > 0,
+      noCurrent: current.length === 0,
+      archive: archive,
+      hasArchive: archive.length > 0,
+      eventOpen: today <= day('2026-12-15'),
+      sophosGiftOpen: today <= day('2027-02-28'),
+      lightbox: !!sel,
+      selTitle: sel ? sel.title : '',
+      selPosters: sel ? sel.posters : [],
+      selHasGuide: !!(sel && sel.guide),
+      selGuide: sel && sel.guide ? sel.guide : '',
+      selCta: selClosed ? '카톡으로 대기 상담' : '카톡으로 상담하기',
+      copied: self.state.copied,
+      selGo: function () {
+        var msg = '[겨울 특강] ' + (sel ? sel.title : '') + (selClosed ? ' 대기 상담 원합니다.' : ' 상담 원합니다.');
+        try { if (navigator.clipboard) { navigator.clipboard.writeText(msg); } } catch (e) {}
+        try { window.open('https://pf.kakao.com/_xadGxnxb/chat', '_blank', 'noopener'); } catch (e) {}
+        self.setState({ copied: true });
+      },
+      close: function () { self.setState({ open: null }); }
+    };
+  }
+}
+</script>
+</body>
+</html>
