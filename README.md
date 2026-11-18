@@ -1,3 +1,3 @@
 # 주니어솔로몬학원 홈페이지
 
-임시 공개본(검색 노출 차단). 도메인 연결 전 확인용.
+juniorsolomon.com 공개본. GitHub Pages(main 브랜치 루트)로 게시.
