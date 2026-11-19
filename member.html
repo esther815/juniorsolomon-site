@@ -120,38 +120,70 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
       }
       var txt={pending:'원장님이 확인하면 우리 아이 수업 정보가 열립니다.',approved:'',rejected:'학원으로 연락 주세요. 02-794-8123'}[p.status];
       out.innerHTML='<h1>'+nick+'님</h1><p class="lead"><span class="badge">'+badge+'</span>'+(txt?'<br><br>'+txt:'')+'</p>'+
-        '<div id="child"></div>'+
-        '<div class="card"><div class="row"><span>자녀</span><span>'+esc(p.child_name)+' · '+esc(p.child_grade)+'</span></div><div class="row"><span>학교</span><span>'+esc(p.child_school)+'</span></div><div class="row"><span>연락처</span><span>'+esc(p.phone.replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3'))+'</span></div></div>'+
+        '<div id="child"></div><div id="kids"></div>'+
+        '<button class="ghost" id="addkid" type="button">자녀 추가 · 정보 고치기</button>'+
         installBox()+'<div id="admin"></div>'+logoutBtn();
       bindLogout(); bindInstall();
+      sb.from('children').select('*').eq('parent_id',p.id).order('created_at').then(function(cr){
+        var kids=(cr.data||[]); var KST={pending:'승인 대기',approved:'승인',rejected:'확인 필요'};
+        document.getElementById('kids').innerHTML='<div class="card">'+kids.map(function(k){ return '<div class="row"><span>'+esc(k.name)+' · '+esc(k.grade||'')+'</span><span>'+esc(k.school||'')+' · '+KST[k.status]+(k.student_no?' · '+esc(k.student_no):'')+'</span></div>' }).join('')+
+          '<div class="row"><span>연락처</span><span>'+esc((p.phone||'').replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3'))+'</span></div></div>';
+        document.getElementById('addkid').onclick=function(){ form(p,nick,false,kids) };
+      });
       if(p.status==='approved') childCard();
       sb.rpc('is_admin').then(function(a){ if(a.data===true) admin() });
     });
   }
-  function form(p,nick,preview){
-    out.innerHTML='<h1>'+nick+'님, 반갑습니다</h1><p class="lead">한 번만 입력하면 됩니다.<br>원장님이 확인한 뒤 재원생 정보가 열립니다.</p>'+
-      '<label class="f">학부모 휴대폰 번호<input id="ph" inputmode="numeric" autocomplete="tel" placeholder="01012345678"></label>'+
-      '<label class="f">자녀 이름<input id="cn" autocomplete="off"></label>'+
-      '<label class="f">자녀 생년월일 <span style="color:#8A8290">(8자리 숫자)</span><input id="cb" inputmode="numeric" maxlength="8" placeholder="20170811"></label>'+
-      '<label class="f">자녀 학년<select id="cg"><option value="">고르세요</option><option>5세</option><option>6세</option><option>7세</option><option>초1</option><option>초2</option><option>초3</option><option>초4</option><option>초5</option><option>초6</option><option>중1</option><option>중2</option><option>중3</option><option>고1</option><option>고2</option><option>고3</option></select></label>'+
-      '<label class="f">학교(유치원)<input id="cs" autocomplete="off"></label>'+
-      '<label class="f">자녀 휴대폰 번호 <span style="color:#8A8290">(있으면 · 지각·결석 시 바로 연락)</span><input id="sp" inputmode="numeric" placeholder="01012345678"></label>'+
-      '<label class="chk"><input type="checkbox" id="ag"><span>저는 이 자녀의 법정대리인(보호자)이며, 자녀의 이름·생년월일·학년·학교·휴대폰 번호를 학원의 재원생 확인, 수업 정보 제공, 지각·결석 시 연락에 쓰는 것에 동의합니다. <a href="privacy.html">개인정보처리방침</a></span></label>'+
-      '<button class="primary" id="save" type="button">저장하고 승인 요청하기</button>'+(preview?'<button class="ghost" id="back" type="button">원장님 화면으로 돌아가기</button>':logoutBtn());
-    if(preview){ out.insertAdjacentHTML('afterbegin','<div class="err" style="background:#FBF4E2;color:#7A5A12;border-color:#E8D5A0">미리보기입니다. 저장되지 않으니 마음껏 눌러 보세요.</div>'); document.getElementById('back').addEventListener('click',function(){ shown=false; sb.auth.getUser().then(function(u){ show(u.data.user) }) }) } else bindLogout();
+  var GRADES=['5세','6세','7세','초1','초2','초3','초4','초5','초6','중1','중2','중3','고1','고2','고3'];
+  function kidBlock(k,i){
+    k=k||{}; var lock=k.status&&k.status!=='pending';
+    var g='<option value="">고르세요</option>'+GRADES.map(function(x){ return '<option'+(k.grade===x?' selected':'')+'>'+x+'</option>' }).join('');
+    var b=(k.birth||'').replace(/-/g,'');
+    return '<div class="card kid" data-id="'+esc(k.id||'')+'" data-lock="'+(lock?1:0)+'" style="margin-top:14px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center"><b class="kt">자녀 '+(i+1)+'</b>'+(lock?'<span style="font-size:13px;color:#2E7D52">승인됨 · 휴대폰만 고칠 수 있어요</span>':'<button type="button" class="kdel" style="border:0;background:none;color:#8C3A22;font-size:14px;font-family:inherit">빼기</button>')+'</div>'+
+      '<label class="f">이름<input class="kn" autocomplete="off" value="'+esc(k.name||'')+'"'+(lock?' disabled':'')+'></label>'+
+      '<label class="f">생년월일 <span style="color:#8A8290">(8자리 숫자)</span><input class="kb" inputmode="numeric" maxlength="8" placeholder="20170811" value="'+esc(b)+'"'+(lock?' disabled':'')+'></label>'+
+      '<label class="f">학년 <span style="color:#8A8290">(지금 학년)</span><select class="kg"'+(lock?' disabled':'')+'>'+g+'</select></label>'+
+      '<label class="f">학교(유치원)<input class="ks" autocomplete="off" value="'+esc(k.school||'')+'"'+(lock?' disabled':'')+'></label>'+
+      '<label class="f">자녀 휴대폰 번호 <span style="color:#8A8290">(있으면 · 지각·결석 시 바로 연락)</span><input class="kp" inputmode="numeric" placeholder="01012345678" value="'+esc(k.student_phone||'')+'"></label></div>';
+  }
+  function form(p,nick,preview,kids){
+    kids=(kids&&kids.length)?kids:[{}];
+    var again=!!(kids[0]&&kids[0].id);
+    out.innerHTML='<h1>'+nick+'님, '+(again?'자녀 정보':'반갑습니다')+'</h1><p class="lead">'+(again?'자녀를 더하거나 승인 전 정보를 고칠 수 있습니다.<br>새로 더한 자녀는 원장님 확인 뒤 열립니다.':'한 번만 입력하면 됩니다.<br>자녀가 여럿이면 아래 「자녀 더하기」를 눌러 주세요.')+'</p>'+
+      '<label class="f">학부모 휴대폰 번호<input id="ph" inputmode="numeric" autocomplete="tel" placeholder="01012345678" value="'+esc(p.phone||'')+'"></label>'+
+      '<div id="kidl">'+kids.map(kidBlock).join('')+'</div>'+
+      '<button class="ghost" id="kadd" type="button">＋ 자녀 더하기</button>'+
+      '<label class="chk"><input type="checkbox" id="ag"><span>저는 위 자녀의 법정대리인(보호자)이며, 자녀의 이름·생년월일·학년·학교·휴대폰 번호를 학원의 재원생 확인, 수업 정보 제공, 지각·결석 시 연락에 쓰는 것에 동의합니다. <a href="privacy.html">개인정보처리방침</a></span></label>'+
+      '<button class="primary" id="save" type="button">저장하고 승인 요청하기</button>'+(preview?'<button class="ghost" id="back" type="button">원장님 화면으로 돌아가기</button>':(again?'<button class="ghost" id="back" type="button">돌아가기</button>':logoutBtn()));
+    var back=function(){ shown=false; sb.auth.getUser().then(function(u){ show(u.data.user) }) };
+    if(preview){ out.insertAdjacentHTML('afterbegin','<div class="err" style="background:#FBF4E2;color:#7A5A12;border-color:#E8D5A0">미리보기입니다. 저장되지 않으니 마음껏 눌러 보세요.</div>'); document.getElementById('back').addEventListener('click',back) }
+    else if(again) document.getElementById('back').addEventListener('click',back); else bindLogout();
+    var list=document.getElementById('kidl');
+    var renum=function(){ var ks=list.querySelectorAll('.kid'); ks.forEach(function(el,i){ el.querySelector('.kt').textContent='자녀 '+(i+1) }); document.getElementById('kadd').style.display=ks.length>=5?'none':'block' };
+    list.addEventListener('click',function(e){ if(e.target.classList.contains('kdel')){ if(list.querySelectorAll('.kid').length<=1) return err('자녀는 한 명 이상 있어야 합니다.'); e.target.closest('.kid').remove(); renum() } });
+    document.getElementById('kadd').addEventListener('click',function(){ list.insertAdjacentHTML('beforeend',kidBlock({},list.querySelectorAll('.kid').length)); renum() });
+    renum();
     document.getElementById('save').addEventListener('click',function(){
-      var ph=document.getElementById('ph').value.replace(/\D/g,''), cn=document.getElementById('cn').value.trim(), cg=document.getElementById('cg').value, cs=document.getElementById('cs').value.trim(), cb=document.getElementById('cb').value.replace(/\D/g,''), sp=document.getElementById('sp').value.replace(/\D/g,'');
+      var ph=document.getElementById('ph').value.replace(/\D/g,''), items=[], bad='';
       msg.innerHTML='';
-      if(!/^01\d{8,9}$/.test(ph)) return err('휴대폰 번호를 숫자만 정확히 적어 주세요.');
-      if(!cn||!cg||!cs) return err('자녀 이름, 학년, 학교를 모두 적어 주세요.');
-      if(!okBirth(cb)) return err('자녀 생년월일을 8자리 숫자로 정확히 적어 주세요. 예: 20170811');
-      if(sp&&!/^01\d{8,9}$/.test(sp)) return err('자녀 휴대폰 번호를 숫자만 정확히 적어 주세요. 없으면 비워 두세요.');
+      if(!/^01\d{8,9}$/.test(ph)) return err('학부모 휴대폰 번호를 숫자만 정확히 적어 주세요.');
+      list.querySelectorAll('.kid').forEach(function(el,i){
+        if(bad) return;
+        var n=el.querySelector('.kn').value.trim(), b=el.querySelector('.kb').value.replace(/\D/g,''), g=el.querySelector('.kg').value, sc=el.querySelector('.ks').value.trim(), sp=el.querySelector('.kp').value.replace(/\D/g,'');
+        var who='자녀 '+(i+1)+': ';
+        if(!n||!g||!sc) bad=who+'이름, 학년, 학교를 모두 적어 주세요.';
+        else if(!okBirth(b)) bad=who+'생년월일을 8자리 숫자로 정확히 적어 주세요. 예: 20170811';
+        else if(sp&&!/^01\d{8,9}$/.test(sp)) bad=who+'휴대폰 번호를 숫자만 정확히 적어 주세요. 없으면 비워 두세요.';
+        items.push({id:el.getAttribute('data-id')||null,name:n,grade:g,school:sc,birth:b.slice(0,4)+'-'+b.slice(4,6)+'-'+b.slice(6),student_phone:sp||null});
+      });
+      if(bad) return err(bad);
       if(!document.getElementById('ag').checked) return err('보호자 동의에 체크해 주세요.');
-      if(preview){ msg.innerHTML='<div class="err" style="background:#EAF5EE;color:#2F6B4A;border-color:#BFDCC9">입력 확인 완료. 실제 학부모라면 여기서 저장되고 「승인 대기」 화면으로 넘어갑니다.</div>'; return }
-      this.disabled=true;
-      sb.from('profiles').update({phone:ph,child_name:cn,child_grade:cg,child_school:cs,child_birth:cb.slice(0,4)+'-'+cb.slice(4,6)+'-'+cb.slice(6),student_phone:sp||null,guardian_consent_at:new Date().toISOString()}).eq('id',p.id).then(function(r){
-        if(r.error){ document.getElementById('save').disabled=false; return err('저장하지 못했습니다. 다시 눌러 주세요.') }
-        shown=false; sb.auth.getUser().then(function(u){ show(u.data.user) });
+      if(preview){ msg.innerHTML='<div class="err" style="background:#EAF5EE;color:#2F6B4A;border-color:#BFDCC9">입력 확인 완료 (자녀 '+items.length+'명). 실제 학부모라면 여기서 저장되고 「승인 대기」 화면으로 넘어갑니다.</div>'; return }
+      var btn=this; btn.disabled=true;
+      sb.rpc('save_my_children',{p_phone:ph,p_items:items}).then(function(r){
+        if(r.error){ btn.disabled=false; return err(/5명/.test(r.error.message)?'자녀는 5명까지 적을 수 있습니다.':'저장하지 못했습니다. 다시 눌러 주세요.') }
+        back();
       });
     });
   }
@@ -226,16 +258,17 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
   }
   function childCard(){
     var box=document.getElementById('child'); if(!box) return;
-    sb.rpc('my_child').then(function(r){
-      var c=r.data; if(r.error||!c){ return }
-      var h='<div class="card" style="border-color:#D9CFE0;background:#FBF8FC"><div style="font-size:13px;color:#8A8290;font-weight:700;letter-spacing:.04em">우리 아이 수업</div>'+
-        '<div style="font-family:\'Noto Serif KR\',serif;font-size:24px;font-weight:600;margin:6px 0 2px">'+esc(c.name||'')+'</div>'+
-        '<div style="font-size:14px;color:#5E5866">원생번호 '+esc(c.solomon_no||'-')+(c.grade?' · '+esc(c.grade):'')+(c.status&&c.status!=='재원'?' · '+esc(c.status):'')+'</div>';
-      if(!c.linked){ h+='<p style="margin:14px 0 0;font-size:14px;line-height:1.7;color:#5E5866">학원 원생 명부와 연결되면 수업 정보가 여기에 나옵니다.</p>' }
-      else if(!c.classes||!c.classes.length){ h+='<p style="margin:14px 0 0;font-size:14px;color:#5E5866">배정된 반 정보를 준비하고 있습니다.</p>' }
-      else { h+='<div style="margin-top:14px">'+c.classes.map(function(x){ return '<div class="row"><span>'+prettyClass(x.name)+'</span><span>'+esc(x.teacher||'')+' 선생님</span></div>' }).join('')+'</div>' }
-      h+='<div style="margin-top:14px;font-size:13px;color:#8A8290">출결 기록은 곧 이곳에서 보실 수 있습니다.</div></div>';
-      box.innerHTML=h;
+    sb.rpc('my_children').then(function(r){
+      var list=r.data; if(r.error||!list||!list.length){ return }
+      box.innerHTML=list.map(function(c){
+        var h='<div class="card" style="border-color:#D9CFE0;background:#FBF8FC"><div style="font-size:13px;color:#8A8290;font-weight:700;letter-spacing:.04em">우리 아이 수업</div>'+
+          '<div style="font-family:\'Noto Serif KR\',serif;font-size:24px;font-weight:600;margin:6px 0 2px">'+esc(c.name||'')+'</div>'+
+          '<div style="font-size:14px;color:#5E5866">원생번호 '+esc(c.solomon_no||'-')+(c.grade?' · '+esc(c.grade):'')+(c.status&&c.status!=='재원'?' · '+esc(c.status):'')+'</div>';
+        if(!c.linked){ h+='<p style="margin:14px 0 0;font-size:14px;line-height:1.7;color:#5E5866">학원 원생 명부와 연결되면 수업 정보가 여기에 나옵니다.</p>' }
+        else if(!c.classes||!c.classes.length){ h+='<p style="margin:14px 0 0;font-size:14px;color:#5E5866">배정된 반 정보를 준비하고 있습니다.</p>' }
+        else { h+='<div style="margin-top:14px">'+c.classes.map(function(x){ return '<div class="row"><span>'+prettyClass(x.name)+'</span><span>'+esc(x.teacher||'')+' 선생님</span></div>' }).join('')+'</div>' }
+        return h+'<div style="margin-top:14px;font-size:13px;color:#8A8290">출결 기록은 곧 이곳에서 보실 수 있습니다.</div></div>';
+      }).join('');
     });
   }
   function teacherForm(p,nick){
@@ -283,23 +316,28 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
   var myId='';
   function admin(){
     var box=document.getElementById('admin'); box.setAttribute('data-me',myId);
-    Promise.all([sb.from('profiles').select('*').order('created_at',{ascending:false}), sb.rpc('admin_member_matches')]).then(function(rr){
-      var r=rr[0], mm={}; ((rr[1]&&!rr[1].error&&rr[1].data)||[]).forEach(function(x){ mm[x.profile_id]=x });
+    Promise.all([sb.from('profiles').select('*').order('created_at',{ascending:false}), sb.rpc('admin_member_matches'), sb.from('children').select('*').order('created_at')]).then(function(rr){
+      var r=rr[0], mm={}, kidsOf={}; ((rr[1]&&!rr[1].error&&rr[1].data)||[]).forEach(function(x){ mm[x.child_id]=x });
+      ((rr[2]&&rr[2].data)||[]).forEach(function(k){ (kidsOf[k.parent_id]=kidsOf[k.parent_id]||[]).push(k) });
       if(r.error) return;
-      var matchOf=function(m){
-        var x=mm[m.id];
-        if(x) return {ok:true, why:'메이크에듀 원생과 연결됨 · '+esc(x.me_name)+' '+esc(x.me_school||'')+' '+esc(x.me_grade||'')};
-        return {why: rr[1]&&rr[1].error ? '메이크에듀 자료 준비 전 — 승인하면 번호가 먼저 붙고, 자료가 들어오면 자동 연결됩니다' : '메이크에듀에 아직 없음(신규) — 승인하면 번호가 붙고, 메이크에듀에 등록되면 자동 연결됩니다'};
+      var fmt=function(t){ return esc((t||'').replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3')) };
+      var why=function(k){
+        var x=mm[k.id];
+        if(x) return '<span style="color:#2E7D52">✓ 메이크에듀 원생과 연결됨 · '+esc(x.me_name)+' '+esc(x.me_school||'')+' '+esc(x.me_grade||'')+'</span>';
+        return '<span style="color:#8C3A22">'+(rr[1]&&rr[1].error?'메이크에듀 자료 준비 전 — 승인하면 번호가 먼저 붙고, 자료가 들어오면 자동 연결':'메이크에듀에 아직 없음(신규) — 승인하면 번호가 붙고, 등록되면 자동 연결')+'</span>';
       };
       var me=(box.getAttribute('data-me')||''); var rows=(r.data||[]).filter(function(m){return m.id!==me});
-      box.innerHTML='<h2>원장님 화면 · 학부모 회원 '+rows.length+'명</h2>'+(rows.length?'':'<p class="lead" style="text-align:left">아직 가입한 학부모가 없습니다.</p>')+'<p class="lead" style="text-align:left;margin:0">승인을 누르면 원생번호(JS-0001부터)가 겹치지 않게 자동으로 붙고, 메이크에듀 원생과도 자동으로 연결됩니다.</p>'+
+      box.innerHTML='<h2>원장님 화면 · 회원 '+rows.length+'명</h2>'+(rows.length?'':'<p class="lead" style="text-align:left">아직 가입한 학부모가 없습니다.</p>')+'<p class="lead" style="text-align:left;margin:0">승인을 누르면 자녀마다 원생번호가 겹치지 않게 자동으로 붙고, 메이크에듀 원생과도 자동으로 연결됩니다.</p>'+
         rows.map(function(m){
           var st={pending:'승인 대기',approved:'승인',rejected:'반려'}[m.status];
-          if(m.role==='teacher') return '<div class="m"><span class="st '+m.status+'">강사 · '+st+'</span><b>'+esc(m.teacher_name||m.nickname||'')+' 선생님</b> '+esc(m.teacher_subject||'')+'<br>'+esc((m.phone||'').replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3'))+
+          if(m.role==='teacher') return '<div class="m"><span class="st '+m.status+'">강사 · '+st+'</span><b>'+esc(m.teacher_name||m.nickname||'')+' 선생님</b> '+esc(m.teacher_subject||'')+'<br>'+fmt(m.phone)+
             (m.status!=='approved'?'<div class="act"><button class="okb" data-ok="'+m.id+'" style="flex:1">강사로 승인</button><button class="nob" data-no="'+m.id+'">반려</button></div>':'')+'</div>';
-          return '<div class="m"><span class="st '+m.status+'">'+st+'</span><b>'+esc(m.child_name||'(미입력)')+'</b> '+esc(m.child_grade||'')+' · '+esc(m.child_school||'')+(m.child_birth?' · '+esc(m.child_birth.replace(/-/g,'')):'')+
-            '<br>보호자 '+esc(m.nickname||'')+' · '+esc((m.phone||'번호 미입력').replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3'))+(m.student_phone?'<br>학생 '+esc(m.student_phone.replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3')):'')+(m.student_no?' · '+esc(m.student_no):'')+
-            (m.status!=='approved'&&m.phone?(function(){ var mt=matchOf(m); return '<div style="margin-top:8px;font-size:13px;color:'+(mt.ok?'#2E7D52':'#8C3A22')+'">'+(mt.ok?'✓ ':'')+mt.why+'</div><div class="act"><button class="okb" data-ok="'+m.id+'" style="flex:1">승인 (원생번호 자동 부여)</button><button class="nob" data-no="'+m.id+'">반려</button></div>' })():'')+'</div>';
+          var ks=kidsOf[m.id]||[], wait=ks.filter(function(k){return k.status!=='approved'});
+          var KST={pending:'대기',approved:'승인',rejected:'반려'};
+          var badge=m.status==='approved'&&wait.length?'자녀 추가 대기':st;
+          return '<div class="m"><span class="st '+(wait.length?'pending':m.status)+'">'+badge+'</span><b>보호자 '+esc(m.nickname||'')+'</b> · '+(m.phone?fmt(m.phone):'번호 미입력')+' · 자녀 '+ks.length+'명'+
+            ks.map(function(k){ return '<div style="margin-top:8px;padding-top:8px;border-top:1px dashed #E4DEE8"><b>'+esc(k.name)+'</b> '+esc(k.grade||'')+' · '+esc(k.school||'')+(k.birth?' · '+esc(k.birth.replace(/-/g,'')):'')+' · '+KST[k.status]+(k.student_no?' · '+esc(k.student_no):'')+(k.student_phone?'<br>학생 '+fmt(k.student_phone):'')+(k.status!=='approved'?'<div style="font-size:13px;margin-top:4px">'+why(k)+'</div>':'')+'</div>' }).join('')+
+            (wait.length&&m.phone?'<div class="act"><button class="okb" data-ok="'+m.id+'" style="flex:1">승인 (자녀 '+wait.length+'명 원생번호 자동 부여)</button>'+(m.status!=='approved'?'<button class="nob" data-no="'+m.id+'">반려</button>':'')+'</div>':'')+'</div>';
         }).join('');
       box.onclick=function(e){
         var ok=e.target.getAttribute('data-ok'), no=e.target.getAttribute('data-no');
