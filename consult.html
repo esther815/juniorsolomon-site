@@ -104,7 +104,7 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 <sc-if value="{{ noSlots }}" hint-placeholder-val="{{ false }}">
 <p style="margin: 24px 0 0; padding: 28px; border-radius: 18px; background: #FAF8FB; font-size: 17px; line-height: 1.8">지금 열린 반이 없습니다. 아래 버튼으로 상담을 남겨 주시면 새 반 개설 때 먼저 연락드립니다.</p>
 </sc-if>
-<p style="margin: 20px 0 0; font-size: 14px; line-height: 1.8; color: #6E6676">2027학년도(3월 진급 후) 학년 기준입니다. 반 배정은 상담 때 아이의 읽기 수준을 보고 함께 정합니다.</p>
+<p style="margin: 20px 0 0; font-size: 14px; line-height: 1.8; color: #6E6676">{{ gradeNote }} 반 배정은 상담 때 아이의 읽기 수준을 보고 함께 정합니다.</p>
 
 <sc-if value="{{ showExtras }}" hint-placeholder-val="{{ true }}">
 <div style="margin-top: 40px; padding: 26px 24px; border-radius: 18px; border: 1px solid #EEEAF0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
@@ -190,8 +190,8 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
 <div style="margin-top: 20px; padding: 26px 20px; border-radius: 20px; background: #F6F1F8; text-align: center">
 <p style="margin: 0; font-size: 15px; color: #5E5866">{{ doneKind }}</p>
-<p style="margin: 8px 0 0; font-family: 'Noto Serif KR', serif; font-size: 20px; font-weight: 700; color: #5F3D66; line-height: 1.5">마지막 한 단계가 남았습니다</p>
-<p style="margin: 12px 0 0; font-size: 15px; line-height: 1.7; color: #3A3440">아래 노란 버튼을 눌러 카톡으로 보내 주시면<br>접수가 끝나고, 데스크에서 접수 순번과 함께 답을 드립니다.</p>
+<p style="margin: 8px 0 0; font-family: 'Noto Serif KR', serif; font-size: 20px; font-weight: 700; color: #5F3D66; line-height: 1.5">{{ doneTitle }}</p>
+<p style="margin: 12px 0 0; font-size: 15px; line-height: 1.7; color: #3A3440">{{ doneBody }}</p>
 </div>
 <a href="https://pf.kakao.com/_xadGxnxb/chat" target="_blank" rel="noopener" onClick="{{ copyMsg }}" style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 16px; min-height: 56px; border-radius: 999px; background: #FEE500; color: #191919; text-decoration: none; font-size: 17px; font-weight: 700"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24"><path fill="#191919" d="M12 3C6.5 3 2 6.6 2 11c0 2.8 1.9 5.3 4.7 6.7l-1 3.7c-.1.3.3.6.6.4l4.4-2.9c.4 0 .9.1 1.3.1 5.5 0 10-3.6 10-8S17.5 3 12 3z"/></svg>카톡으로 보내고 접수 마치기</a>
 <p style="margin: 10px 0 0; font-size: 13px; line-height: 1.6; color: #6E6676; text-align: center">신청 내용이 복사됩니다. 채팅창에 길게 눌러 붙여 넣고 보내 주세요.</p>
@@ -228,7 +228,7 @@ class Component extends DCLogic {
     // 반별 자리 단계는 메이크에듀 자료로 자동 계산되어 서버에서 단계만 받아 옵니다(인원 숫자는 오지 않음).
     var CAP = 8;
     var seats = self.state.seats;
-    // 2027학년도(3월 진급 후) 학년 기준. 출처: 강사별 수업 시간표 v1(2611) 3월 학년 열 + 원장님 메모(2026-11-18)
+    // 아래 g 값은 2027학년도(3월 진급 후) 기준으로 적고, 화면에서는 날짜에 맞춰 자동 변환. 출처: 강사별 수업 시간표 v1(2611) 3월 학년 열 + 원장님 메모(2026-11-18)
     // g: -2=5세, 0=7세, 1~6=초1~초6, 7=중1
     var classes = [
       { d: '월', t: '14:30–16:30', g: [4], k: 'mon-1430-jang', dj: 1 },
@@ -261,12 +261,20 @@ class Component extends DCLogic {
       // 확정 전 비공개: { d: '월', t: '19:00–21:00', g: [], gw: 1, dj: 1, n: 0, nw: 1, nwLabel: 'NEW 신규 개설' },
       { d: '토', t: '09:00–11:00', g: [], gw: 1, k: 'sat-0900-ha' }
     ];
+    // 학년 기준: 2027년 2월 28일까지는 2026학년도(현재 학년), 3월 1일부터 2027학년도(진급 학년)로 자동 전환
+    var kstNow = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+    var SHIFT = kstNow < '2027-03-01' ? -1 : 0;
+    var GYEAR = SHIFT ? 2026 : 2027;
+    classes.forEach(function (c) { if (!c.hg && c.g) c.g = c.g.map(function (v) { return v + SHIFT; }); });
+    var ageNums = [];
+    classes.forEach(function (c) { (c.g || []).forEach(function (v) { if (v <= 0 && ageNums.indexOf(v) < 0) ageNums.push(v); }); });
+    ageNums.sort(function (x, y) { return x - y; });
     var dayOrder = { '월': 1, '화': 2, '수': 3, '목': 4, '금': 5, '토': 6 };
-    var gradeList = [
-      { id: 'gk5', label: '5세', num: -2 }, { id: 'g0', label: '7세', num: 0 }, { id: 'g1', label: '초1', num: 1 }, { id: 'g2', label: '초2', num: 2 },
+    var gradeList = ageNums.map(function (n) { return { id: 'a' + n, label: (7 + n) + '세', num: n }; }).concat([
+      { id: 'g1', label: '초1', num: 1 }, { id: 'g2', label: '초2', num: 2 },
       { id: 'g3', label: '초3', num: 3 }, { id: 'g4', label: '초4', num: 4 }, { id: 'g5', label: '초5', num: 5 },
       { id: 'g6', label: '초6', num: 6 }, { id: 'mid', label: '중·고등', num: 7 }, { id: 'dir', label: '원장 직강' }, { id: 'gw', label: '고원재' }, { id: 'sp', label: '겨울 특강' }
-    ];
+    ]);
     var cur = null;
     gradeList.forEach(function (x) { if (x.id === self.state.grade) cur = x; });
     var setPick = function (p) { self.setState({ pick: p, copied: false }); };
@@ -300,7 +308,7 @@ class Component extends DCLogic {
           var key = cur.id + c.d + c.t;
           var on = self.state.pick && self.state.pick.key === key;
           var note = c.hg ? '천지인 한글 · 한글을 처음 배우는 친구 · 학년 무관 · 1시간 수업에 독서·자기주도 시간이 함께 들어 있습니다' : c.plan ? '현재 반 이동이 확정되면 엽니다' : c.open ? '학년 무관 신규팀 · 먼저 신청한 학년으로 반을 엽니다' : (c.cap ? '정원 ' + c.cap + '명 소수반' : '');
-          var gLabel = function (arr) { var m = { '-2': '5세', '0': '7세', '7': '중1' }; return arr.map(function (n) { return m[n] || ('초' + n); }).join('·'); };
+          var gLabel = function (arr) { return arr.map(function (n) { return n <= 0 ? (7 + n) + '세' : (n >= 7 ? '중1' : '초' + n); }).join('·'); };
           var course = c.gw ? '고원재 · 무학년' : (cur.id === 'dir' ? gLabel(c.g) + ' 하브루타 정규반' : '');
           slots.push({ isNew: !!c.nw, newLabel: c.nwLabel || 'NEW 신규팀', isDir: !!c.dj, hasCourse: !!course, course: course, hasNote: !!note, note: note, day: c.d, time: c.t, status: c.plan ? '개설 예정' : (c.nw && st.s === '등록 가능' ? '신규 모집' : st.s), stColor: st.c, on: on ? 'true' : 'false',
             bg: on ? '#F6F1F8' : '#FFFFFF', bd: on ? '#5F3D66' : '#EEEAF0',
@@ -331,7 +339,9 @@ class Component extends DCLogic {
     var fallback = cur && cur.id === 'sp' ? '[겨울 특강] 상담' : (cur && cur.id === 'mid' ? '중·고등 소포스에듀' : (cur && cur.id === 'dir' ? '원장 직강 수업' : (cur && cur.id === 'gw' ? '고원재(무학년)' : gl + ' 하브루타 정규반')));
     var text = pick ? pick.text : fallback;
     var message = text + (pick && pick.wait ? ' 대기 상담 원합니다.' : ' 상담 원합니다.');
+    window.JS_CONSULT_WISH = pick ? text : '';
     return {
+      gradeNote: GYEAR + '학년도 학년 기준입니다' + (SHIFT ? ' (2027년 3월 1일부터 진급 학년으로 바뀝니다).' : '.'),
       grades: grades,
       gradeLabel: gl,
       isRegular: !!(cur && ((typeof cur.num === 'number' && cur.id !== 'mid') || cur.id === 'dir' || cur.id === 'gw')),
@@ -368,6 +378,8 @@ class Component extends DCLogic {
       submitLabel: pick && pick.wait ? '대기 신청하기' : '상담 신청하기',
       doneKind: self.state.done ? self.state.done.kind : '',
       doneNum: self.state.done ? self.state.done.num : '',
+      doneTitle: self.state.done && self.state.done.sent === 'ok' ? '신청이 접수되었습니다' : (self.state.done && !self.state.done.sent ? '접수하는 중입니다…' : '마지막 한 단계가 남았습니다'),
+      doneBody: self.state.done && self.state.done.sent === 'ok' ? '원장님께 바로 전달되었습니다. 곧 연락드리겠습니다. 카톡으로 먼저 이야기 나누고 싶으시면 아래 노란 버튼을 눌러 주세요.' : '아래 노란 버튼을 눌러 카톡으로 보내 주시면 접수가 끝나고, 데스크에서 답을 드립니다.',
       openSheet: function () { self.setState({ sheet: true, done: null, err: '' }); },
       closeSheet: function () { self.setState({ sheet: false, done: null, err: '' }); },
       submit: function () {
@@ -385,7 +397,10 @@ class Component extends DCLogic {
         var hhmm = (now.getMonth() + 1) + '/' + now.getDate() + ' ' + ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
         var masked = phone.replace(/(\d{3})-?(\d{3,4})-?(\d{4})/, '$1-****-$3');
         var log = self.state.log.concat([{ key: key, line: hhmm + ' · ' + text + ' · ' + kind + ' ' + num + '번 · ' + name + ' · ' + masked }]);
-        self.setState({ log: log, err: '', done: { kind: kind, num: num, msg: '[홈페이지 ' + kind + '] ' + text + ' / 보호자 ' + name + ' / ' + phone + ' / 상담 부탁드립니다.' } });
+        var done = { kind: kind, num: num, sent: '', msg: '[홈페이지 ' + kind + '] ' + text + ' / 보호자 ' + name + ' / ' + phone + ' / 상담 부탁드립니다.' };
+        self.setState({ log: log, err: '', done: done });
+        var fin = function (r) { if (self.state.done === done) { done = Object.assign({}, done, { sent: (r === 'ok' || r === 'dup') ? 'ok' : 'fail' }); self.setState({ done: done }); } };
+        if (window.jsConsult) window.jsConsult(wait ? 'wait' : 'form', text, name, phone).then(fin); else fin('fail');
       },
       copyMsg: function () {
         try { if (navigator.clipboard && self.state.done) { navigator.clipboard.writeText(self.state.done.msg); } } catch (e) {}
@@ -396,5 +411,6 @@ class Component extends DCLogic {
   }
 }
 </script>
+<script src="assets/consult-ping.js" defer></script>
 </body>
 </html>
