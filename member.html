@@ -202,19 +202,25 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
   var myId='';
   function admin(){
     var box=document.getElementById('admin'); box.setAttribute('data-me',myId);
-    sb.from('profiles').select('*').order('created_at',{ascending:false}).then(function(r){
+    Promise.all([sb.from('profiles').select('*').order('created_at',{ascending:false}), sb.rpc('admin_member_matches')]).then(function(rr){
+      var r=rr[0], mm={}; ((rr[1]&&!rr[1].error&&rr[1].data)||[]).forEach(function(x){ mm[x.profile_id]=x });
       if(r.error) return;
+      var matchOf=function(m){
+        var x=mm[m.id];
+        if(x) return {ok:true, why:'메이크에듀 원생과 연결됨 · '+esc(x.me_name)+' '+esc(x.me_school||'')+' '+esc(x.me_grade||'')};
+        return {why: rr[1]&&rr[1].error ? '메이크에듀 자료 준비 전 — 승인하면 번호가 먼저 붙고, 자료가 들어오면 자동 연결됩니다' : '메이크에듀에 아직 없음(신규) — 승인하면 번호가 붙고, 메이크에듀에 등록되면 자동 연결됩니다'};
+      };
       var me=(box.getAttribute('data-me')||''); var rows=(r.data||[]).filter(function(m){return m.id!==me});
-      box.innerHTML='<h2>원장님 화면 · 학부모 회원 '+rows.length+'명</h2>'+(rows.length?'':'<p class="lead" style="text-align:left">아직 가입한 학부모가 없습니다.</p>')+'<p class="lead" style="text-align:left;margin:0">승인 대기 회원을 메이크에듀에서 찾아 「원생고유번호」(5자리)를 넣고 승인하세요.</p>'+
+      box.innerHTML='<h2>원장님 화면 · 학부모 회원 '+rows.length+'명</h2>'+(rows.length?'':'<p class="lead" style="text-align:left">아직 가입한 학부모가 없습니다.</p>')+'<p class="lead" style="text-align:left;margin:0">승인을 누르면 원생번호(JS-0001부터)가 겹치지 않게 자동으로 붙고, 메이크에듀 원생과도 자동으로 연결됩니다.</p>'+
         rows.map(function(m){
           var st={pending:'승인 대기',approved:'승인',rejected:'반려'}[m.status];
           return '<div class="m"><span class="st '+m.status+'">'+st+'</span><b>'+esc(m.child_name||'(미입력)')+'</b> '+esc(m.child_grade||'')+' · '+esc(m.child_school||'')+(m.child_birth?' · '+esc(m.child_birth.replace(/-/g,'')):'')+
             '<br>보호자 '+esc(m.nickname||'')+' · '+esc((m.phone||'번호 미입력').replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3'))+(m.student_phone?'<br>학생 '+esc(m.student_phone.replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3')):'')+(m.student_no?' · '+esc(m.student_no):'')+
-            (m.status!=='approved'&&m.phone?'<div class="act"><input placeholder="메이크에듀 원생번호 (예: 00161)" inputmode="numeric" data-sno="'+m.id+'"><button class="okb" data-ok="'+m.id+'">승인</button><button class="nob" data-no="'+m.id+'">반려</button></div>':'')+'</div>';
+            (m.status!=='approved'&&m.phone?(function(){ var mt=matchOf(m); return '<div style="margin-top:8px;font-size:13px;color:'+(mt.ok?'#2E7D52':'#8C3A22')+'">'+(mt.ok?'✓ ':'')+mt.why+'</div><div class="act"><button class="okb" data-ok="'+m.id+'" style="flex:1">승인 (원생번호 자동 부여)</button><button class="nob" data-no="'+m.id+'">반려</button></div>' })():'')+'</div>';
         }).join('');
       box.onclick=function(e){
         var ok=e.target.getAttribute('data-ok'), no=e.target.getAttribute('data-no');
-        if(ok){ var s=box.querySelector('[data-sno="'+ok+'"]').value; sb.rpc('approve_member',{target:ok,sno:s}).then(admin) }
+        if(ok){ e.target.disabled=true; sb.rpc('approve_member',{target:ok}).then(function(res){ if(res.error){ e.target.disabled=false; alert('승인하지 못했습니다. 다시 눌러 주세요.'); return } admin() }) }
         if(no&&confirm('반려할까요?')){ sb.rpc('reject_member',{target:no}).then(admin) }
       };
     });
