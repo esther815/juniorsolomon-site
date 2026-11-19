@@ -233,6 +233,7 @@ class Component extends DCLogic {
       { d: '금', t: '15:00–17:00', g: [1], n: 3 },
       { d: '토', t: '11:00–13:00', g: [3], n: 8, dj: 1 },
       { d: '토', t: '11:00–13:00', g: [6, 7], n: 6 },
+      { d: '토', t: '09:00–11:00', g: [1], n: 8 },
       // 신규팀 (손수영 선생님)
       { d: '화', t: '15:00–16:00', g: [-2], n: 0, cap: 4, nw: 1 },
       { d: '월', t: '17:00–18:30', g: [0], n: 0, nw: 1 },
@@ -242,7 +243,7 @@ class Component extends DCLogic {
       // 금 17:00 초2반이 목요일로 옮기면 7세반 개설
       { d: '금', t: '17:00–18:30', g: [0], n: 0, nw: 1, plan: 1 },
       // 고원재: 무학년 세계 명작 읽기·글쓰기
-      { d: '월', t: '17:00–19:00', g: [], gw: 1, dj: 1, n: null },
+      // 확정 후 공개: { d: '월', t: '17:00–19:00', g: [], gw: 1, dj: 1, n: null },
       // 확정 전 비공개: { d: '월', t: '19:00–21:00', g: [], gw: 1, dj: 1, n: 0, nw: 1, nwLabel: 'NEW 신규 개설' },
       { d: '토', t: '09:00–11:00', g: [], gw: 1, n: 1 }
     ];
@@ -263,7 +264,7 @@ class Component extends DCLogic {
     var statusOf = function (n, cap) {
       cap = cap || CAP;
       if (n >= cap) return { s: '대기 접수', c: '#9A93A0' };
-      if (n >= cap - 2 && n > 0) return { s: '마감 임박', c: '#C58A2B' };
+      if (n >= Math.ceil(cap * 0.6)) return { s: '마감 임박', c: '#C58A2B' };
       return { s: '등록 가능', c: '#3E8A62' };
     };
     var slots = [];
@@ -278,7 +279,7 @@ class Component extends DCLogic {
           var st = c.plan ? { s: '개설 예정', c: '#5F3D66' } : (c.n === null ? { s: '상담 시 안내', c: '#5F3D66' } : statusOf(c.n, c.cap));
           var key = cur.id + c.d + c.t;
           var on = self.state.pick && self.state.pick.key === key;
-          var note = c.hg ? '바른 한글 수업에 독서·자기주도 시간이 함께 들어 있습니다 · 국제반 친구, 한글을 더 다져야 하는 친구 · 학년 무관' : c.plan ? '현재 반 이동이 확정되면 엽니다' : c.open ? '학년 무관 신규팀 · 먼저 신청한 학년으로 반을 엽니다' : (c.cap ? '정원 ' + c.cap + '명 소수반' : '');
+          var note = c.hg ? '천지인 한글 · 한글을 처음 배우는 친구 · 학년 무관 · 1시간 수업에 독서·자기주도 시간이 함께 들어 있습니다' : c.plan ? '현재 반 이동이 확정되면 엽니다' : c.open ? '학년 무관 신규팀 · 먼저 신청한 학년으로 반을 엽니다' : (c.cap ? '정원 ' + c.cap + '명 소수반' : '');
           var gLabel = function (arr) { var m = { '-2': '5세', '0': '7세', '7': '중1' }; return arr.map(function (n) { return m[n] || ('초' + n); }).join('·'); };
           var course = c.gw ? '고원재 · 무학년' : (cur.id === 'dir' ? gLabel(c.g) + ' 하브루타 정규반' : '');
           slots.push({ isNew: !!c.nw, newLabel: c.nwLabel || 'NEW 신규팀', isDir: !!c.dj, hasCourse: !!course, course: course, hasNote: !!note, note: note, day: c.d, time: c.t, status: c.plan ? '개설 예정' : (c.nw && st.s === '등록 가능' ? '신규 모집' : st.s), stColor: st.c, on: on ? 'true' : 'false',
