@@ -263,8 +263,10 @@ class Component extends DCLogic {
     ];
     // 학년 기준: 2027년 2월 28일까지는 2026학년도(현재 학년), 3월 1일부터 2027학년도(진급 학년)로 자동 전환
     var kstNow = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
-    var SHIFT = kstNow < '2027-03-01' ? -1 : 0;
-    var GYEAR = SHIFT ? 2026 : 2027;
+    // 아래 classes 의 g 값은 2027학년도 기준. 해마다 3월 1일에 한 학년씩 자동으로 올라감
+    var kY = +kstNow.slice(0, 4), kM = +kstNow.slice(5, 7);
+    var GYEAR = kM >= 3 ? kY : kY - 1;
+    var SHIFT = GYEAR - 2027;
     classes.forEach(function (c) { if (!c.hg && c.g) c.g = c.g.map(function (v) { return v + SHIFT; }); });
     var ageNums = [];
     classes.forEach(function (c) { (c.g || []).forEach(function (v) { if (v <= 0 && ageNums.indexOf(v) < 0) ageNums.push(v); }); });
@@ -341,7 +343,7 @@ class Component extends DCLogic {
     var message = text + (pick && pick.wait ? ' 대기 상담 원합니다.' : ' 상담 원합니다.');
     window.JS_CONSULT_WISH = pick ? text : '';
     return {
-      gradeNote: GYEAR + '학년도 학년 기준입니다' + (SHIFT ? ' (2027년 3월 1일부터 진급 학년으로 바뀝니다).' : '.'),
+      gradeNote: GYEAR + '학년도 학년 기준입니다' + (kM < 3 ? ' (' + (GYEAR + 1) + '년 3월 1일부터 진급 학년으로 바뀝니다).' : '.'),
       grades: grades,
       gradeLabel: gl,
       isRegular: !!(cur && ((typeof cur.num === 'number' && cur.id !== 'mid') || cur.id === 'dir' || cur.id === 'gw')),
