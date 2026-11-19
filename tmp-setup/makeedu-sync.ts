@@ -14,7 +14,12 @@ const PATHS = {
 };
 
 const env = (k: string) => Deno.env.get(k) ?? "";
-const sb = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"));
+function serviceKey(): string {
+  if (env("SUPABASE_SERVICE_ROLE_KEY")) return env("SUPABASE_SERVICE_ROLE_KEY");
+  if (env("SUPABASE_SECRET_KEY")) return env("SUPABASE_SECRET_KEY");
+  try { const o = JSON.parse(env("SUPABASE_SECRET_KEYS") || "{}"); return String(Object.values(o)[0] ?? ""); } catch { return ""; }
+}
+const sb = createClient(env("SUPABASE_URL"), serviceKey(), { auth: { persistSession: false } });
 
 // 여러 이름 가운데 먼저 있는 칸의 값을 씁니다(문서 확인 전 대비).
 function pick(o: Record<string, unknown>, ...keys: string[]): string {
