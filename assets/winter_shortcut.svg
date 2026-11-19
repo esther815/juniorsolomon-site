@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 140" role="img" aria-label="방학 특강 질러가기">
+<defs><linearGradient id="gd" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#E9BE55"/><stop offset="1" stop-color="#C9962E"/></linearGradient></defs>
+<path d="M40 92 C40 22, 150 14, 160 52 C170 90, 280 84, 280 30" fill="none" stroke="#B9A9C2" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round"/>
+<path d="M44 96 L262 40" stroke="url(#gd)" stroke-width="7" stroke-linecap="round"/>
+<path d="M248 30 L276 37 L258 59 Z" fill="#C9962E"/>
+<circle cx="40" cy="96" r="9" fill="#5F3D66"/>
+<g fill="#5F3D66"><path d="M290 26 C291 31 293 33 298 34 C293 35 291 37 290 42 C289 37 287 35 282 34 C287 33 289 31 290 26Z"/></g>
+<g stroke="#8FA9C9" stroke-width="2" stroke-linecap="round"><g transform="translate(118 108)"><path d="M0 -8V8M-7 -4L7 4M-7 4L7 -4"/></g><g transform="translate(206 104) scale(.7)"><path d="M0 -8V8M-7 -4L7 4M-7 4L7 -4"/></g><g transform="translate(76 34) scale(.6)"><path d="M0 -8V8M-7 -4L7 4M-7 4L7 -4"/></g></g>
+<text x="160" y="132" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="15" letter-spacing="3" fill="#5F3D66">WINTER · 질러가기</text>
+</svg>

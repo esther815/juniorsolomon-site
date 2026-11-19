@@ -24,6 +24,11 @@ p{text-wrap:pretty}
 a{color:#5F3D66}a:hover{color:#3E2743}
 </style>
 <script src="dc-lite.js" defer></script>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#2B1233">
+<style>@media (hover:hover) and (pointer:fine){html,body{cursor:url("assets/cursor.svg") 3 2, auto}a,button,summary,label,[role="button"],.js-login{cursor:url("assets/cursor-link.svg") 16 16, pointer}}</style>
 </head>
 <body>
 <template id="dc-tpl">
@@ -63,7 +68,7 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 </div>
 <div style="margin-top: 56px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px">
 <sc-for list="{{ current }}" as="item" hint-placeholder-count="4">
-<button type="button" onClick="{{ item.open }}" aria-label="{{ item.title }} 포스터 보기" style="all: unset; cursor: pointer; display: flex; flex-direction: column; border: 1px solid #EEEAF0; border-radius: 20px; overflow: hidden; background: #FFFFFF">
+<button type="button" onClick="{{ item.open }}" aria-label="{{ item.title }} 포스터 보기" style="all: unset; cursor:url('assets/cursor-link.svg') 16 16, pointer; display: flex; flex-direction: column; border: 1px solid #EEEAF0; border-radius: 20px; overflow: hidden; background: #FFFFFF">
 <div style="position: relative; aspect-ratio: 210 / 297; background: #F6F3F7; overflow: hidden">
 <img src="{{ item.thumb }}" alt="" style="width: 100%; height: 100%; object-fit: cover; object-position: top; display: block">
 <span style="position: absolute; top: 14px; left: 14px; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; background: {{ item.badgeBg }}; color: {{ item.badgeColor }}">{{ item.badge }}</span>
@@ -138,7 +143,7 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 <div style="max-width: 760px; margin: 0 auto; padding: 32px 20px 48px">
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px">
 <p style="margin: 0; font-family: 'Noto Serif KR', serif; font-size: 22px; font-weight: 600; color: #FFFFFF">{{ selTitle }}</p>
-<button type="button" onClick="{{ close }}" aria-label="닫기" style="all: unset; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: #FFFFFF">
+<button type="button" onClick="{{ close }}" aria-label="닫기" style="all: unset; cursor:url('assets/cursor-link.svg') 16 16, pointer; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: #FFFFFF">
 <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1E1A22" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
 </button>
 </div>
@@ -152,7 +157,7 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 <img src="{{ selGuide }}" alt="{{ selTitle }} 수업 준비 안내. 반별 수업 시간, 세션별 첫 수업 날짜, 준비물" style="width: 100%; height: auto; display: block; border-radius: 8px; background: #FFFFFF">
 </sc-if>
 <div style="margin-top: 24px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center">
-<button type="button" onClick="{{ selGo }}" style="all: unset; cursor: pointer; display: inline-flex; align-items: center; min-height: 52px; padding: 0 32px; border-radius: 999px; background: #FEE500; color: #191919; font-size: 16px; font-weight: 700">{{ selCta }}</button>
+<button type="button" onClick="{{ selGo }}" style="all: unset; cursor:url('assets/cursor-link.svg') 16 16, pointer; display: inline-flex; align-items: center; min-height: 52px; padding: 0 32px; border-radius: 999px; background: #FEE500; color: #191919; font-size: 16px; font-weight: 700">{{ selCta }}</button>
 <a href="tel:027948123" style="display: inline-flex; align-items: center; min-height: 52px; padding: 0 32px; border-radius: 999px; border: 1px solid #B9A6C0; color: #FFFFFF; text-decoration: none; font-size: 16px">02-794-8123</a>
 <a href="sms:01032128123" style="display: inline-flex; align-items: center; min-height: 52px; padding: 0 28px; border-radius: 999px; border: 1px solid #B9A6C0; color: #FFFFFF; text-decoration: none; font-size: 16px">010-3212-8123 문자·카톡</a>
 </div>
@@ -178,7 +183,7 @@ class Component extends DCLogic {
     var specials = [
       { id: 'maum', title: '문학으로 마음여행', sub: '장화연 원장 직강 하브루타', period: '2027 겨울 · 1/11–2/26', deadline: '2026-12-24', end: '2027-02-26', posters: ['assets/dcb4db7c1b9ba97096b7767217a25911.jpg', 'assets/b2a64420c63d9c6c119a2d3d6b3ffafe.jpg'], guide: 'assets/8da441d4dc827fd6e8347646fafe95b4.jpg' },
       { id: 'lab', title: '생각의 실험실', sub: '장화연 원장 직강 비문학 사고력 · 초등 3–6학년', period: '2027 겨울 · 1/11–2/26', deadline: '2026-12-24', end: '2027-02-26', posters: ['assets/02b5641ea51b63ecc224680ccee75fe9.jpg', 'assets/a45f7301b153464d7f515eff664526ab.jpg'], guide: 'assets/4698cf8e4f7bb404ad73b833ca9e2697.jpg' },
-      { id: 'ocean', title: '리딩오션 겨울 무제한반', sub: '방학 동안 매일 읽는 집중 독서', period: '2027 겨울 · 1–2월', deadline: null, end: '2027-02-26', posters: ['assets/dc3435e2570ee55d68f38de69477dcfd.jpg'] },
+      { id: 'ocean', title: '리딩오션 겨울 무제한반', sub: '방학 동안 매일 읽는 집중 독서', period: '2027 겨울 · 1–2월', deadline: null, end: '2027-02-26', posters: ['assets/f0b017b788e77932a3de9cac94e6ee58.jpg', 'assets/dc3435e2570ee55d68f38de69477dcfd.jpg', 'assets/1e207de38a26d16cc76b89e44d7bd484.jpg'] },
       { id: 'sophos', title: '소포스 프라이빗', sub: '중고등 국어·수학 소수정예 코칭', period: '2027 겨울', deadline: '2026-12-30', end: '2027-02-26', posters: ['assets/ea1914603b99f184d13eca3d2b77aedf.jpg', 'assets/d3b8b140d3d1e4d8e132ee148bdcc67c.jpg'] }
     ];
     var self = this;
