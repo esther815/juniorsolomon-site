@@ -43,6 +43,13 @@ h1{font-family:'Noto Serif KR',serif;font-weight:600;font-size:28px;text-align:c
 .m .act button{min-height:40px;padding:0 14px;border-radius:8px;border:0;font-family:inherit;font-weight:700;cursor:pointer}
 .okb{background:#5F3D66;color:#fff}.nob{background:#F2EEF4;color:#5E5866}
 h2{font-family:'Noto Serif KR',serif;font-weight:600;font-size:20px;margin:36px 0 4px}
+.me h2{margin-top:36px}.me .row2{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #F1EDF3;font-size:14px}
+.me .row2 b{font-weight:600}.me .stg{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.stg.ok{background:#E6F3EC;color:#2E7D52}.stg.soon{background:#FBF1DE;color:#8A5A12}.stg.full{background:#EEEAF0;color:#5E5866}
+.me .alert{background:#FBEDE8;color:#8C3A22;border-radius:12px;padding:12px 14px;font-size:14px;margin-top:10px;line-height:1.6}
+.me .okline{background:#E6F3EC;color:#2E7D52;border-radius:12px;padding:12px 14px;font-size:14px;margin-top:10px}
+.me .up{border:1px dashed #CFC8D4;border-radius:14px;padding:16px;margin-top:12px;font-size:14px;line-height:1.7}
+.me .up input{display:block;margin:6px 0 12px;font-size:14px;max-width:100%}
 </style>
 </head>
 <body>
@@ -89,7 +96,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
       var nick=esc(p.nickname||'회원');
       if(!p.phone){
         return sb.rpc('is_admin').then(function(a){
-          if(a.data===true){ out.innerHTML='<h1>'+nick+' 원장님</h1><p class="lead"><span class="badge">관리자</span></p><button class="ghost" id="pv" type="button">학부모 가입 화면 미리보기</button><div id="admin"></div>'+logoutBtn(); bindLogout(); document.getElementById('pv').addEventListener('click',function(){ form(p,'학부모',true) }); admin() }
+          if(a.data===true){ out.innerHTML='<h1>'+nick+' 원장님</h1><p class="lead"><span class="badge">관리자</span></p><button class="ghost" id="pv" type="button">학부모 가입 화면 미리보기</button><div id="me"></div><div id="admin"></div>'+logoutBtn(); bindLogout(); document.getElementById('pv').addEventListener('click',function(){ form(p,'학부모',true) }); meBoard(); admin() }
           else form(p,nick);
         });
       }
@@ -128,6 +135,66 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
         shown=false; sb.auth.getUser().then(function(u){ show(u.data.user) });
       });
     });
+  }
+
+  var STG={ok:'등록 가능',soon:'마감 임박',full:'대기 접수'};
+  var KIND={'신규':'신규 등록','상태':'상태 변경','반 들어감':'반 배정','반 빠짐':'반에서 빠짐','자리 단계':'자리 단계','새 반':'새 반','반 없어짐':'반 없어짐'};
+  function ago(t){ var m=Math.round((Date.now()-new Date(t))/60000); if(m<60) return m+'분 전'; if(m<1440) return Math.round(m/60)+'시간 전'; return Math.round(m/1440)+'일 전' }
+  function meBoard(){
+    var box=document.getElementById('me'); if(!box) return; box.className='me';
+    Promise.all([
+      sb.from('sync_runs').select('*').order('id',{ascending:false}).limit(1),
+      sb.rpc('admin_class_board'),
+      sb.from('change_log').select('*').order('id',{ascending:false}).limit(40),
+      sb.from('me_students').select('me_id,name,status,birth').in('status',['재원','휴원']),
+      sb.rpc('site_unlinked')
+    ]).then(function(r){
+      if(r[0].error){ box.innerHTML='<h2>메이크에듀 자료</h2><div class="alert">아직 메이크에듀 저장소가 준비되지 않았습니다. 안내받은 SQL을 실행해 주세요.</div>'; return }
+      var run=(r[0].data||[])[0], cls=(r[1].data||[]), log=(r[2].data||[]), st=(r[3].data||[]), un=(r[4].data||[]);
+      var names={}; st.forEach(function(x){names[x.me_id]=x.name});
+      var nob=st.filter(function(x){return !x.birth});
+      var h='<h2>메이크에듀 자료</h2>';
+      if(!run) h+='<div class="alert">아직 자료를 한 번도 받지 않았습니다. 아래에서 엑셀을 올려 주세요.</div>';
+      else if(!run.ok) h+='<div class="alert">마지막 자료 받기 실패 ('+ago(run.at)+')<br>'+esc(run.error||'')+'</div>';
+      else h+='<div class="okline">마지막 자료 받기 '+ago(run.at)+' · '+(run.source==='api'?'자동 연결':'엑셀')+' · 재원 '+st.filter(function(x){return x.status==='재원'}).length+'명 · 휴원 '+st.filter(function(x){return x.status==='휴원'}).length+'명</div>';
+      if(nob.length) h+='<div class="alert">생년월일이 비어 있는 재원·휴원생 '+nob.length+'명 — 메이크에듀 「생일」 칸에 8자리로 넣어 주세요.<br><span style="font-size:13px">'+nob.slice(0,30).map(function(x){return esc(x.name)}).join(', ')+(nob.length>30?' 외':'')+'</span></div>';
+      if(un.length) h+='<div class="alert">홈페이지와 연결이 끊긴 반 '+un.length+'개 — 메이크에듀에서 반 이름이 바뀌었으면 알려 주세요.<br><span style="font-size:13px">'+un.map(esc).join('<br>')+'</span></div>';
+      var shown=cls.filter(function(c){return c.site_key});
+      if(shown.length){ h+='<h3 style="margin:22px 0 4px;font-size:16px">홈페이지에 보이는 반</h3>'+shown.map(function(c){return '<div class="row2"><span><b>'+esc(c.display_name||c.name)+'</b><br><span style="color:#8A8290;font-size:13px">'+esc(c.teacher||'')+' · '+c.n+'/'+(c.cap||'?')+'명</span></span><span class="stg '+(c.stage||'')+'">'+(STG[c.stage]||'정원 미정')+'</span></div>'}).join('') }
+      if(log.length){ h+='<h3 style="margin:22px 0 4px;font-size:16px">최근 변동</h3>'+log.map(function(l){
+          var who=l.student_id?(names[l.student_id]||('원생 '+l.student_id)):(l.class_id||'');
+          var what=l.kind==='상태'?(l.before+' → '+l.after):(l.kind==='자리 단계'?((STG[l.before]||l.before||'')+' → '+(STG[l.after]||l.after||'')):(l.class_id&&l.student_id?l.class_id:(l.after||l.before||'')));
+          return '<div class="row2"><span><b>'+esc(KIND[l.kind]||l.kind)+'</b> '+esc(who)+'<br><span style="color:#8A8290;font-size:13px">'+esc(what)+'</span></span><span style="color:#8A8290;font-size:12px;white-space:nowrap">'+ago(l.at)+'</span></div>'}).join('') }
+      h+='<div class="up"><b>엑셀로 자료 올리기</b> <span style="color:#8A8290">(자동 연결 전·오류 때)</span><br>메이크에듀에서 내려받은 두 파일을 고르세요.'+
+         '<label>① 원생 전체 목록<input type="file" id="fS" accept=".xlsx,.xls"></label><label>② 수업 목록<input type="file" id="fC" accept=".xlsx,.xls"></label>'+
+         '<button class="primary" id="upb" type="button" style="margin-top:4px">올리고 반영하기</button><div id="upm" style="margin-top:8px"></div></div>';
+      box.innerHTML=h;
+      document.getElementById('upb').onclick=uploadExcel;
+    });
+  }
+  function loadXLSX(){ return window.XLSX?Promise.resolve():new Promise(function(ok,no){ var s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'; s.onload=ok; s.onerror=no; document.head.appendChild(s) }) }
+  function readRows(file){ return file.arrayBuffer().then(function(b){ var wb=XLSX.read(b,{type:'array'}); return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:false}) }) }
+  function clean(o){ var n={}; Object.keys(o).forEach(function(k){ n[k.trim()]=typeof o[k]==='string'?o[k].trim():o[k] }); return n }
+  function uploadExcel(){
+    var m=document.getElementById('upm'), fS=document.getElementById('fS').files[0], fC=document.getElementById('fC').files[0];
+    if(!fS||!fC){ m.innerHTML='<div class="alert">두 파일을 모두 골라 주세요.</div>'; return }
+    m.textContent='읽는 중…';
+    loadXLSX().then(function(){ return Promise.all([readRows(fS),readRows(fC)]) }).then(function(r){
+      var S=[],E=[],C=[], rs=r[0].map(clean), rc=r[1].map(clean);
+      if(!rs.length||!('원생고유번호' in rs[0])) throw new Error('① 파일이 원생 전체 목록이 아닙니다. (원생고유번호 칸이 없음)');
+      if(!rc.length||!('수업명' in rc[0])) throw new Error('② 파일이 수업 목록이 아닙니다. (수업명 칸이 없음)');
+      rs.forEach(function(x){
+        var st=x['재원여부']==='O'&&x['휴원여부']!=='O'?'재원':(x['휴원여부']==='O'?'휴원':'퇴원');
+        S.push({me_id:String(x['원생고유번호']),name:x['이름'],school:x['학교'],grade:x['학년'],status:st,birth:String(x['생일']||''),guardian_phone:x['보호자연락처'],joined_on:String(x['입학일']||''),left_on:String(x['퇴원일']||'')});
+        if(st!=='퇴원') String(x['수업']||'').split(',').map(function(c){return c.trim()}).filter(Boolean).forEach(function(c){ E.push({class_id:c,student_id:String(x['원생고유번호'])}) });
+      });
+      rc.forEach(function(c){ C.push({me_id:c['수업명'],name:c['수업명'],teacher:c['담임강사'],cap:String(c['정원']||'').replace(/\.0+$/,''),target:c['대상']}) });
+      m.textContent='반영하는 중… (원생 '+S.length+'명, 수업 '+C.length+'개)';
+      return sb.rpc('apply_snapshot',{p_source:'excel',p_students:S,p_classes:C,p_enrollments:E});
+    }).then(function(res){
+      if(res.error) throw new Error(res.error.message);
+      m.innerHTML='<div class="okline">반영했습니다. 변동 '+res.data.changes+'건</div>'; setTimeout(meBoard,600);
+    }).catch(function(e){ m.innerHTML='<div class="alert">올리지 못했습니다. '+esc(e.message||String(e))+'</div>'; sb.rpc('log_sync_error',{p_source:'excel',p_error:String(e.message||e)}) });
   }
   var myId='';
   function admin(){
