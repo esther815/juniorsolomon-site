@@ -81,7 +81,7 @@ h2{font-family:'Noto Serif KR',serif;font-weight:600;font-size:20px;margin:36px 
   function bindLogout(){ var b=document.getElementById('logout'); if(b) b.addEventListener('click',function(){ sb.auth.signOut().then(function(){location.replace('member.html')}) }) }
   var shown=false;
   function show(user){
-    if(shown) return; shown=true; history.replaceState(null,'','member.html');
+    if(shown) return; shown=true; myId=user.id; history.replaceState(null,'','member.html');
     sb.from('profiles').select('*').eq('id',user.id).maybeSingle().then(function(r){
       var p=r.data;
       if(r.error||!p){ out.innerHTML='<h1>잠시만요</h1><p class="lead">회원 정보를 준비하고 있습니다.<br>잠시 뒤 다시 열어 주세요.</p>'+logoutBtn(); bindLogout(); return }
@@ -125,12 +125,13 @@ h2{font-family:'Noto Serif KR',serif;font-weight:600;font-size:20px;margin:36px 
       });
     });
   }
+  var myId='';
   function admin(){
-    var box=document.getElementById('admin');
+    var box=document.getElementById('admin'); box.setAttribute('data-me',myId);
     sb.from('profiles').select('*').order('created_at',{ascending:false}).then(function(r){
       if(r.error) return;
-      var rows=r.data||[];
-      box.innerHTML='<h2>원장님 화면 · 회원 '+rows.length+'명</h2><p class="lead" style="text-align:left;margin:0">승인 대기 회원을 원생원장과 맞춰 본 뒤 원생번호를 넣고 승인하세요.</p>'+
+      var me=(box.getAttribute('data-me')||''); var rows=(r.data||[]).filter(function(m){return m.id!==me});
+      box.innerHTML='<h2>원장님 화면 · 학부모 회원 '+rows.length+'명</h2>'+(rows.length?'':'<p class="lead" style="text-align:left">아직 가입한 학부모가 없습니다.</p>')+'<p class="lead" style="text-align:left;margin:0">승인 대기 회원을 원생원장과 맞춰 본 뒤 원생번호를 넣고 승인하세요.</p>'+
         rows.map(function(m){
           var st={pending:'승인 대기',approved:'승인',rejected:'반려'}[m.status];
           return '<div class="m"><span class="st '+m.status+'">'+st+'</span><b>'+esc(m.child_name||'(미입력)')+'</b> '+esc(m.child_grade||'')+' · '+esc(m.child_school||'')+
