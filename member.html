@@ -8,6 +8,10 @@
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <meta name="theme-color" content="#2B1233">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="주니어솔로몬">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600&amp;family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet">
 <style>
@@ -87,6 +91,8 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
 
   function logoutBtn(){ return '<button class="ghost" id="logout" type="button">로그아웃</button>' }
   function bindLogout(){ var b=document.getElementById('logout'); if(b) b.addEventListener('click',function(){ sb.auth.signOut().then(function(){location.replace('member.html')}) }) }
+  try{ var _t=new URLSearchParams(location.search).get('t'); if(_t){ localStorage.setItem('js_teacher_code',_t) } }catch(e){}
+  function teacherCode(){ try{ return localStorage.getItem('js_teacher_code')||'' }catch(e){ return '' } }
   var shown=false;
   function show(user){
     if(shown) return; shown=true; myId=user.id; history.replaceState(null,'','member.html');
@@ -96,16 +102,26 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
       var nick=esc(p.nickname||'회원');
       if(!p.phone){
         return sb.rpc('is_admin').then(function(a){
-          if(a.data===true){ out.innerHTML='<h1>'+nick+' 원장님</h1><p class="lead"><span class="badge">관리자</span></p><button class="ghost" id="pv" type="button">학부모 가입 화면 미리보기</button><div id="me"></div><div id="admin"></div>'+logoutBtn(); bindLogout(); document.getElementById('pv').addEventListener('click',function(){ form(p,'학부모',true) }); meBoard(); admin() }
+          if(a.data===true){ out.innerHTML='<h1>'+nick+' 원장님</h1><p class="lead"><span class="badge">관리자</span></p><button class="ghost" id="pv" type="button">학부모 가입 화면 미리보기</button><button class="ghost" id="tinv" type="button">강사 초대 링크 만들기</button><div id="tinvm"></div><div id="me"></div><div id="admin"></div>'+logoutBtn(); bindLogout(); document.getElementById('pv').addEventListener('click',function(){ form(p,'학부모',true) }); document.getElementById('tinv').addEventListener('click',function(){ if(!confirm('새 강사 초대 링크를 만들까요? 이전 링크는 더 이상 쓸 수 없게 됩니다.')) return; sb.rpc('new_teacher_invite').then(function(r){ var m=document.getElementById('tinvm'); if(r.error){ m.innerHTML='<div class="alert" style="background:#FBEDE8;color:#8C3A22;border-radius:12px;padding:12px">만들지 못했습니다.</div>'; return } var url='https://juniorsolomon.com/member.html?t='+r.data; m.innerHTML='<div class="card" style="margin-top:10px;font-size:14px;line-height:1.7"><b>강사 단톡방에 이 링크를 보내 주세요</b><br><span style="word-break:break-all">'+url+'</span><br><button class="primary" id="tcopy" type="button" style="margin-top:10px">링크 복사</button></div>'; document.getElementById('tcopy').onclick=function(){ navigator.clipboard.writeText(url).then(function(){ document.getElementById('tcopy').textContent='복사했습니다' }) } }) }); meBoard(); admin() }
+          else if(teacherCode()) teacherForm(p,nick);
           else form(p,nick);
         });
       }
+      if(teacherCode() && p.role!=='teacher' && p.status!=='approved') return teacherForm(p,nick);
       var badge={pending:'승인 대기',approved:'승인 완료',rejected:'확인 필요'}[p.status];
-      var txt={pending:'원장님이 확인하면 재원생 정보가 열립니다.',approved:(p.student_no?'원생번호 '+esc(p.student_no):'재원생 정보가 열렸습니다.'),rejected:'학원으로 연락 주세요. 02-794-8123'}[p.status];
-      out.innerHTML='<h1>'+nick+'님</h1><p class="lead"><span class="badge">'+badge+'</span><br><br>'+txt+'</p>'+
+      if(p.role==='teacher'){
+        out.innerHTML='<h1>'+esc(p.teacher_name||nick)+' 선생님</h1><p class="lead"><span class="badge">'+badge+'</span><br><br>'+
+          ({pending:'원장님이 확인하면 선생님 화면이 열립니다.',approved:'내 반 학생 명단·출결 화면은 곧 열립니다.',rejected:'원장님께 문의해 주세요.'}[p.status])+'</p>'+
+          '<div class="card"><div class="row"><span>담당</span><span>'+esc(p.teacher_subject||'-')+'</span></div><div class="row"><span>연락처</span><span>'+esc((p.phone||'').replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3'))+'</span></div></div>'+installBox()+logoutBtn();
+        bindLogout(); bindInstall(); return;
+      }
+      var txt={pending:'원장님이 확인하면 우리 아이 수업 정보가 열립니다.',approved:'',rejected:'학원으로 연락 주세요. 02-794-8123'}[p.status];
+      out.innerHTML='<h1>'+nick+'님</h1><p class="lead"><span class="badge">'+badge+'</span>'+(txt?'<br><br>'+txt:'')+'</p>'+
+        '<div id="child"></div>'+
         '<div class="card"><div class="row"><span>자녀</span><span>'+esc(p.child_name)+' · '+esc(p.child_grade)+'</span></div><div class="row"><span>학교</span><span>'+esc(p.child_school)+'</span></div><div class="row"><span>연락처</span><span>'+esc(p.phone.replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3'))+'</span></div></div>'+
-        '<div id="admin"></div>'+logoutBtn();
-      bindLogout();
+        installBox()+'<div id="admin"></div>'+logoutBtn();
+      bindLogout(); bindInstall();
+      if(p.status==='approved') childCard();
       sb.rpc('is_admin').then(function(a){ if(a.data===true) admin() });
     });
   }
@@ -199,6 +215,59 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
       m.innerHTML='<div class="okline">반영했습니다. 변동 '+res.data.changes+'건</div>'; setTimeout(meBoard,600);
     }).catch(function(e){ m.innerHTML='<div class="alert">올리지 못했습니다. '+esc(e.message||String(e))+'</div>'; sb.rpc('log_sync_error',{p_source:'excel',p_error:String(e.message||e)}) });
   }
+
+  var DAY={'월':'월요일','화':'화요일','수':'수요일','목':'목요일','금':'금요일','토':'토요일','일':'일요일'};
+  function prettyClass(n){
+    var m=String(n||'').match(/\(([월화수목금토일])\s*(\d{1,2}):(\d{2})/); if(!m) return esc(n);
+    var h=+m[2]; var ap=(h>=9&&h<12)?'오전':'오후'; return DAY[m[1]]+' '+ap+' '+h+':'+m[3];
+  }
+  function childCard(){
+    var box=document.getElementById('child'); if(!box) return;
+    sb.rpc('my_child').then(function(r){
+      var c=r.data; if(r.error||!c){ return }
+      var h='<div class="card" style="border-color:#D9CFE0;background:#FBF8FC"><div style="font-size:13px;color:#8A8290;font-weight:700;letter-spacing:.04em">우리 아이 수업</div>'+
+        '<div style="font-family:\'Noto Serif KR\',serif;font-size:24px;font-weight:600;margin:6px 0 2px">'+esc(c.name||'')+'</div>'+
+        '<div style="font-size:14px;color:#5E5866">원생번호 '+esc(c.solomon_no||'-')+(c.grade?' · '+esc(c.grade):'')+(c.status&&c.status!=='재원'?' · '+esc(c.status):'')+'</div>';
+      if(!c.linked){ h+='<p style="margin:14px 0 0;font-size:14px;line-height:1.7;color:#5E5866">학원 원생 명부와 연결되면 수업 정보가 여기에 나옵니다.</p>' }
+      else if(!c.classes||!c.classes.length){ h+='<p style="margin:14px 0 0;font-size:14px;color:#5E5866">배정된 반 정보를 준비하고 있습니다.</p>' }
+      else { h+='<div style="margin-top:14px">'+c.classes.map(function(x){ return '<div class="row"><span>'+prettyClass(x.name)+'</span><span>'+esc(x.teacher||'')+' 선생님</span></div>' }).join('')+'</div>' }
+      h+='<div style="margin-top:14px;font-size:13px;color:#8A8290">출결 기록은 곧 이곳에서 보실 수 있습니다.</div></div>';
+      box.innerHTML=h;
+    });
+  }
+  function teacherForm(p,nick){
+    out.innerHTML='<h1>선생님, 반갑습니다</h1><p class="lead">강사 등록 신청입니다.<br>원장님이 확인하면 선생님 화면이 열립니다.</p>'+
+      '<label class="f">이름<input id="tn" autocomplete="name"></label>'+
+      '<label class="f">휴대폰 번호<input id="tp" inputmode="numeric" placeholder="01012345678"></label>'+
+      '<label class="f">담당 과목·반 <span style="color:#8A8290">(예: 하브루타 초등, 소포스 중등 국어)</span><input id="ts"></label>'+
+      '<label class="chk"><input type="checkbox" id="tag"><span>학원 업무(수업·출결·학부모 연락)를 위해 이름·휴대폰 번호를 쓰는 것과, 업무 중 알게 된 학생 정보를 학원 밖으로 옮기거나 공유하지 않는 것에 동의합니다. <a href="privacy.html">개인정보처리방침</a></span></label>'+
+      '<button class="primary" id="tsave" type="button">강사로 등록 신청하기</button>'+logoutBtn();
+    bindLogout();
+    document.getElementById('tsave').addEventListener('click',function(){
+      var n=document.getElementById('tn').value.trim(), ph=document.getElementById('tp').value.replace(/\D/g,''), sj=document.getElementById('ts').value.trim();
+      msg.innerHTML='';
+      if(!n) return err('이름을 적어 주세요.');
+      if(!/^01\d{8,9}$/.test(ph)) return err('휴대폰 번호를 숫자만 정확히 적어 주세요.');
+      if(!document.getElementById('tag').checked) return err('동의에 체크해 주세요.');
+      this.disabled=true;
+      sb.rpc('claim_teacher',{code:teacherCode(),p_name:n,p_phone:ph,p_subject:sj}).then(function(r){
+        if(r.error){ document.getElementById('tsave').disabled=false; return err(r.error.message.indexOf('초대')>=0?'초대 링크가 맞지 않거나 만료되었습니다. 원장님께 새 링크를 받아 주세요.':'저장하지 못했습니다. 다시 눌러 주세요.') }
+        try{ localStorage.removeItem('js_teacher_code') }catch(e){}
+        shown=false; sb.auth.getUser().then(function(u){ show(u.data.user) });
+      });
+    });
+  }
+  var deferredInstall=null;
+  window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); deferredInstall=e; var b=document.getElementById('instb'); if(b) b.style.display='block' });
+  function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone }
+  function installBox(){
+    if(isStandalone()) return '';
+    var ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+    return '<div class="card" style="margin-top:16px"><div style="font-weight:700;font-size:15px">휴대폰에 앱처럼 두기</div>'+
+      (ios?'<p style="margin:8px 0 0;font-size:14px;line-height:1.7;color:#5E5866">사파리 아래쪽 <b>공유</b> 버튼(네모에 위쪽 화살표) → <b>홈 화면에 추가</b>를 누르면 왕관 아이콘이 생깁니다.</p>'
+          :'<p style="margin:8px 0 0;font-size:14px;line-height:1.7;color:#5E5866">버튼을 누르면 홈 화면에 왕관 아이콘이 생깁니다. 버튼이 없으면 브라우저 메뉴(⋮) → <b>홈 화면에 추가</b>를 누르세요.</p><button class="primary" id="instb" type="button" style="margin-top:10px;display:none">홈 화면에 추가</button>')+'</div>';
+  }
+  function bindInstall(){ var b=document.getElementById('instb'); if(!b) return; if(deferredInstall) b.style.display='block'; b.onclick=function(){ if(!deferredInstall) return; deferredInstall.prompt(); deferredInstall.userChoice.then(function(){ deferredInstall=null; b.style.display='none' }) } }
   var myId='';
   function admin(){
     var box=document.getElementById('admin'); box.setAttribute('data-me',myId);
@@ -214,6 +283,8 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
       box.innerHTML='<h2>원장님 화면 · 학부모 회원 '+rows.length+'명</h2>'+(rows.length?'':'<p class="lead" style="text-align:left">아직 가입한 학부모가 없습니다.</p>')+'<p class="lead" style="text-align:left;margin:0">승인을 누르면 원생번호(JS-0001부터)가 겹치지 않게 자동으로 붙고, 메이크에듀 원생과도 자동으로 연결됩니다.</p>'+
         rows.map(function(m){
           var st={pending:'승인 대기',approved:'승인',rejected:'반려'}[m.status];
+          if(m.role==='teacher') return '<div class="m"><span class="st '+m.status+'">강사 · '+st+'</span><b>'+esc(m.teacher_name||m.nickname||'')+' 선생님</b> '+esc(m.teacher_subject||'')+'<br>'+esc((m.phone||'').replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3'))+
+            (m.status!=='approved'?'<div class="act"><button class="okb" data-ok="'+m.id+'" style="flex:1">강사로 승인</button><button class="nob" data-no="'+m.id+'">반려</button></div>':'')+'</div>';
           return '<div class="m"><span class="st '+m.status+'">'+st+'</span><b>'+esc(m.child_name||'(미입력)')+'</b> '+esc(m.child_grade||'')+' · '+esc(m.child_school||'')+(m.child_birth?' · '+esc(m.child_birth.replace(/-/g,'')):'')+
             '<br>보호자 '+esc(m.nickname||'')+' · '+esc((m.phone||'번호 미입력').replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3'))+(m.student_phone?'<br>학생 '+esc(m.student_phone.replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3')):'')+(m.student_no?' · '+esc(m.student_no):'')+
             (m.status!=='approved'&&m.phone?(function(){ var mt=matchOf(m); return '<div style="margin-top:8px;font-size:13px;color:'+(mt.ok?'#2E7D52':'#8C3A22')+'">'+(mt.ok?'✓ ':'')+mt.why+'</div><div class="act"><button class="okb" data-ok="'+m.id+'" style="flex:1">승인 (원생번호 자동 부여)</button><button class="nob" data-no="'+m.id+'">반려</button></div>' })():'')+'</div>';
@@ -229,5 +300,6 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
   sb.auth.onAuthStateChange(function(ev,s){ if(s&&s.user) show(s.user) });
 })();
 </script>
+<script>if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(function(){}) }</script>
 </body>
 </html>
