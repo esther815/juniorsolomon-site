@@ -29,3 +29,5 @@ User-agent: Yeti
 Allow: /
 
 Sitemap: https://juniorsolomon.com/sitemap.xml
+
+Disallow: /member.html

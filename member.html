@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>회원 | 주니어솔로몬학원</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#2B1233">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600&amp;family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#FFFFFF;font-family:'Noto Sans KR',sans-serif;color:#1E1A22;word-break:keep-all}
+.wrap{max-width:480px;margin:0 auto;padding:56px 24px 80px}
+.logo{display:block;width:72px;height:72px;border-radius:18px;margin:0 auto 22px}
+h1{font-family:'Noto Serif KR',serif;font-weight:600;font-size:28px;text-align:center;margin:0 0 10px;letter-spacing:-.02em}
+.lead{text-align:center;color:#5E5866;font-size:15px;line-height:1.8;margin:0 0 32px}
+.kakao{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:54px;border:0;border-radius:12px;background:#FEE500;color:#191919;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer}
+.kakao svg{width:20px;height:20px}
+.note{margin:18px 0 0;font-size:13px;line-height:1.75;color:#8A8290;text-align:center}
+.note a{color:#5F3D66}
+.card{border:1px solid #EEEAF0;border-radius:18px;padding:24px;margin-top:8px}
+.badge{display:inline-block;padding:6px 12px;border-radius:999px;background:#F3ECF6;color:#5F3D66;font-size:13px;font-weight:700}
+.row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid #F2EEF4;font-size:14px}
+.row:first-of-type{border-top:0}
+.row span:first-child{color:#8A8290}
+.ok{color:#2E7D52;font-weight:700}.no{color:#B9573A;font-weight:700}
+.ghost{display:block;width:100%;min-height:48px;margin-top:18px;border:1px solid #CFC8D4;border-radius:12px;background:#fff;color:#1E1A22;font-size:15px;font-family:inherit;cursor:pointer}
+.home{display:block;text-align:center;margin-top:28px;font-size:14px;color:#5F3D66;text-decoration:none}
+.err{margin-top:16px;padding:14px 16px;border-radius:12px;background:#FBEDE8;color:#8C3A22;font-size:14px;line-height:1.7}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <img class="logo" src="assets/icon-192.png" alt="주니어솔로몬 왕관">
+  <div id="out">
+    <h1>주니어솔로몬 회원</h1>
+    <p class="lead">재원생 학부모님은 카카오로 한 번에 가입하고<br>로그인합니다.</p>
+    <button class="kakao" id="login" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#191919" d="M12 3C6.48 3 2 6.58 2 11c0 2.85 1.86 5.35 4.66 6.77l-.95 3.48c-.08.31.27.56.54.38l4.16-2.76c.52.06 1.05.1 1.59.1 5.52 0 10-3.58 10-8S17.52 3 12 3z"/></svg>카카오로 시작하기</button>
+    <p class="note">가입하면 원장님 확인 후 재원생 정보가 열립니다.<br><a href="privacy.html">개인정보처리방침</a></p>
+  </div>
+  <div id="msg"></div>
+  <a class="home" href="index.html">← 홈페이지로</a>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  var sb = window.supabase.createClient(
+    'https://gyuuimwalbxsocnamtqk.supabase.co',
+    'sb_publishable_Kj2bX4fe9CRSkhvGzBbaJw_y1ZqkjOz'
+  );
+  var out=document.getElementById('out'), msg=document.getElementById('msg');
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function err(t){msg.innerHTML='<div class="err">'+esc(t)+'</div>'}
+
+  var q=new URLSearchParams(location.search), h=new URLSearchParams(location.hash.slice(1));
+  var e=q.get('error_description')||h.get('error_description');
+  if(e) err('로그인이 끝나지 않았습니다: '+e);
+
+  document.getElementById('login').addEventListener('click',function(){
+    sb.auth.signInWithOAuth({provider:'kakao',options:{redirectTo:location.origin+'/member.html'}})
+      .then(function(r){ if(r.error) err(r.error.message) });
+  });
+
+  function show(user){
+    var m=user.user_metadata||{}, ids=(user.identities||[])[0]||{}, d=ids.identity_data||{};
+    var phone=m.phone_number||d.phone_number||user.phone||'';
+    var nick=m.name||m.full_name||m.nickname||d.name||'회원';
+    out.innerHTML='<h1>'+esc(nick)+'님</h1>'+
+      '<p class="lead"><span class="badge">승인 대기</span><br><br>원장님이 확인하면 재원생 정보가 열립니다.</p>'+
+      '<div class="card">'+
+        '<div class="row"><span>로그인</span><span class="ok">카카오 연결됨</span></div>'+
+        '<div class="row"><span>이메일</span><span class="'+(user.email?'ok':'no')+'">'+(user.email?'받음':'없음')+'</span></div>'+
+        '<div class="row"><span>전화번호</span><span class="'+(phone?'ok':'no')+'">'+(phone?'받음':'없음')+'</span></div>'+
+      '</div>'+
+      '<button class="ghost" id="logout" type="button">로그아웃</button>';
+    document.getElementById('logout').addEventListener('click',function(){ sb.auth.signOut().then(function(){location.replace('member.html')}) });
+  }
+  sb.auth.getSession().then(function(r){ var s=r.data&&r.data.session; if(s){ history.replaceState(null,'','member.html'); show(s.user) } });
+  sb.auth.onAuthStateChange(function(ev,s){ if(s&&s.user) show(s.user) });
+})();
+</script>
+</body>
+</html>
