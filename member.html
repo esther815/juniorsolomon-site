@@ -130,14 +130,14 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
       if(!p.phone){
         return sb.rpc('is_admin').then(function(a){
           if(a.data===true){ out.innerHTML='<h1>'+nick+' 원장님</h1><p class="lead"><span class="badge">관리자</span></p>'+
-            '<div id="cons"></div><div id="admin"></div><div id="me"></div><div id="usage"></div>'+
+            '<div id="cons"></div><div id="beta"></div><div id="admin"></div><div id="me"></div><div id="usage"></div>'+
             '<h2>설정</h2><button class="ghost" id="pv" type="button">학부모 가입 화면 미리보기</button>'+
             '<button class="ghost" id="tinv" type="button">강사 초대 링크 만들기</button><div id="tinvm"></div>'+
             '<button class="ghost" id="dinv" type="button">데스크 초대 링크 만들기</button><div id="dinvm"></div>'+
             '<button class="ghost" id="kak" type="button">카톡 알림 연결 (승인·상담 알림)</button><div id="kakm"></div>'+logoutBtn();
             bindLogout(); var dz=document.getElementById('delacct'); if(dz) dz.parentNode.remove(); document.getElementById('pv').addEventListener('click',function(){ form(p,'학부모',true) });
             inviteBtn('tinv','tinvm','new_teacher_invite','t','강사'); inviteBtn('dinv','dinvm','new_desk_invite','d','데스크');
-            consults(); admin(true); meBoard(); usage(); kakaoSetup() }
+            consults(); betaList(); admin(true); meBoard(); usage(); kakaoSetup() }
           else if(deskCode()) staffForm(p,nick,'desk');
           else if(teacherCode()) staffForm(p,nick,'teacher');
           else form(p,nick);
@@ -423,6 +423,16 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
       var cls=(r.data||[]).filter(function(c){return c.cap});
       box.innerHTML='<h2>반별 정원</h2><p style="margin:0 0 6px;color:#8A8290;font-size:13px">재원생 + 선납 휴원생 기준입니다.</p>'+
         cls.map(function(c){return '<div class="row2"><span><b>'+esc(c.display_name||c.name)+'</b><br><span style="color:#8A8290;font-size:13px">'+esc(c.teacher||'')+' · '+c.n+'/'+c.cap+'명</span></span><span class="stg '+(c.stage||'')+'">'+(STG[c.stage]||'')+'</span></div>'}).join('');
+    });
+  }
+  function betaList(){
+    var box=document.getElementById('beta'); if(!box) return;
+    sb.from('beta_signups').select('*').order('created_at').then(function(r){
+      if(r.error||!(r.data||[]).length){ box.innerHTML=''; return }
+      var L=r.data, mails=L.map(function(x){return x.email}).join(', ');
+      box.innerHTML='<h2>앱 테스터 신청 '+L.length+'명</h2>'+L.map(function(x,i){return '<div class="m"><b>'+(i+1)+'. '+esc(x.name)+'</b>'+(x.child?' <span style="color:#8A8290">(자녀 '+esc(x.child)+')</span>':'')+'<br>'+esc(x.email)+'</div>'}).join('')+
+        '<button class="ghost" type="button" id="cpm">이메일 전체 복사 (Play Console 테스터 목록용)</button>';
+      document.getElementById('cpm').onclick=function(){ var b=this; navigator.clipboard.writeText(mails).then(function(){ b.textContent='복사했습니다' }) };
     });
   }
   function usage(){

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>앱 베타 테스터 신청 | 주니어솔로몬학원</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600;700&amp;family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Noto Sans KR',sans-serif;color:#2B1233;background:#F7F2F9;word-break:keep-all;line-height:1.7}
+.wrap{max-width:520px;margin:0 auto;padding:40px 22px 64px}
+.icon{display:block;width:64px;height:64px;border-radius:16px;margin:0 auto 16px}
+.kick{text-align:center;font-family:'Noto Serif KR',serif;font-weight:700;color:#A9802A;letter-spacing:.08em;font-size:15px}
+h1{text-align:center;font-family:'Noto Serif KR',serif;font-weight:700;font-size:30px;line-height:1.35;margin:8px 0 12px}
+h1 em{font-style:normal;color:#7A3E8A}
+.lead{text-align:center;font-size:16px;color:#4E4356;margin:0 0 22px}
+.card{background:#fff;border:1px solid #E5DAEA;border-radius:18px;padding:20px 20px 6px;margin-bottom:18px}
+.row{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #F0E8F3;font-size:15px}
+.row:last-child{border-bottom:0}
+.row b{flex:none;width:72px;color:#7A3E8A}
+label{display:block;font-size:15px;font-weight:700;margin:16px 0 6px}
+label span{font-weight:400;color:#8A8290}
+input[type=text],input[type=email]{width:100%;min-height:52px;border:1px solid #D9CFE0;border-radius:12px;padding:0 14px;font-size:17px;font-family:inherit;background:#fff}
+.agree{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:#4E4356;margin:18px 0 6px;font-weight:400}
+.agree input{width:20px;height:20px;margin-top:3px;flex:none}
+button{width:100%;min-height:56px;margin-top:16px;border:0;border-radius:14px;background:#4A2753;color:#FBF6EE;font-size:18px;font-weight:700;font-family:inherit}
+button:disabled{opacity:.6}
+.err{margin-top:12px;padding:12px 14px;border-radius:12px;background:#FBEDEA;color:#9A3B25;font-size:15px}
+.done{text-align:center;background:#fff;border:1px solid #E5DAEA;border-radius:18px;padding:30px 20px}
+.done h2{font-family:'Noto Serif KR',serif;font-size:24px;margin:0 0 10px}
+.foot{margin-top:28px;text-align:center;font-size:13px;color:#8A8290}
+.foot a{color:#5F3D66}
+</style>
+</head>
+<body>
+<main class="wrap" id="out">
+<img class="icon" src="assets/icon-192.png" alt="">
+<div class="kick">앱 베타 테스터 신청</div>
+<h1>함께 만들어 갈<br><em>열 분</em>을 모십니다</h1>
+<p class="lead">정식 출시 전 2주 동안 「주니어솔로몬」 앱을 먼저 써 보시고 의견을 들려주세요.</p>
+<div class="card">
+ <div class="row"><b>대상</b><span>안드로이드 휴대폰을 쓰시는 재원생 학부모님</span></div>
+ <div class="row"><b>기간</b><span>시작일부터 14일 (시작일은 따로 안내)</span></div>
+ <div class="row"><b>감사 선물</b><span>14일을 마치신 분께 스타벅스 커피 쿠폰</span></div>
+</div>
+<form id="f" autocomplete="on">
+ <label for="n">학부모님 성함</label>
+ <input type="text" id="n" name="name" maxlength="30" required>
+ <label for="e">구글(gmail) 주소 <span>— 플레이스토어에 로그인된 주소</span></label>
+ <input type="email" id="e" name="email" inputmode="email" placeholder="example@gmail.com" required>
+ <label for="c">자녀 이름 <span>(선택)</span></label>
+ <input type="text" id="c" name="child" maxlength="30">
+ <label class="agree"><input type="checkbox" id="ag"> 앱 시험 사용 안내를 위해 성함·gmail·자녀 이름을 받습니다. 시험 사용이 끝나면 6개월 안에 지웁니다.</label>
+ <button type="submit" id="go">신청하기</button>
+ <div id="m"></div>
+</form>
+<p class="foot">문의 02-794-8123 · 문자 010-3212-8123<br><a href="privacy.html">개인정보처리방침</a> · 주니어솔로몬학원 중부교육지원청 제3336호</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  var sb=window.supabase.createClient('https://gyuuimwalbxsocnamtqk.supabase.co','sb_publishable_Kj2bX4fe9CRSkhvGzBbaJw_y1ZqkjOz');
+  var f=document.getElementById('f'), m=document.getElementById('m'), go=document.getElementById('go');
+  function err(t){ m.innerHTML='<div class="err">'+t+'</div>' }
+  f.addEventListener('submit',function(ev){
+    ev.preventDefault(); m.innerHTML='';
+    var n=document.getElementById('n').value.trim(), e=document.getElementById('e').value.trim().toLowerCase(), c=document.getElementById('c').value.trim();
+    if(!n) return err('학부모님 성함을 적어 주세요.');
+    if(!/^[a-z0-9._%+-]+@(gmail\.com|googlemail\.com)$/.test(e)) return err('gmail 주소를 확인해 주세요. 플레이스토어는 구글 계정(gmail)으로만 초대할 수 있습니다.');
+    if(!document.getElementById('ag').checked) return err('안내 문구에 동의해 주세요.');
+    go.disabled=true; go.textContent='보내는 중…';
+    sb.rpc('beta_signup',{p_name:n,p_email:e,p_child:c||null}).then(function(r){
+      if(r.error){ go.disabled=false; go.textContent='신청하기'; return err(/잠시/.test(r.error.message)?'잠시 후 다시 시도해 주세요.':'신청하지 못했습니다. 문자(010-3212-8123)로 gmail 주소를 보내 주세요.') }
+      document.getElementById('out').innerHTML='<img class="icon" src="assets/icon-192.png" alt=""><div class="done"><h2>신청이 접수되었습니다</h2><p style="margin:0;font-size:16px;color:#4E4356">시작하는 날 설치 링크를 보내 드립니다.<br>함께해 주셔서 고맙습니다.</p></div><p class="foot">문의 02-794-8123 · 문자 010-3212-8123</p>';
+    });
+  });
+})();
+</script>
+</body>
+</html>
