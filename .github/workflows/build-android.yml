@@ -26,7 +26,7 @@ jobs:
         run: |
           cd android-app
           chmod +x gradlew
-          ./gradlew --no-daemon bundleRelease assembleRelease
+          ./gradlew --no-daemon --refresh-dependencies bundleRelease assembleRelease || (sleep 20 && ./gradlew --no-daemon --refresh-dependencies bundleRelease assembleRelease)
           find . -name "*.aab" -o -name "*.apk" | grep -v intermediates
       - name: 결과물을 app-build 브랜치에 올리기
         run: |
