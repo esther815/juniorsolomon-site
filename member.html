@@ -95,6 +95,18 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
   function bindLogout(){ var b=document.getElementById('logout'); if(b) b.addEventListener('click',function(){ sb.auth.signOut().then(function(){location.replace('member.html')}) }) }
   try{ var _t=new URLSearchParams(location.search).get('t'); if(_t){ localStorage.setItem('js_teacher_code',_t) } }catch(e){}
   try{ var _q=new URLSearchParams(location.search); if(_q.get('state')==='kakao_alert'&&_q.get('code')){ sessionStorage.setItem('js_kakao_code',_q.get('code')) } }catch(e){}
+  // 앱 사용 기록 (익명 기기 번호만) — 시험 사용 확인용
+  (function(){
+    try{
+      var inApp=new URLSearchParams(location.search).get('app')==='1'||document.referrer.indexOf('android-app://')===0||sessionStorage.getItem('js_inapp')==='1';
+      if(!inApp) return; sessionStorage.setItem('js_inapp','1');
+      var d=localStorage.getItem('js_dev');
+      if(!d){ var a=new Uint8Array(12); crypto.getRandomValues(a); d=Array.from(a,function(x){return (x%36).toString(36)}).join(''); localStorage.setItem('js_dev',d) }
+      sb.rpc('app_ping',{p_device:d}).then(function(){});
+      var tag=document.createElement('p'); tag.style.cssText='margin:14px 0 0;text-align:center;font-size:12px;color:#B3ABB8';
+      tag.textContent='시험 사용 확인 번호 '+d.slice(0,6).toUpperCase(); document.querySelector('main.wrap').appendChild(tag);
+    }catch(e){}
+  })();
   function kakaoFn(body){ return sb.functions.invoke('kakao-alert',{body:body}) }
   function teacherCode(){ try{ return localStorage.getItem('js_teacher_code')||'' }catch(e){ return '' } }
   try{ var _d=new URLSearchParams(location.search).get('d'); if(_d){ localStorage.setItem('js_desk_code',_d) } }catch(e){}
@@ -109,14 +121,14 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
       if(!p.phone){
         return sb.rpc('is_admin').then(function(a){
           if(a.data===true){ out.innerHTML='<h1>'+nick+' 원장님</h1><p class="lead"><span class="badge">관리자</span></p>'+
-            '<div id="cons"></div><div id="admin"></div><div id="me"></div>'+
+            '<div id="cons"></div><div id="admin"></div><div id="me"></div><div id="usage"></div>'+
             '<h2>설정</h2><button class="ghost" id="pv" type="button">학부모 가입 화면 미리보기</button>'+
             '<button class="ghost" id="tinv" type="button">강사 초대 링크 만들기</button><div id="tinvm"></div>'+
             '<button class="ghost" id="dinv" type="button">데스크 초대 링크 만들기</button><div id="dinvm"></div>'+
             '<button class="ghost" id="kak" type="button">카톡 알림 연결 (승인·상담 알림)</button><div id="kakm"></div>'+logoutBtn();
             bindLogout(); document.getElementById('pv').addEventListener('click',function(){ form(p,'학부모',true) });
             inviteBtn('tinv','tinvm','new_teacher_invite','t','강사'); inviteBtn('dinv','dinvm','new_desk_invite','d','데스크');
-            consults(); admin(true); meBoard(); kakaoSetup() }
+            consults(); admin(true); meBoard(); usage(); kakaoSetup() }
           else if(deskCode()) staffForm(p,nick,'desk');
           else if(teacherCode()) staffForm(p,nick,'teacher');
           else form(p,nick);
@@ -373,6 +385,14 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
       var cls=(r.data||[]).filter(function(c){return c.cap});
       box.innerHTML='<h2>반별 정원</h2><p style="margin:0 0 6px;color:#8A8290;font-size:13px">재원생 + 선납 휴원생 기준입니다.</p>'+
         cls.map(function(c){return '<div class="row2"><span><b>'+esc(c.display_name||c.name)+'</b><br><span style="color:#8A8290;font-size:13px">'+esc(c.teacher||'')+' · '+c.n+'/'+c.cap+'명</span></span><span class="stg '+(c.stage||'')+'">'+(STG[c.stage]||'')+'</span></div>'}).join('');
+    });
+  }
+  function usage(){
+    var box=document.getElementById('usage'); if(!box) return; box.className='me';
+    sb.rpc('app_usage').then(function(r){
+      if(r.error) return; var L=r.data||[];
+      box.innerHTML='<h2>앱 사용 · 최근 14일 '+L.length+'대</h2><p style="margin:0 0 6px;color:#8A8290;font-size:13px">시험 사용자가 보낸 「확인 번호」와 맞춰 보세요. 이름은 저장하지 않습니다.</p>'+
+        (L.length?L.map(function(x){return '<div class="row2"><span><b>'+esc(x.device.slice(0,6).toUpperCase())+'</b><br><span style="color:#8A8290;font-size:13px">'+esc(x.first_day)+' ~ '+esc(x.last_day)+' · 연 횟수 '+x.opens+'</span></span><span class="stg '+(x.days>=7?'ok':'soon')+'">'+x.days+'일 사용</span></div>'}).join(''):'<p style="font-size:14px;color:#8A8290">아직 앱에서 연 기록이 없습니다.</p>');
     });
   }
   var AT={'출석':'#2E7D52','지각':'#8A5A12','결석':'#B9573A'};
