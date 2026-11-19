@@ -49,6 +49,18 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 <p style="margin: 20px 0 0; font-size: 18px; line-height: 1.85; color: #5E5866">{{ subheading }}</p>
 
 <sc-if value="{{ hasCurrent }}" hint-placeholder-val="{{ true }}">
+<div id="shortcut" style="margin-top: 48px; padding: 36px 32px; border-radius: 24px; background: #F5EFF7; scroll-margin-top: 88px">
+<p style="margin: 0 0 10px; font-size: 13px; letter-spacing: 0.2em; color: #5F3D66">SHORTCUT</p>
+<h2 style="margin: 0; font-family: 'Noto Serif KR', serif; font-size: clamp(24px, 3vw, 34px); font-weight: 600; line-height: 1.4; color: #1E1A22">• 한 학기 코스 한 달에 끝내기 •</h2>
+<p style="margin: 18px 0 0; font-size: 17px; line-height: 1.9; color: #3A3440">달리기에는 ‘질러가기’가 있습니다. 같은 결승선에 더 짧은 길로 닿는 법입니다. 겨울 특강은 한 학기 동안 할 수업을 방학 안에 압축해 듣는 과정입니다.</p>
+<div style="margin-top: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px">
+<div style="padding: 18px 18px; border-radius: 16px; background: #FFFFFF"><p style="margin: 0; font-size: 14px; color: #6E6676">매일반 1주</p><p style="margin: 6px 0 0; font-family: 'Noto Serif KR', serif; font-size: 22px; font-weight: 600; color: #5F3D66">한 달 과정</p></div>
+<div style="padding: 18px 18px; border-radius: 16px; background: #FFFFFF"><p style="margin: 0; font-size: 14px; color: #6E6676">매일반 2주</p><p style="margin: 6px 0 0; font-family: 'Noto Serif KR', serif; font-size: 22px; font-weight: 600; color: #5F3D66">두 달 과정</p></div>
+<div style="padding: 18px 18px; border-radius: 16px; background: #FFFFFF"><p style="margin: 0; font-size: 14px; color: #6E6676">매일반 4주</p><p style="margin: 6px 0 0; font-family: 'Noto Serif KR', serif; font-size: 22px; font-weight: 600; color: #5F3D66">다섯 달 과정</p></div>
+</div>
+<p style="margin: 14px 0 0; font-size: 14px; line-height: 1.7; color: #6E6676">주 1회 정규반 수업 횟수 기준입니다. 매일반은 한 주에 다섯 번 수업합니다.</p>
+<p style="margin: 22px 0 0; font-size: 17px; line-height: 1.9; color: #3A3440">아이가 조금 뒤처져 있다고 느끼신다면, 다음 학기에 한 단계 크게 뛰어오르길 바라신다면 겨울 특강을 권합니다. 그 마음을 담아 만든 과정입니다.</p>
+</div>
 <div style="margin-top: 56px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px">
 <sc-for list="{{ current }}" as="item" hint-placeholder-count="4">
 <button type="button" onClick="{{ item.open }}" aria-label="{{ item.title }} 포스터 보기" style="all: unset; cursor: pointer; display: flex; flex-direction: column; border: 1px solid #EEEAF0; border-radius: 20px; overflow: hidden; background: #FFFFFF">
