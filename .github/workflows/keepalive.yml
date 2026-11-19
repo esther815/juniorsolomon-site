@@ -1,0 +1,17 @@
+name: supabase-keepalive
+on:
+  schedule:
+    - cron: "17 0 * * 1,4"   # 매주 월·목 09:17 KST
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+            "https://gyuuimwalbxsocnamtqk.supabase.co/rest/v1/rpc/is_admin" \
+            -H "apikey: sb_publishable_Kj2bX4fe9CRSkhvGzBbaJw_y1ZqkjOz" \
+            -H "Content-Type: application/json" -d '{}')
+          echo "status $code"
+          test "$code" = "200"
