@@ -255,11 +255,10 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
       h+='<div class="up"><b>엑셀로 자료 올리기</b> <span style="color:#8A8290">(자동 연결 전·오류 때)</span><br>메이크에듀에서 내려받은 두 파일을 고르세요.'+
          '<label>① 원생 전체 목록<input type="file" id="fS" accept=".xlsx,.xls"></label><label>② 수업 목록<input type="file" id="fC" accept=".xlsx,.xls"></label>'+
          '<button class="primary" id="upb" type="button" style="margin-top:4px">올리고 반영하기</button><div id="upm" style="margin-top:8px"></div></div>'+
-         '<div class="up"><b>월별 출석부 올리기</b><br>메이크에듀 「출석부」 엑셀을 고르세요. 여러 달을 한꺼번에 골라도 됩니다. 강사·학부모 화면의 출결에 반영됩니다.'+
-         '<label>출석부 파일<input type="file" id="fA" accept=".xlsx,.xls" multiple></label>'+
-         '<button class="primary" id="upa" type="button" style="margin-top:4px">출결 반영하기</button><div id="upam" style="margin-top:8px"></div></div>';
+         '<div class="up"><b>월별 출석부 올리기</b><br>메이크에듀 「출석부」 엑셀을 고르면 바로 반영됩니다. 한 달씩 하나씩 골라도 됩니다.'+
+         '<label>출석부 파일<input type="file" id="fA" accept=".xlsx,.xls" multiple></label><div id="upam" style="margin-top:8px"></div></div>';
       box.innerHTML=h;
-      document.getElementById('upb').onclick=uploadExcel; document.getElementById('upa').onclick=uploadAttendance;
+      document.getElementById('upb').onclick=uploadExcel; document.getElementById('fA').onchange=function(){ var fs=Array.from(this.files||[]); this.value=''; if(fs.length) uploadAttendance(fs) };
       box.querySelectorAll('[data-hold]').forEach(function(b){ b.onclick=function(){ var id=b.getAttribute('data-hold'), v=b.getAttribute('data-v')!=='1'; b.disabled=true; sb.from('me_students').update({seat_hold:v}).eq('me_id',id).then(function(r){ if(r.error){ b.disabled=false; alert('바꾸지 못했습니다. 다시 눌러 주세요.'); return } meBoard() }) } });
     });
   }
@@ -288,9 +287,8 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
     }).catch(function(e){ m.innerHTML='<div class="alert">올리지 못했습니다. '+esc(e.message||String(e))+'</div>'; sb.rpc('log_sync_error',{p_source:'excel',p_error:String(e.message||e)}) });
   }
 
-  function uploadAttendance(){
-    var m=document.getElementById('upam'), fs=Array.from(document.getElementById('fA').files||[]);
-    if(!fs.length){ m.innerHTML='<div class="alert">출석부 파일을 골라 주세요.</div>'; return }
+  function uploadAttendance(fs){
+    var box=document.getElementById('upam'), m=document.createElement('div'); box.insertBefore(m,box.firstChild);
     m.textContent='읽는 중…';
     loadXLSX().then(function(){ return Promise.all(fs.map(readRows)) }).then(function(all){
       var rows=[], months={};
@@ -303,13 +301,14 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
           for(var d=1; d<=last; d++){ var v=String(x[String(d)]||'').trim(); if(v==='O'||v==='X'||v==='△') rows.push({name:x['이름'],school:x['학교']||'',class:x['수업']||'',day:ym[0]+'-'+(d<10?'0':'')+d,mark:v}) }
         });
       });
-      if(!rows.length) throw new Error('출결 표시(O·X)가 있는 칸이 없습니다.');
-      m.textContent='반영하는 중… ('+Object.keys(months).sort().join(', ')+' · '+rows.length+'칸)';
+      if(!rows.length){ m.innerHTML='<div class="okline">'+esc(Object.keys(months).sort().join(', '))+' — 출결 기록이 없는 달입니다. 넘어갑니다.</div>'; return null }
+      m.textContent='반영하는 중… ('+Object.keys(months).sort().join(', ')+' · '+rows.length+'칸)'; m.setAttribute('data-ym',Object.keys(months).sort().join(', '));
       return sb.rpc('apply_attendance_named',{p_rows:rows});
     }).then(function(res){
+      if(!res) return;
       if(res.error) throw new Error(res.error.message);
       var un=res.data.unmatched||[];
-      m.innerHTML='<div class="okline">출결 '+res.data.saved+'건을 반영했습니다.</div>'+(un.length?'<div class="alert">명부에서 찾지 못한 학생 '+un.length+'명 — 메이크에듀 원생 목록을 먼저 올린 뒤 다시 반영해 주세요.<br><span style="font-size:13px">'+un.map(esc).join(', ')+'</span></div>':'');
+      m.innerHTML='<div class="okline">'+esc(m.getAttribute('data-ym')||'')+' 출결 '+res.data.saved+'건을 반영했습니다.</div>'+(un.length?'<div class="alert">명부에서 찾지 못한 학생 '+un.length+'명 — 메이크에듀 원생 목록을 먼저 올린 뒤 다시 반영해 주세요.<br><span style="font-size:13px">'+un.map(esc).join(', ')+'</span></div>':'');
     }).catch(function(e){ m.innerHTML='<div class="alert">반영하지 못했습니다. '+esc(e.message||String(e))+'</div>' });
   }
   var DAY={'월':'월요일','화':'화요일','수':'수요일','목':'목요일','금':'금요일','토':'토요일','일':'일요일'};
