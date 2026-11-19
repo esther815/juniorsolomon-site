@@ -1,0 +1,36 @@
+name: build-ios
+on:
+  push:
+    paths: ["ios-app/**", ".github/workflows/build-ios.yml"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: Capacitor iOS 프로젝트 만들기
+        working-directory: ios-app
+        run: |
+          npm install
+          npx cap add ios
+          npx cap sync ios
+          ICON=$(find ios/App/App/Assets.xcassets/AppIcon.appiconset -name '*.png' | head -1)
+          cp resources/icon-1024.png "$ICON"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDevelopmentRegion ko" ios/App/App/Info.plist || true
+      - name: 시뮬레이터용 빌드 (서명 없이 컴파일 확인)
+        working-directory: ios-app/ios/App
+        run: |
+          set -o pipefail
+          xcodebuild -project App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build 2>&1 | tail -60 | tee /tmp/build.log
+      - name: 결과 남기기
+        if: always()
+        run: |
+          mkdir -p /tmp/out && cp /tmp/build.log /tmp/out/ 2>/dev/null || echo "no log" > /tmp/out/build.log
+          echo "${{ job.status }} $(date -u +%FT%TZ) ${{ github.sha }}" > /tmp/out/status.txt
+          cd /tmp/out && git init -q && git checkout -q -b ios-build && git add . \
+            && git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -q -m "ios build ${{ github.sha }}" \
+            && git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ios-build

@@ -1,0 +1,13 @@
+{
+  "appId": "com.juniorsolomon.app",
+  "appName": "주니어솔로몬",
+  "webDir": "www",
+  "backgroundColor": "#2B1233",
+  "server": {
+    "url": "https://juniorsolomon.com/member.html?app=1",
+    "errorPath": "offline.html",
+    "allowNavigation": ["juniorsolomon.com", "*.supabase.co", "kauth.kakao.com", "accounts.kakao.com", "*.kakao.com", "appleid.apple.com"]
+  },
+  "ios": { "contentInset": "always", "limitsNavigationsToAppBoundDomains": false },
+  "plugins": { "PushNotifications": { "presentationOptions": ["badge", "sound", "alert"] } }
+}
