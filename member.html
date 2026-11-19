@@ -91,8 +91,17 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
       .then(function(r){ if(r.error) err(r.error.message) });
   });
 
-  function logoutBtn(){ return '<button class="ghost" id="logout" type="button">로그아웃</button>' }
-  function bindLogout(){ var b=document.getElementById('logout'); if(b) b.addEventListener('click',function(){ sb.auth.signOut().then(function(){location.replace('member.html')}) }) }
+  function logoutBtn(){ return '<button class="ghost" id="logout" type="button">로그아웃</button><p style="margin:14px 0 0;text-align:center"><button type="button" id="delacct" style="border:0;background:none;color:#8A8290;font-size:13px;text-decoration:underline;cursor:pointer;font-family:inherit">회원 탈퇴</button></p>' }
+  function bindLogout(){ var b=document.getElementById('logout'); if(b) b.addEventListener('click',function(){ sb.auth.signOut().then(function(){location.replace('member.html')}) });
+    var d=document.getElementById('delacct'); if(d) d.addEventListener('click',function(){
+      if(!confirm('회원 탈퇴를 하면 가입 정보(보호자·자녀 정보)가 바로 지워지고 되돌릴 수 없습니다. 탈퇴할까요?')) return;
+      if(!confirm('정말 탈퇴할까요? 다시 쓰시려면 처음부터 가입해야 합니다.')) return;
+      d.disabled=true;
+      sb.rpc('delete_my_account').then(function(r){
+        if(r.error){ d.disabled=false; return err(/원장/.test(r.error.message)?'원장 계정은 앱에서 탈퇴할 수 없습니다.':'탈퇴하지 못했습니다. 학원(02-794-8123)으로 연락 주세요.') }
+        sb.auth.signOut().then(function(){ out.innerHTML='<h1>탈퇴했습니다</h1><p class="lead">가입 정보를 모두 지웠습니다.<br>그동안 이용해 주셔서 감사합니다.</p>'; window.scrollTo(0,0) });
+      });
+    }) }
   try{ var _t=new URLSearchParams(location.search).get('t'); if(_t){ localStorage.setItem('js_teacher_code',_t) } }catch(e){}
   try{ var _q=new URLSearchParams(location.search); if(_q.get('state')==='kakao_alert'&&_q.get('code')){ sessionStorage.setItem('js_kakao_code',_q.get('code')) } }catch(e){}
   // 앱 사용 기록 (익명 기기 번호만) — 시험 사용 확인용
