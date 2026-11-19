@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.juniorsolomon.app",
+    "sha256_cert_fingerprints": [
+      "CB:F8:74:57:A9:2C:9A:9F:A0:FF:C6:96:10:F6:7F:7E:BB:2C:56:D8:35:31:C6:9E:D3:D7:49:5B:B0:3E:FD:8E"
+    ]
+  }
+}]
