@@ -44,19 +44,20 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 <a href="#havruta" style="color: #3A3440; text-decoration: none">하브루타 정규반</a>
 <a href="#readingocean" style="color: #3A3440; text-decoration: none">리딩오션</a>
 <a href="#sophos" style="color: #3A3440; text-decoration: none">소포스에듀</a>
-<a href="#special" style="color: #3A3440; text-decoration: none">방학 특강</a>
+<a href="special.html" style="color: #3A3440; text-decoration: none">방학 특강</a>
 <a href="index.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 22px; border-radius: 999px; border: 1px solid #CFC8D4; color: #1E1A22; text-decoration: none">← 메인으로</a>
 </nav>
 </div>
 </header>
 
-<section style="max-width: 1200px; margin: 0 auto; padding: 104px 24px 72px">
+<div id="progbar" hidden style="max-width: 1200px; margin: 0 auto; padding: 40px 24px 0"><a href="programs.html" onclick="location.hash='';return false" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; border-radius: 999px; border: 1px solid #CFC8D4; color: #1E1A22; text-decoration: none; font-size: 14px">← 전체 과정 보기</a></div>
+<section data-intro style="max-width: 1200px; margin: 0 auto; padding: 104px 24px 72px">
 <p style="margin: 0 0 20px; font-size: 13px; letter-spacing: 0.2em; color: #6E6676">PROGRAMS</p>
 <h1 style="margin: 0; font-family: 'Noto Serif KR', serif; font-weight: 600; font-size: clamp(36px, 5vw, 64px); line-height: 1.25; letter-spacing: -0.035em">아이의 단계에 맞춘 과정</h1>
 <p style="margin: 24px 0 0; max-width: 640px; font-size: 18px; line-height: 1.85; color: #5E5866">첫 상담에서 아이가 어떻게 읽고 무엇을 묻는지 살펴본 뒤, 맞는 과정을 안내합니다.</p>
 </section>
 
-<section aria-label="학원 공간" style="max-width: 1200px; margin: 0 auto; padding: 0 24px 88px">
+<section data-intro aria-label="학원 공간" style="max-width: 1200px; margin: 0 auto; padding: 0 24px 88px">
 <img src="assets/5d22d8b6e10716feff3bf8ddff3fc4bb.jpg" alt="원형 테이블 너머로 책장과 독서 공간이 보이는 학원 내부" style="display: block; width: 100%; height: clamp(280px, 40vw, 520px); object-fit: cover; border-radius: 24px">
 </section>
 
@@ -205,6 +206,21 @@ renderVals() {
 return {};
 }
 }
+</script>
+<script>
+(function(){
+  var ids=['havruta','readingocean','sophos','special'];
+  function all(sel){return Array.prototype.slice.call(document.querySelectorAll(sel))}
+  function apply(){
+    var h=(location.hash||'').slice(1), one=ids.indexOf(h)>=0;
+    all('[data-intro]').forEach(function(s){s.hidden=one});
+    ids.forEach(function(id){all('[id="'+id+'"]').forEach(function(s){s.hidden=one&&id!==h; s.style.borderTop=one?'none':''})});
+    all('[id="progbar"]').forEach(function(b){b.hidden=!one});
+    if(one){setTimeout(function(){window.scrollTo(0,0)},0)}
+  }
+  window.addEventListener('hashchange',apply);
+  window.addEventListener('load',apply); apply();
+})();
 </script>
 </body>
 </html>
