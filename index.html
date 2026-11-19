@@ -439,5 +439,45 @@ badgeColor: open ? '#FFFFFF' : '#3A3440'
 }
 }
 </script>
+<style>
+.jsp-wrap{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;gap:24px;padding:20px;background:rgba(30,18,36,.55);backdrop-filter:blur(2px)}
+.jsp{width:min(360px,42vw);background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.35);display:flex;flex-direction:column;animation:jspIn .35s ease-out}
+.jsp a.img{display:block;line-height:0}.jsp img{width:100%;height:auto;max-height:68vh;object-fit:contain;background:#F6F1F8}
+.jsp .go{display:block;margin:12px 14px 4px;padding:13px;border-radius:12px;background:#5F3D66;color:#fff;text-align:center;font-weight:700;font-size:16px;text-decoration:none}
+.jsp .bar{display:flex;justify-content:space-between;align-items:center;padding:8px 14px 12px;font-size:14px}
+.jsp .bar button{border:0;background:none;font:inherit;color:#5E5866;padding:6px 2px}
+.jsp .bar button.x{font-weight:700;color:#1E1A22}
+@keyframes jspIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media (max-width:720px){.jsp-wrap{gap:0}.jsp{width:min(340px,88vw)}.jsp+.jsp{display:none}}
+</style>
+<script>
+(function(){
+  // 홈페이지 이벤트 팝업 (각각 「오늘 하루 안 보기」) — 마감일이 지나면 자동으로 안 뜸
+  var EVENTS=[
+    {id:'maum', img:'assets/dcb4db7c1b9ba97096b7767217a25911.jpg', alt:'2027 겨울특강 문학으로 마음여행', href:'special.html#maum', until:'2026-12-24'},
+    {id:'lab',  img:'assets/02b5641ea51b63ecc224680ccee75fe9.jpg', alt:'2027 겨울특강 생각의 실험실',   href:'special.html#lab',  until:'2026-12-24'}
+  ];
+  function today(){ var d=new Date(Date.now()+9*3600e3); return d.toISOString().slice(0,10) }
+  function hidden(id){ try{ return localStorage.getItem('jsp_hide_'+id)===today() }catch(e){ return false } }
+  var list=EVENTS.filter(function(e){ return today()<=e.until && !hidden(e.id) });
+  if(!list.length) return;
+  function build(){
+    var wrap=document.createElement('div'); wrap.className='jsp-wrap'; wrap.setAttribute('role','dialog'); wrap.setAttribute('aria-label','학원 소식');
+    list.forEach(function(e){
+      var c=document.createElement('div'); c.className='jsp';
+      c.innerHTML='<a class="img" href="'+e.href+'"><img src="'+e.img+'" alt="'+e.alt+'"></a><a class="go" href="'+e.href+'">자세히 보기</a>'+
+        '<div class="bar"><button type="button" class="today">오늘 하루 안 보기</button><button type="button" class="x">닫기 ✕</button></div>';
+      function close(){ c.remove(); if(!wrap.querySelector('.jsp')) wrap.remove() }
+      c.querySelector('.today').onclick=function(){ try{ localStorage.setItem('jsp_hide_'+e.id, today()) }catch(_){} close() };
+      c.querySelector('.x').onclick=close;
+      wrap.appendChild(c);
+    });
+    wrap.addEventListener('click',function(ev){ if(ev.target===wrap){ wrap.remove() } });
+    document.addEventListener('keydown',function k(ev){ if(ev.key==='Escape'){ wrap.remove(); document.removeEventListener('keydown',k) } });
+    document.body.appendChild(wrap);
+  }
+  if(document.readyState==='complete') setTimeout(build,400); else window.addEventListener('load',function(){ setTimeout(build,400) });
+})();
+</script>
 </body>
 </html>

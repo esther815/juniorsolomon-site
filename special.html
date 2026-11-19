@@ -179,7 +179,8 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { open: null, copied: false };
+    var _h = (typeof location !== 'undefined' && location.hash || '').slice(1);
+    this.state = { open: ['maum', 'lab', 'ocean', 'sophos'].indexOf(_h) >= 0 ? _h : null, copied: false };
   }
   renderVals() {
     var pick = this.props.previewDate || '오늘';
