@@ -30,6 +30,19 @@ h1{font-family:'Noto Serif KR',serif;font-weight:600;font-size:28px;text-align:c
 .ghost{display:block;width:100%;min-height:48px;margin-top:18px;border:1px solid #CFC8D4;border-radius:12px;background:#fff;color:#1E1A22;font-size:15px;font-family:inherit;cursor:pointer}
 .home{display:block;text-align:center;margin-top:28px;font-size:14px;color:#5F3D66;text-decoration:none}
 .err{margin-top:16px;padding:14px 16px;border-radius:12px;background:#FBEDE8;color:#8C3A22;font-size:14px;line-height:1.7}
+.f{display:block;margin-top:14px;font-size:14px;color:#5E5866}
+.f input,.f select{display:block;width:100%;margin-top:6px;min-height:48px;padding:0 14px;border:1px solid #CFC8D4;border-radius:10px;font-size:16px;font-family:inherit;background:#fff}
+.chk{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-size:13px;line-height:1.7;color:#5E5866}
+.chk input{margin-top:4px;width:18px;height:18px;flex:none}
+.primary{display:block;width:100%;min-height:52px;margin-top:20px;border:0;border-radius:12px;background:#5F3D66;color:#fff;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer}
+.primary:disabled{opacity:.5}
+.m{border:1px solid #EEEAF0;border-radius:14px;padding:16px;margin-top:12px;font-size:14px;line-height:1.7}
+.m b{font-size:15px}.m .st{float:right;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:#F3ECF6;color:#5F3D66}
+.m .st.approved{background:#E6F3EC;color:#2E7D52}.m .st.rejected{background:#FBEDE8;color:#8C3A22}
+.m .act{display:flex;gap:8px;margin-top:10px}.m .act input{flex:1;min-height:40px;border:1px solid #CFC8D4;border-radius:8px;padding:0 10px;font-size:15px}
+.m .act button{min-height:40px;padding:0 14px;border-radius:8px;border:0;font-family:inherit;font-weight:700;cursor:pointer}
+.okb{background:#5F3D66;color:#fff}.nob{background:#F2EEF4;color:#5E5866}
+h2{font-family:'Noto Serif KR',serif;font-weight:600;font-size:20px;margin:36px 0 4px}
 </style>
 </head>
 <body>
@@ -60,25 +73,71 @@ h1{font-family:'Noto Serif KR',serif;font-weight:600;font-size:28px;text-align:c
   if(e) err('로그인이 끝나지 않았습니다: '+e);
 
   document.getElementById('login').addEventListener('click',function(){
-    sb.auth.signInWithOAuth({provider:'kakao',options:{redirectTo:location.origin+'/member.html',scopes:'phone_number plusfriends'}})
+    sb.auth.signInWithOAuth({provider:'kakao',options:{redirectTo:location.origin+'/member.html'}})
       .then(function(r){ if(r.error) err(r.error.message) });
   });
 
+  function logoutBtn(){ return '<button class="ghost" id="logout" type="button">로그아웃</button>' }
+  function bindLogout(){ var b=document.getElementById('logout'); if(b) b.addEventListener('click',function(){ sb.auth.signOut().then(function(){location.replace('member.html')}) }) }
+  var shown=false;
   function show(user){
-    var m=user.user_metadata||{}, ids=(user.identities||[])[0]||{}, d=ids.identity_data||{};
-    var phone=m.phone_number||d.phone_number||user.phone||'';
-    var nick=m.name||m.full_name||m.nickname||d.name||'회원';
-    out.innerHTML='<h1>'+esc(nick)+'님</h1>'+
-      '<p class="lead"><span class="badge">승인 대기</span><br><br>원장님이 확인하면 재원생 정보가 열립니다.</p>'+
-      '<div class="card">'+
-        '<div class="row"><span>로그인</span><span class="ok">카카오 연결됨</span></div>'+
-        '<div class="row"><span>이메일</span><span class="'+(user.email?'ok':'no')+'">'+(user.email?'받음':'없음')+'</span></div>'+
-        '<div class="row"><span>전화번호</span><span class="'+(phone?'ok':'no')+'">'+(phone?'받음':'없음')+'</span></div>'+
-      '</div>'+
-      '<button class="ghost" id="logout" type="button">로그아웃</button>';
-    document.getElementById('logout').addEventListener('click',function(){ sb.auth.signOut().then(function(){location.replace('member.html')}) });
+    if(shown) return; shown=true; history.replaceState(null,'','member.html');
+    sb.from('profiles').select('*').eq('id',user.id).maybeSingle().then(function(r){
+      var p=r.data;
+      if(r.error||!p){ out.innerHTML='<h1>잠시만요</h1><p class="lead">회원 정보를 준비하고 있습니다.<br>잠시 뒤 다시 열어 주세요.</p>'+logoutBtn(); bindLogout(); return }
+      var nick=esc(p.nickname||'회원');
+      if(!p.phone){ return form(p,nick) }
+      var badge={pending:'승인 대기',approved:'승인 완료',rejected:'확인 필요'}[p.status];
+      var txt={pending:'원장님이 확인하면 재원생 정보가 열립니다.',approved:(p.student_no?'원생번호 '+esc(p.student_no):'재원생 정보가 열렸습니다.'),rejected:'학원으로 연락 주세요. 02-794-8123'}[p.status];
+      out.innerHTML='<h1>'+nick+'님</h1><p class="lead"><span class="badge">'+badge+'</span><br><br>'+txt+'</p>'+
+        '<div class="card"><div class="row"><span>자녀</span><span>'+esc(p.child_name)+' · '+esc(p.child_grade)+'</span></div><div class="row"><span>학교</span><span>'+esc(p.child_school)+'</span></div><div class="row"><span>연락처</span><span>'+esc(p.phone.replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3'))+'</span></div></div>'+
+        '<div id="admin"></div>'+logoutBtn();
+      bindLogout();
+      sb.rpc('is_admin').then(function(a){ if(a.data===true) admin() });
+    });
   }
-  sb.auth.getSession().then(function(r){ var s=r.data&&r.data.session; if(s){ history.replaceState(null,'','member.html'); show(s.user) } });
+  function form(p,nick){
+    out.innerHTML='<h1>'+nick+'님, 반갑습니다</h1><p class="lead">한 번만 입력하면 됩니다.<br>원장님이 확인한 뒤 재원생 정보가 열립니다.</p>'+
+      '<label class="f">학부모 휴대폰 번호<input id="ph" inputmode="numeric" autocomplete="tel" placeholder="01012345678"></label>'+
+      '<label class="f">자녀 이름<input id="cn" autocomplete="off"></label>'+
+      '<label class="f">자녀 학년<select id="cg"><option value="">고르세요</option><option>5세</option><option>6세</option><option>7세</option><option>초1</option><option>초2</option><option>초3</option><option>초4</option><option>초5</option><option>초6</option><option>중1</option><option>중2</option><option>중3</option><option>고1</option><option>고2</option><option>고3</option></select></label>'+
+      '<label class="f">학교(유치원)<input id="cs" autocomplete="off"></label>'+
+      '<label class="chk"><input type="checkbox" id="ag"><span>저는 이 자녀의 법정대리인(보호자)이며, 자녀의 이름·학년·학교를 학원의 재원생 확인과 수업 정보 제공에 쓰는 것에 동의합니다. <a href="privacy.html">개인정보처리방침</a></span></label>'+
+      '<button class="primary" id="save" type="button">저장하고 승인 요청하기</button>'+logoutBtn();
+    bindLogout();
+    document.getElementById('save').addEventListener('click',function(){
+      var ph=document.getElementById('ph').value.replace(/\D/g,''), cn=document.getElementById('cn').value.trim(), cg=document.getElementById('cg').value, cs=document.getElementById('cs').value.trim();
+      msg.innerHTML='';
+      if(!/^01\d{8,9}$/.test(ph)) return err('휴대폰 번호를 숫자만 정확히 적어 주세요.');
+      if(!cn||!cg||!cs) return err('자녀 이름, 학년, 학교를 모두 적어 주세요.');
+      if(!document.getElementById('ag').checked) return err('보호자 동의에 체크해 주세요.');
+      this.disabled=true;
+      sb.from('profiles').update({phone:ph,child_name:cn,child_grade:cg,child_school:cs,guardian_consent_at:new Date().toISOString()}).eq('id',p.id).then(function(r){
+        if(r.error){ document.getElementById('save').disabled=false; return err('저장하지 못했습니다. 다시 눌러 주세요.') }
+        shown=false; sb.auth.getUser().then(function(u){ show(u.data.user) });
+      });
+    });
+  }
+  function admin(){
+    var box=document.getElementById('admin');
+    sb.from('profiles').select('*').order('created_at',{ascending:false}).then(function(r){
+      if(r.error) return;
+      var rows=r.data||[];
+      box.innerHTML='<h2>원장님 화면 · 회원 '+rows.length+'명</h2><p class="lead" style="text-align:left;margin:0">승인 대기 회원을 원생원장과 맞춰 본 뒤 원생번호를 넣고 승인하세요.</p>'+
+        rows.map(function(m){
+          var st={pending:'승인 대기',approved:'승인',rejected:'반려'}[m.status];
+          return '<div class="m"><span class="st '+m.status+'">'+st+'</span><b>'+esc(m.child_name||'(미입력)')+'</b> '+esc(m.child_grade||'')+' · '+esc(m.child_school||'')+
+            '<br>보호자 '+esc(m.nickname||'')+' · '+esc((m.phone||'번호 미입력').replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3'))+(m.student_no?' · '+esc(m.student_no):'')+
+            (m.status!=='approved'&&m.phone?'<div class="act"><input placeholder="원생번호 JS-0000" data-sno="'+m.id+'"><button class="okb" data-ok="'+m.id+'">승인</button><button class="nob" data-no="'+m.id+'">반려</button></div>':'')+'</div>';
+        }).join('');
+      box.onclick=function(e){
+        var ok=e.target.getAttribute('data-ok'), no=e.target.getAttribute('data-no');
+        if(ok){ var s=box.querySelector('[data-sno="'+ok+'"]').value; sb.rpc('approve_member',{target:ok,sno:s}).then(admin) }
+        if(no&&confirm('반려할까요?')){ sb.rpc('reject_member',{target:no}).then(admin) }
+      };
+    });
+  }
+  sb.auth.getSession().then(function(r){ var s=r.data&&r.data.session; if(s) show(s.user) });
   sb.auth.onAuthStateChange(function(ev,s){ if(s&&s.user) show(s.user) });
 })();
 </script>
