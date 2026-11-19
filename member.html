@@ -254,9 +254,12 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
       if(rest.length){ h+='<h3 style="margin:22px 0 4px;font-size:16px">휴원생 자리</h3><p style="margin:0 0 6px;color:#8A8290;font-size:13px">선납한 학생만 「자리 유지」로 표시하세요. 표시하지 않으면 빈자리로 계산합니다.</p>'+rest.map(function(x){return '<div class="row2"><span><b>'+esc(x.name)+'</b></span><button type="button" data-hold="'+esc(x.me_id)+'" data-v="'+(x.seat_hold?1:0)+'" class="stg '+(x.seat_hold?'soon':'full')+'" style="border:0;cursor:pointer;font-family:inherit">'+(x.seat_hold?'선납 · 자리 유지':'빈자리로 계산')+'</button></div>'}).join('') }
       h+='<div class="up"><b>엑셀로 자료 올리기</b> <span style="color:#8A8290">(자동 연결 전·오류 때)</span><br>메이크에듀에서 내려받은 두 파일을 고르세요.'+
          '<label>① 원생 전체 목록<input type="file" id="fS" accept=".xlsx,.xls"></label><label>② 수업 목록<input type="file" id="fC" accept=".xlsx,.xls"></label>'+
-         '<button class="primary" id="upb" type="button" style="margin-top:4px">올리고 반영하기</button><div id="upm" style="margin-top:8px"></div></div>';
+         '<button class="primary" id="upb" type="button" style="margin-top:4px">올리고 반영하기</button><div id="upm" style="margin-top:8px"></div></div>'+
+         '<div class="up"><b>월별 출석부 올리기</b><br>메이크에듀 「출석부」 엑셀을 고르세요. 여러 달을 한꺼번에 골라도 됩니다. 강사·학부모 화면의 출결에 반영됩니다.'+
+         '<label>출석부 파일<input type="file" id="fA" accept=".xlsx,.xls" multiple></label>'+
+         '<button class="primary" id="upa" type="button" style="margin-top:4px">출결 반영하기</button><div id="upam" style="margin-top:8px"></div></div>';
       box.innerHTML=h;
-      document.getElementById('upb').onclick=uploadExcel;
+      document.getElementById('upb').onclick=uploadExcel; document.getElementById('upa').onclick=uploadAttendance;
       box.querySelectorAll('[data-hold]').forEach(function(b){ b.onclick=function(){ var id=b.getAttribute('data-hold'), v=b.getAttribute('data-v')!=='1'; b.disabled=true; sb.from('me_students').update({seat_hold:v}).eq('me_id',id).then(function(r){ if(r.error){ b.disabled=false; alert('바꾸지 못했습니다. 다시 눌러 주세요.'); return } meBoard() }) } });
     });
   }
@@ -285,6 +288,30 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
     }).catch(function(e){ m.innerHTML='<div class="alert">올리지 못했습니다. '+esc(e.message||String(e))+'</div>'; sb.rpc('log_sync_error',{p_source:'excel',p_error:String(e.message||e)}) });
   }
 
+  function uploadAttendance(){
+    var m=document.getElementById('upam'), fs=Array.from(document.getElementById('fA').files||[]);
+    if(!fs.length){ m.innerHTML='<div class="alert">출석부 파일을 골라 주세요.</div>'; return }
+    m.textContent='읽는 중…';
+    loadXLSX().then(function(){ return Promise.all(fs.map(readRows)) }).then(function(all){
+      var rows=[], months={};
+      all.forEach(function(rs,fi){
+        rs=rs.map(clean);
+        if(!rs.length||!('날짜' in rs[0])||!('이름' in rs[0])) throw new Error(fs[fi].name+' — 출석부 파일이 아닙니다. (날짜·이름 칸이 없음)');
+        rs.forEach(function(x){
+          var ym=String(x['날짜']||'').match(/^(\d{4})-(\d{2})/); if(!ym) return; months[ym[0]]=1;
+          var last=new Date(+ym[1],+ym[2],0).getDate();
+          for(var d=1; d<=last; d++){ var v=String(x[String(d)]||'').trim(); if(v==='O'||v==='X'||v==='△') rows.push({name:x['이름'],school:x['학교']||'',class:x['수업']||'',day:ym[0]+'-'+(d<10?'0':'')+d,mark:v}) }
+        });
+      });
+      if(!rows.length) throw new Error('출결 표시(O·X)가 있는 칸이 없습니다.');
+      m.textContent='반영하는 중… ('+Object.keys(months).sort().join(', ')+' · '+rows.length+'칸)';
+      return sb.rpc('apply_attendance_named',{p_rows:rows});
+    }).then(function(res){
+      if(res.error) throw new Error(res.error.message);
+      var un=res.data.unmatched||[];
+      m.innerHTML='<div class="okline">출결 '+res.data.saved+'건을 반영했습니다.</div>'+(un.length?'<div class="alert">명부에서 찾지 못한 학생 '+un.length+'명 — 메이크에듀 원생 목록을 먼저 올린 뒤 다시 반영해 주세요.<br><span style="font-size:13px">'+un.map(esc).join(', ')+'</span></div>':'');
+    }).catch(function(e){ m.innerHTML='<div class="alert">반영하지 못했습니다. '+esc(e.message||String(e))+'</div>' });
+  }
   var DAY={'월':'월요일','화':'화요일','수':'수요일','목':'목요일','금':'금요일','토':'토요일','일':'일요일'};
   function prettyClass(n){
     var m=String(n||'').match(/\(([월화수목금토일])\s*(\d{1,2}):(\d{2})/); if(!m) return esc(n);
@@ -301,7 +328,10 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
         if(!c.linked){ h+='<p style="margin:14px 0 0;font-size:14px;line-height:1.7;color:#5E5866">학원 원생 명부와 연결되면 수업 정보가 여기에 나옵니다.</p>' }
         else if(!c.classes||!c.classes.length){ h+='<p style="margin:14px 0 0;font-size:14px;color:#5E5866">배정된 반 정보를 준비하고 있습니다.</p>' }
         else { h+='<div style="margin-top:14px">'+c.classes.map(function(x){ return '<div class="row"><span>'+prettyClass(x.name)+'</span><span>'+esc(x.teacher||'')+' 선생님</span></div>' }).join('')+'</div>' }
-        return h+'<div style="margin-top:14px;font-size:13px;color:#8A8290">출결 기록은 곧 이곳에서 보실 수 있습니다.</div></div>';
+        var at=(c.attendance||[]).slice(0,6);
+        if(at.length){ h+='<div style="margin-top:14px;font-size:13px;color:#8A8290;font-weight:700">최근 출결</div>'+at.map(function(a){ var col={'출석':'#2E7D52','결석':'#B9573A'}[a.status]||'#8A5A12'; var dt=String(a.day).slice(5).replace('-','/');
+          return '<div class="row"><span>'+esc(dt)+'</span><span style="color:'+col+';font-weight:700">'+esc(a.status)+'</span></div>' }).join('') }
+        return h+'</div>';
       }).join('');
     });
   }
@@ -395,7 +425,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
         (L.length?L.map(function(x){return '<div class="row2"><span><b>'+esc(x.device.slice(0,6).toUpperCase())+'</b><br><span style="color:#8A8290;font-size:13px">'+esc(x.first_day)+' ~ '+esc(x.last_day)+' · 연 횟수 '+x.opens+'</span></span><span class="stg '+(x.days>=7?'ok':'soon')+'">'+x.days+'일 사용</span></div>'}).join(''):'<p style="font-size:14px;color:#8A8290">아직 앱에서 연 기록이 없습니다.</p>');
     });
   }
-  var AT={'출석':'#2E7D52','지각':'#8A5A12','결석':'#B9573A'};
+  var AT={'출석':'#2E7D52','지각':'#8A5A12','기타':'#8A5A12','결석':'#B9573A'};
   function teacherBoard(){
     var box=document.getElementById('tboard'); if(!box) return; box.className='me';
     sb.rpc('my_teacher_board').then(function(r){
@@ -408,7 +438,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
             var dots=(x.att||[]).slice().reverse().map(function(a){return '<span title="'+esc(a.day+' '+a.status)+'" style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:3px;background:'+(AT[a.status]||'#CFC8D4')+'"></span>'}).join('');
             return '<div class="row2"><span>'+esc(x.name)+' <span style="color:#8A8290;font-size:13px">'+esc(x.grade||'')+(x.status==='휴원'?' · 휴원':'')+'</span></span><span>'+dots+'</span></div>' }).join('')
           :'<div style="color:#8A8290;font-size:13px;margin-top:6px">배정된 학생이 없습니다.</div>')+'</div>';
-      }).join('')+'<p style="margin:10px 0 0;color:#8A8290;font-size:12px">● 최근 출결 4회 (초록 출석 · 노랑 지각 · 빨강 결석)</p>';
+      }).join('')+'<p style="margin:10px 0 0;color:#8A8290;font-size:12px">● 최근 출결 4회 (초록 출석 · 빨강 결석 · 노랑 기타)</p>';
     });
   }
   var myId='';
@@ -456,7 +486,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
       body='<h1>윤슬 선생님</h1><p class="lead"><span class="badge">강사</span><br>하브루타 초등</p><div class="me"><h2>내 반 2개</h2>'+
         '<div class="m"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>하브루타 초3 · 월 오후 5:00</b><span class="st" style="float:none">5/8명</span></div>'+st.map(function(x){return '<div class="row2"><span>'+x[0]+' <span style="color:#8A8290;font-size:13px">'+x[1]+'</span></span><span>'+x[2].map(dot).join('')+'</span></div>'}).join('')+'</div>'+
         '<div class="m"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>하브루타 초4 · 수 오후 4:00</b><span class="st" style="float:none">6/8명</span></div><div style="color:#8A8290;font-size:13px;margin-top:6px">학생 6명</div></div>'+
-        '<p style="margin:10px 0 0;color:#8A8290;font-size:12px">● 최근 출결 4회 (초록 출석 · 노랑 지각 · 빨강 결석)</p></div>'+
+        '<p style="margin:10px 0 0;color:#8A8290;font-size:12px">● 최근 출결 4회 (초록 출석 · 빨강 결석 · 노랑 기타)</p></div>'+
         '<p class="note" style="text-align:left">학부모 연락이 필요하면 데스크에 요청해 주세요. 학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.</p>';
     } else {
       var kid=function(n,no,g,cls){ return '<div class="card" style="border-color:#D9CFE0;background:#FBF8FC"><div style="font-size:13px;color:#8A8290;font-weight:700;letter-spacing:.04em">우리 아이 수업</div>'+
