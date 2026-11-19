@@ -60,7 +60,7 @@ h1{font-family:'Noto Serif KR',serif;font-weight:600;font-size:28px;text-align:c
   if(e) err('로그인이 끝나지 않았습니다: '+e);
 
   document.getElementById('login').addEventListener('click',function(){
-    sb.auth.signInWithOAuth({provider:'kakao',options:{redirectTo:location.origin+'/member.html'}})
+    sb.auth.signInWithOAuth({provider:'kakao',options:{redirectTo:location.origin+'/member.html',scopes:'phone_number plusfriends'}})
       .then(function(r){ if(r.error) err(r.error.message) });
   });
 
