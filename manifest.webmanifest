@@ -1,7 +1,7 @@
 {
   "name": "주니어솔로몬",
   "short_name": "주니어솔로몬",
-  "description": "주니어솔로몬학원 학부모·선생님 앱 — 우리 아이 수업 정보, 상담 신청, 학원 소식",
+  "description": "무엇을 구하겠느냐 — 지혜는 질문에서 시작됩니다. 주니어솔로몬학원 학부모·선생님 앱",
   "start_url": "/member.html?app=1",
   "scope": "/",
   "display": "standalone",
