@@ -212,33 +212,42 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { grade: 'g3', pick: null, copied: false, sheet: false, done: null, err: '', log: [] };
+    this.state = { grade: 'g3', pick: null, copied: false, sheet: false, done: null, err: '', log: [], seats: null };
+    var self = this;
+    try {
+      fetch('https://gyuuimwalbxsocnamtqk.supabase.co/rest/v1/rpc/seat_status', {
+        method: 'POST', headers: { 'apikey': 'sb_publishable_Kj2bX4fe9CRSkhvGzBbaJw_y1ZqkjOz', 'Content-Type': 'application/json' }, body: '{}'
+      }).then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+        .then(function (rows) { var m = {}; (rows || []).forEach(function (x) { m[x.site_key] = x.stage; }); self.setState({ seats: rows && rows.length ? m : false }); })
+        .catch(function () { self.setState({ seats: false }); });
+    } catch (e) { this.state.seats = false; }
   }
   renderVals() {
     var self = this;
     var KAKAO = 'https://pf.kakao.com/_xadGxnxb/chat';
-    // 시간표: 2026년 11월 현재 (강사별 수업 시간표 v1 기준). 정원 8명 가정.
+    // 반별 자리 단계는 메이크에듀 자료로 자동 계산되어 서버에서 단계만 받아 옵니다(인원 숫자는 오지 않음).
     var CAP = 8;
+    var seats = self.state.seats;
     // 2027학년도(3월 진급 후) 학년 기준. 출처: 강사별 수업 시간표 v1(2611) 3월 학년 열 + 원장님 메모(2026-11-18)
     // g: -2=5세, 0=7세, 1~6=초1~초6, 7=중1
     var classes = [
-      { d: '월', t: '14:30–16:30', g: [4], n: 4, dj: 1 },
-      { d: '월', t: '15:00–17:00', g: [6, 7], n: 4 },
-      { d: '월', t: '17:00–19:00', g: [4], n: 4 },
-      { d: '월', t: '17:00–19:00', g: [3], n: 4 },
-      { d: '화', t: '16:30–18:30', g: [1], n: 7 },
-      { d: '화', t: '16:30–18:30', g: [4], n: 7, dj: 1 },
-      { d: '수', t: '14:00–16:00', g: [6, 7], n: 4 },
-      { d: '수', t: '15:00–17:00', g: [2], n: 6 },
-      { d: '수', t: '16:00–18:00', g: [6, 7], n: 2 },
-      { d: '수', t: '17:00–19:00', g: [3], n: 4 },
-      { d: '목', t: '15:00–17:00', g: [5, 6, 7], n: 6 },
-      { d: '목', t: '16:30–18:30', g: [2], n: 4 },
-      { d: '목', t: '17:00–19:00', g: [5], n: 5 },
-      { d: '금', t: '15:00–17:00', g: [1], n: 3 },
-      { d: '토', t: '11:00–13:00', g: [3], n: 8, dj: 1 },
-      { d: '토', t: '11:00–13:00', g: [6, 7], n: 6 },
-      { d: '토', t: '09:00–11:00', g: [1], n: 8 },
+      { d: '월', t: '14:30–16:30', g: [4], k: 'mon-1430-jang', dj: 1 },
+      { d: '월', t: '15:00–17:00', g: [6, 7], k: 'mon-1500-ha' },
+      { d: '월', t: '17:00–19:00', g: [4], k: 'mon-1700-ha' },
+      { d: '월', t: '17:00–19:00', g: [3], k: 'mon-1700-son' },
+      { d: '화', t: '16:30–18:30', g: [1], k: 'tue-1630-son' },
+      { d: '화', t: '16:30–18:30', g: [4], k: 'tue-1630-jang', dj: 1 },
+      { d: '수', t: '14:00–16:00', g: [6, 7], k: 'wed-1400-ha' },
+      { d: '수', t: '15:00–17:00', g: [2], k: 'wed-1500-son' },
+      { d: '수', t: '16:00–18:00', g: [6, 7], k: 'wed-1600-ha' },
+      { d: '수', t: '17:00–19:00', g: [3], k: 'wed-1700-son' },
+      { d: '목', t: '15:00–17:00', g: [5, 6, 7], k: 'thu-1500-ha' },
+      { d: '목', t: '16:30–18:30', g: [2], k: 'thu-1630-son' },
+      { d: '목', t: '17:00–19:00', g: [5], k: 'thu-1700-ha' },
+      { d: '금', t: '15:00–17:00', g: [1], k: 'fri-1500-son' },
+      { d: '토', t: '11:00–13:00', g: [3], k: 'sat-1100-jang', dj: 1 },
+      { d: '토', t: '11:00–13:00', g: [6, 7], k: 'sat-1100-ha' },
+      { d: '토', t: '09:00–11:00', g: [1], k: 'sat-0900-ryu' },
       // 신규팀 (손수영 선생님)
       { d: '화', t: '15:00–16:00', g: [-2], n: 0, cap: 4, nw: 1 },
       { d: '월', t: '17:00–18:30', g: [0], n: 0, nw: 1 },
@@ -250,7 +259,7 @@ class Component extends DCLogic {
       // 고원재: 무학년 세계 명작 읽기·글쓰기
       // 확정 후 공개: { d: '월', t: '17:00–19:00', g: [], gw: 1, dj: 1, n: null },
       // 확정 전 비공개: { d: '월', t: '19:00–21:00', g: [], gw: 1, dj: 1, n: 0, nw: 1, nwLabel: 'NEW 신규 개설' },
-      { d: '토', t: '09:00–11:00', g: [], gw: 1, n: 1 }
+      { d: '토', t: '09:00–11:00', g: [], gw: 1, k: 'sat-0900-ha' }
     ];
     var dayOrder = { '월': 1, '화': 2, '수': 3, '목': 4, '금': 5, '토': 6 };
     var gradeList = [
@@ -266,6 +275,12 @@ class Component extends DCLogic {
       return { label: x.label, on: on ? 'true' : 'false', bg: on ? '#5F3D66' : '#FFFFFF', fg: on ? '#FFFFFF' : '#1E1A22', bd: on ? '#5F3D66' : '#E4DEE8',
         pick: function () { self.setState({ grade: x.id, pick: null, copied: false }); } };
     });
+    var STAGE = { ok: { s: '등록 가능', c: '#3E8A62' }, soon: { s: '마감 임박', c: '#C58A2B' }, full: { s: '대기 접수', c: '#9A93A0' } };
+    var stageOf = function (c) {
+      if (seats === null) return { s: '확인 중', c: '#9A93A0' };
+      if (seats === false || !seats[c.k]) return { s: '상담 시 안내', c: '#5F3D66' };
+      return STAGE[seats[c.k]];
+    };
     var statusOf = function (n, cap) {
       cap = cap || CAP;
       if (n >= cap) return { s: '대기 접수', c: '#9A93A0' };
@@ -281,7 +296,7 @@ class Component extends DCLogic {
       })
         .sort(function (a, b) { return dayOrder[a.d] - dayOrder[b.d] || (a.t < b.t ? -1 : 1); })
         .forEach(function (c) {
-          var st = c.plan ? { s: '개설 예정', c: '#5F3D66' } : (c.n === null ? { s: '상담 시 안내', c: '#5F3D66' } : statusOf(c.n, c.cap));
+          var st = c.plan ? { s: '개설 예정', c: '#5F3D66' } : (c.k ? stageOf(c) : (c.n === null || c.n === undefined ? { s: '상담 시 안내', c: '#5F3D66' } : statusOf(c.n, c.cap)));
           var key = cur.id + c.d + c.t;
           var on = self.state.pick && self.state.pick.key === key;
           var note = c.hg ? '천지인 한글 · 한글을 처음 배우는 친구 · 학년 무관 · 1시간 수업에 독서·자기주도 시간이 함께 들어 있습니다' : c.plan ? '현재 반 이동이 확정되면 엽니다' : c.open ? '학년 무관 신규팀 · 먼저 신청한 학년으로 반을 엽니다' : (c.cap ? '정원 ' + c.cap + '명 소수반' : '');
