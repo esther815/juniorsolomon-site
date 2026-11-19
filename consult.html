@@ -33,7 +33,7 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <meta name="theme-color" content="#2B1233">
-<style>@media (hover:hover) and (pointer:fine){html,body{cursor:url("assets/cursor.svg") 3 2, auto}a,button,summary,label,[role="button"],.js-login{cursor:url("assets/cursor-link.svg") 16 16, pointer}}</style>
+<style>@media (hover:hover) and (pointer:fine){html,body{cursor:url("assets/cursor.svg") 3 2, auto}a,button,summary,label,[role="button"],.js-login{cursor:url("assets/cursor-wand.svg") 8 8, pointer}}</style>
 </head>
 <body>
 <template id="dc-tpl">
@@ -64,13 +64,13 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 </section>
 
 <section aria-label="학년 고르기" style="max-width: 1200px; margin: 0 auto; padding: 0 24px">
-<button type="button" onClick="{{ pickDir }}" style="all: unset; cursor:url('assets/cursor-link.svg') 16 16, pointer; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; margin-bottom: 18px; padding: 18px 22px; border-radius: 18px; background: {{ dirBg }}; color: {{ dirFg }}; border: 1px solid #5F3D66">
+<button type="button" onClick="{{ pickDir }}" style="all: unset; cursor:url('assets/cursor-wand.svg') 8 8, pointer; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; margin-bottom: 18px; padding: 18px 22px; border-radius: 18px; background: {{ dirBg }}; color: {{ dirFg }}; border: 1px solid #5F3D66">
 <span><span style="display: block; font-size: 13px; letter-spacing: 0.12em; opacity: 0.8">DIRECTOR'S CLASS</span><span style="display: block; margin-top: 4px; font-family: 'Noto Serif KR', serif; font-size: 22px; font-weight: 600">장화연 원장 직강 수업 모아 보기</span></span>
 <span style="font-size: 22px">→</span>
 </button>
 <div role="tablist" style="display: flex; flex-wrap: wrap; gap: 10px">
 <sc-for list="{{ grades }}" as="g" hint-placeholder-count="9">
-<button type="button" role="tab" aria-selected="{{ g.on }}" onClick="{{ g.pick }}" style="all: unset; cursor:url('assets/cursor-link.svg') 16 16, pointer; display: inline-flex; align-items: center; justify-content: center; min-width: 76px; min-height: 52px; padding: 0 20px; border-radius: 999px; font-size: 17px; font-weight: 700; background: {{ g.bg }}; color: {{ g.fg }}; border: 1px solid {{ g.bd }}">{{ g.label }}</button>
+<button type="button" role="tab" aria-selected="{{ g.on }}" onClick="{{ g.pick }}" style="all: unset; cursor:url('assets/cursor-wand.svg') 8 8, pointer; display: inline-flex; align-items: center; justify-content: center; min-width: 76px; min-height: 52px; padding: 0 20px; border-radius: 999px; font-size: 17px; font-weight: 700; background: {{ g.bg }}; color: {{ g.fg }}; border: 1px solid {{ g.bd }}">{{ g.label }}</button>
 </sc-for>
 </div>
 </section>
@@ -91,7 +91,7 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 </sc-if>
 <div style="margin-top: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px">
 <sc-for list="{{ slots }}" as="s" hint-placeholder-count="3">
-<button type="button" onClick="{{ s.pick }}" aria-pressed="{{ s.on }}" style="all: unset; cursor:url('assets/cursor-link.svg') 16 16, pointer; display: block; padding: 24px 22px; border-radius: 18px; background: {{ s.bg }}; border: 2px solid {{ s.bd }}">
+<button type="button" onClick="{{ s.pick }}" aria-pressed="{{ s.on }}" style="all: unset; cursor:url('assets/cursor-wand.svg') 8 8, pointer; display: block; padding: 24px 22px; border-radius: 18px; background: {{ s.bg }}; border: 2px solid {{ s.bd }}">
 <span style="display: flex; flex-wrap: wrap; gap: 6px"><sc-if value="{{ s.isNew }}" hint-placeholder-val="{{ false }}"><span style="display: inline-block; margin-bottom: 10px; padding: 3px 10px; border-radius: 999px; background: #A3233A; color: #FFFFFF; font-size: 12px; font-weight: 700; letter-spacing: 0.06em">{{ s.newLabel }}</span></sc-if><sc-if value="{{ s.isDir }}" hint-placeholder-val="{{ false }}"><span style="display: inline-block; margin-bottom: 10px; padding: 3px 10px; border-radius: 999px; background: #5F3D66; color: #FFFFFF; font-size: 12px; font-weight: 700; letter-spacing: 0.06em">원장 직강</span></sc-if></span>
 <sc-if value="{{ s.hasCourse }}" hint-placeholder-val="{{ false }}"><p style="margin: 0 0 6px; font-size: 14px; font-weight: 700; color: #5F3D66">{{ s.course }}</p></sc-if>
 <p style="margin: 0; font-family: 'Noto Serif KR', serif; font-size: 30px; font-weight: 600; line-height: 1.2">{{ s.day }}요일</p>
@@ -112,7 +112,7 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 <p style="margin: 0; font-family: 'Noto Serif KR', serif; font-size: 21px; font-weight: 600">리딩오션 문해력 · 예약제</p>
 <p style="margin: 6px 0 0; font-size: 15px; line-height: 1.7; color: #5E5866">평일 오후 2시–7시 사이 원하는 시간에 예약합니다.</p>
 </div>
-<button type="button" onClick="{{ pickOcean }}" style="all: unset; cursor:url('assets/cursor-link.svg') 16 16, pointer; display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; border-radius: 999px; border: 1px solid {{ oceanBd }}; background: {{ oceanBg }}; font-size: 15px; font-weight: 700; color: #1E1A22">{{ oceanLabel }}</button>
+<button type="button" onClick="{{ pickOcean }}" style="all: unset; cursor:url('assets/cursor-wand.svg') 8 8, pointer; display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; border-radius: 999px; border: 1px solid {{ oceanBd }}; background: {{ oceanBg }}; font-size: 15px; font-weight: 700; color: #1E1A22">{{ oceanLabel }}</button>
 </div>
 
 </sc-if>
@@ -131,7 +131,7 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 <p style="margin: 32px 0 0; font-family: 'Noto Serif KR', serif; font-size: 21px; font-weight: 600">중1까지 함께하는 주니어솔로몬 반</p>
 <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px">
 <sc-for list="{{ slots }}" as="s" hint-placeholder-count="2">
-<button type="button" onClick="{{ s.pick }}" aria-pressed="{{ s.on }}" style="all: unset; cursor:url('assets/cursor-link.svg') 16 16, pointer; display: block; padding: 24px 22px; border-radius: 18px; background: {{ s.bg }}; border: 2px solid {{ s.bd }}">
+<button type="button" onClick="{{ s.pick }}" aria-pressed="{{ s.on }}" style="all: unset; cursor:url('assets/cursor-wand.svg') 8 8, pointer; display: block; padding: 24px 22px; border-radius: 18px; background: {{ s.bg }}; border: 2px solid {{ s.bd }}">
 <p style="margin: 0; font-family: 'Noto Serif KR', serif; font-size: 30px; font-weight: 600; line-height: 1.2">{{ s.day }}요일</p>
 <p style="margin: 8px 0 0; font-size: 19px; font-weight: 500">{{ s.time }}</p>
 <p style="margin: 16px 0 0; display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: {{ s.stColor }}"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: {{ s.stColor }}"></span>{{ s.status }}</p>
@@ -148,7 +148,7 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 </div>
 <div style="margin-top: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px">
 <sc-for list="{{ specials }}" as="s" hint-placeholder-count="4">
-<button type="button" onClick="{{ s.pick }}" aria-pressed="{{ s.on }}" style="all: unset; cursor:url('assets/cursor-link.svg') 16 16, pointer; display: block; padding: 24px 22px; border-radius: 18px; background: {{ s.bg }}; border: 2px solid {{ s.bd }}">
+<button type="button" onClick="{{ s.pick }}" aria-pressed="{{ s.on }}" style="all: unset; cursor:url('assets/cursor-wand.svg') 8 8, pointer; display: block; padding: 24px 22px; border-radius: 18px; background: {{ s.bg }}; border: 2px solid {{ s.bd }}">
 <p style="margin: 0; font-family: 'Noto Serif KR', serif; font-size: 22px; font-weight: 600; line-height: 1.35">{{ s.title }}</p>
 <p style="margin: 8px 0 0; font-size: 15px; line-height: 1.6; color: #5E5866">{{ s.sub }}</p>
 <p style="margin: 14px 0 0; font-size: 14px; font-weight: 700; color: {{ s.stColor }}">{{ s.status }}</p>
@@ -165,7 +165,7 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 <p style="margin: 2px 0 0; font-size: 18px; font-weight: 700">{{ pickedText }}</p>
 </div>
 <div style="display: flex; flex-wrap: wrap; gap: 10px">
-<button type="button" onClick="{{ openSheet }}" style="all: unset; cursor:url('assets/cursor-link.svg') 16 16, pointer; display: inline-flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 30px; border-radius: 999px; background: #5F3D66; color: #FFFFFF; font-size: 17px; font-weight: 700">{{ goLabel }}</button>
+<button type="button" onClick="{{ openSheet }}" style="all: unset; cursor:url('assets/cursor-wand.svg') 8 8, pointer; display: inline-flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 30px; border-radius: 999px; background: #5F3D66; color: #FFFFFF; font-size: 17px; font-weight: 700">{{ goLabel }}</button>
 <a href="tel:027948123" style="display: inline-flex; align-items: center; min-height: 56px; padding: 0 24px; border-radius: 999px; border: 1px solid #CFC8D4; color: #1E1A22; text-decoration: none; font-size: 16px">전화 상담</a>
 <a href="sms:01032128123" style="display: inline-flex; align-items: center; min-height: 56px; padding: 0 20px; border-radius: 999px; border: 1px solid #CFC8D4; color: #5F3D66; text-decoration: none; font-size: 15px; font-weight: 700">010-3212-8123 문자·카톡</a>
 </div>
@@ -177,7 +177,7 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 <div style="width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto; background: #FFFFFF; border-radius: 24px 24px 0 0; padding: 26px 22px 30px">
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
 <p style="margin: 0; font-size: 13px; letter-spacing: 0.12em; color: #6E6676">{{ sheetKicker }}</p>
-<button type="button" onClick="{{ closeSheet }}" aria-label="닫기" style="all: unset; cursor:url('assets/cursor-link.svg') 16 16, pointer; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: #F3EFF5; font-size: 20px">✕</button>
+<button type="button" onClick="{{ closeSheet }}" aria-label="닫기" style="all: unset; cursor:url('assets/cursor-wand.svg') 8 8, pointer; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: #F3EFF5; font-size: 20px">✕</button>
 </div>
 <p style="margin: 6px 0 0; font-family: 'Noto Serif KR', serif; font-size: 22px; font-weight: 600; line-height: 1.4">{{ pickedText }}</p>
 <sc-if value="{{ notDone }}" hint-placeholder-val="{{ true }}">
@@ -185,7 +185,7 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 <label style="display: block; margin-top: 14px; font-size: 15px; font-weight: 700">연락처<input id="cs-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="010-0000-0000" style="display: block; box-sizing: border-box; width: 100%; margin-top: 8px; min-height: 52px; padding: 0 14px; border: 1px solid #CFC8D4; border-radius: 12px; font-size: 17px; font-family: inherit"></label>
 <label style="display: flex; gap: 10px; align-items: flex-start; margin-top: 16px; font-size: 14px; line-height: 1.6; color: #3A3440"><input id="cs-agree" type="checkbox" style="width: 22px; height: 22px; margin-top: 1px; flex: none">상담 연락을 위해 성함과 연락처를 받고, 상담이 끝나면 1년 안에 지웁니다. 동의합니다.</label>
 <sc-if value="{{ hasErr }}" hint-placeholder-val="{{ false }}"><p style="margin: 12px 0 0; font-size: 14px; font-weight: 700; color: #A3233A">{{ err }}</p></sc-if>
-<button type="button" onClick="{{ submit }}" style="all: unset; cursor:url('assets/cursor-link.svg') 16 16, pointer; box-sizing: border-box; display: flex; align-items: center; justify-content: center; width: 100%; margin-top: 20px; min-height: 56px; border-radius: 999px; background: #5F3D66; color: #FFFFFF; font-size: 18px; font-weight: 700">{{ submitLabel }}</button>
+<button type="button" onClick="{{ submit }}" style="all: unset; cursor:url('assets/cursor-wand.svg') 8 8, pointer; box-sizing: border-box; display: flex; align-items: center; justify-content: center; width: 100%; margin-top: 20px; min-height: 56px; border-radius: 999px; background: #5F3D66; color: #FFFFFF; font-size: 18px; font-weight: 700">{{ submitLabel }}</button>
 </sc-if>
 <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
 <div style="margin-top: 20px; padding: 26px 20px; border-radius: 20px; background: #F6F1F8; text-align: center">
