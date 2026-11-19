@@ -135,7 +135,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
             '<button class="ghost" id="tinv" type="button">강사 초대 링크 만들기</button><div id="tinvm"></div>'+
             '<button class="ghost" id="dinv" type="button">데스크 초대 링크 만들기</button><div id="dinvm"></div>'+
             '<button class="ghost" id="kak" type="button">카톡 알림 연결 (승인·상담 알림)</button><div id="kakm"></div>'+logoutBtn();
-            bindLogout(); document.getElementById('pv').addEventListener('click',function(){ form(p,'학부모',true) });
+            bindLogout(); var dz=document.getElementById('delacct'); if(dz) dz.parentNode.remove(); document.getElementById('pv').addEventListener('click',function(){ form(p,'학부모',true) });
             inviteBtn('tinv','tinvm','new_teacher_invite','t','강사'); inviteBtn('dinv','dinvm','new_desk_invite','d','데스크');
             consults(); admin(true); meBoard(); usage(); kakaoSetup() }
           else if(deskCode()) staffForm(p,nick,'desk');
