@@ -62,10 +62,10 @@ h2{font-family:'Noto Serif KR',serif;font-weight:600;font-size:20px;margin:36px 
   <img class="logo" src="assets/icon-192.png" alt="주니어솔로몬 왕관">
   <div id="out">
     <h1>주니어솔로몬 회원</h1>
-    <p style="margin:0 0 6px;font-family:'Noto Serif KR',serif;font-size:17px;color:#5F3D66">무엇을 구하겠느냐 — 지혜는 질문에서 시작됩니다</p>
+    <p style="margin:0 0 14px;text-align:center;font-family:'Noto Serif KR',serif;font-size:17px;line-height:1.6;color:#5F3D66">무엇을 구하겠느냐<br>지혜는 질문에서 시작됩니다</p>
     <p class="lead">재원생 학부모님은 카카오로 한 번에 가입하고<br>로그인합니다.</p>
     <button class="kakao" id="login" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#191919" d="M12 3C6.48 3 2 6.58 2 11c0 2.85 1.86 5.35 4.66 6.77l-.95 3.48c-.08.31.27.56.54.38l4.16-2.76c.52.06 1.05.1 1.59.1 5.52 0 10-3.58 10-8S17.52 3 12 3z"/></svg>카카오로 시작하기</button>
-    <p class="note">가입하면 원장님 확인 후 재원생 정보가 열립니다.<br><a href="privacy.html">개인정보처리방침</a></p>
+    <p class="note">가입하면 원장님 확인 후 재원생 정보가 열립니다.<br><a href="member.html?demo=1">가입 전에 예시 화면 둘러보기</a> · <a href="privacy.html">개인정보처리방침</a></p>
   </div>
   <div id="msg"></div>
   <a class="home" href="index.html">← 홈페이지로</a>
@@ -403,7 +403,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
       if(r.error||!list.length){ box.innerHTML='<div class="card" style="font-size:14px;line-height:1.7;color:#5E5866">담당 반이 아직 연결되지 않았습니다. 학원 원생 명부의 담임 이름과 등록하신 이름이 같아야 반이 보입니다. 다르면 원장님께 알려 주세요.</div>'; return }
       box.innerHTML='<h2>내 반 '+list.length+'개</h2>'+list.map(function(c){
         var st=c.students||[];
-        return '<div class="m"><b>'+esc(c.display_name||c.name)+'</b><span class="st">'+st.length+(c.cap?'/'+c.cap:'')+'명</span>'+
+        return '<div class="m"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>'+esc(c.display_name||c.name)+'</b><span class="st" style="float:none">'+st.length+(c.cap?'/'+c.cap:'')+'명</span></div>'+
           (st.length?st.map(function(x){
             var dots=(x.att||[]).slice().reverse().map(function(a){return '<span title="'+esc(a.day+' '+a.status)+'" style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:3px;background:'+(AT[a.status]||'#CFC8D4')+'"></span>'}).join('');
             return '<div class="row2"><span>'+esc(x.name)+' <span style="color:#8A8290;font-size:13px">'+esc(x.grade||'')+(x.status==='휴원'?' · 휴원':'')+'</span></span><span>'+dots+'</span></div>' }).join('')
@@ -444,6 +444,33 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
       };
     });
   }
+  // 예시 화면 (로그인 없이, 가상의 학생 정보)
+  function demo(tab){
+    var ban='<div style="margin:0 0 18px;padding:10px 14px;border-radius:12px;background:#FBF1DE;color:#8A5A12;font-size:13px;text-align:center">예시 화면입니다. 이름과 수업은 가상의 정보입니다.</div>';
+    var tabs='<div style="display:flex;gap:8px;margin-bottom:18px"><button type="button" data-tab="p" class="'+(tab==='t'?'ghost':'primary')+'" style="margin:0;min-height:44px">학부모 화면</button><button type="button" data-tab="t" class="'+(tab==='t'?'primary':'ghost')+'" style="margin:0;min-height:44px">선생님 화면</button></div>';
+    var dot=function(c){return '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:3px;background:'+c+'"></span>'};
+    var G='#2E7D52',Y='#8A5A12',R='#B9573A';
+    var body;
+    if(tab==='t'){
+      var st=[['서하윤','초3',[G,G,Y,G]],['이도윤','초3',[G,G,G,G]],['박시우','초3',[G,R,G,G]],['최지안','초3',[Y,G,G,G]],['정유나','초3',[G,G,G,R]]];
+      body='<h1>윤슬 선생님</h1><p class="lead"><span class="badge">강사</span><br>하브루타 초등</p><div class="me"><h2>내 반 2개</h2>'+
+        '<div class="m"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>하브루타 초3 · 월 오후 5:00</b><span class="st" style="float:none">5/8명</span></div>'+st.map(function(x){return '<div class="row2"><span>'+x[0]+' <span style="color:#8A8290;font-size:13px">'+x[1]+'</span></span><span>'+x[2].map(dot).join('')+'</span></div>'}).join('')+'</div>'+
+        '<div class="m"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>하브루타 초4 · 수 오후 4:00</b><span class="st" style="float:none">6/8명</span></div><div style="color:#8A8290;font-size:13px;margin-top:6px">학생 6명</div></div>'+
+        '<p style="margin:10px 0 0;color:#8A8290;font-size:12px">● 최근 출결 4회 (초록 출석 · 노랑 지각 · 빨강 결석)</p></div>'+
+        '<p class="note" style="text-align:left">학부모 연락이 필요하면 데스크에 요청해 주세요. 학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.</p>';
+    } else {
+      var kid=function(n,no,g,cls){ return '<div class="card" style="border-color:#D9CFE0;background:#FBF8FC"><div style="font-size:13px;color:#8A8290;font-weight:700;letter-spacing:.04em">우리 아이 수업</div>'+
+        '<div style="font-family:\'Noto Serif KR\',serif;font-size:24px;font-weight:600;margin:6px 0 2px">'+n+'</div><div style="font-size:14px;color:#5E5866">원생번호 '+no+' · '+g+'</div>'+
+        '<div style="margin-top:14px">'+cls.map(function(c){return '<div class="row"><span>'+c[0]+'</span><span>'+c[1]+' 선생님</span></div>'}).join('')+'</div></div>' };
+      body='<h1>김OO님</h1><p class="lead"><span class="badge">승인 완료</span></p>'+
+        kid('김하늘','JS-0001','초3',[['월요일 오후 5:00','윤슬'],['목요일 오후 3:30','도담']])+kid('김바다','JS-0002','7세',[['화요일 오후 4:30','도담']])+
+        '<div class="card"><div class="row"><span>김하늘 · 초3</span><span>이촌초 · 승인 · JS-0001</span></div><div class="row"><span>김바다 · 7세</span><span>승인 · JS-0002</span></div></div>'+
+        '<button class="ghost" type="button" disabled>자녀 추가 · 정보 고치기</button>';
+    }
+    out.innerHTML=ban+tabs+body+'<a class="primary" href="member.html" style="display:flex;align-items:center;justify-content:center;text-decoration:none">카카오로 시작하기</a>';
+    out.querySelectorAll('[data-tab]').forEach(function(b){ b.onclick=function(){ demo(b.getAttribute('data-tab')); scrollTo(0,0) } });
+  }
+  if(new URLSearchParams(location.search).get('demo')==='1'){ demo(new URLSearchParams(location.search).get('tab')||'p'); return }
   sb.auth.getSession().then(function(r){ var s=r.data&&r.data.session; if(s) show(s.user) });
   sb.auth.onAuthStateChange(function(ev,s){ if(s&&s.user) show(s.user) });
 })();
