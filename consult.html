@@ -60,7 +60,7 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 <h1 style="margin: 0; font-family: 'Noto Serif KR', serif; font-weight: 600; font-size: clamp(34px, 4.6vw, 58px); line-height: 1.28; letter-spacing: -0.035em">수업 찾고, 카톡으로 상담하기</h1>
 <ol style="margin: 32px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px">
 <li style="padding: 18px 20px; border-radius: 16px; background: #FAF8FB; font-size: 16px; line-height: 1.6"><strong style="color: #5F3D66">1</strong>&nbsp; 아이 학년을 고릅니다</li>
-<li style="padding: 18px 20px; border-radius: 16px; background: #FAF8FB; font-size: 16px; line-height: 1.6"><strong style="color: #5F3D66">2</strong>&nbsp; 원하는 요일·시간을 누릅니다</li>
+<li style="padding: 18px 20px; border-radius: 16px; background: #FAF8FB; font-size: 16px; line-height: 1.6"><strong style="color: #5F3D66">2</strong>&nbsp; 원하는 <span style="white-space: nowrap">요일·시간을 누릅니다</span></li>
 <li style="padding: 18px 20px; border-radius: 16px; background: #FAF8FB; font-size: 16px; line-height: 1.6"><strong style="color: #5F3D66">3</strong>&nbsp; 학원 카톡으로 상담이 이어집니다</li>
 </ol>
 </section>
@@ -132,10 +132,11 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 </div>
 </div>
 <sc-if value="{{ midSlots }}" hint-placeholder-val="{{ false }}">
-<p style="margin: 32px 0 0; font-family: 'Noto Serif KR', serif; font-size: 21px; font-weight: 600">중1까지 함께하는 주니어솔로몬 반</p>
+<p style="margin: 32px 0 0; font-family: 'Noto Serif KR', serif; font-size: 21px; font-weight: 600">지금 운영 중인 반</p>
 <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px">
 <sc-for list="{{ slots }}" as="s" hint-placeholder-count="2">
 <button type="button" onClick="{{ s.pick }}" aria-pressed="{{ s.on }}" style="all: unset; cursor:url('assets/cursor-gold.svg') 4 3, pointer; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; box-sizing: border-box; padding: 24px 22px; border-radius: 18px; background: {{ s.bg }}; border: 2px solid {{ s.bd }}">
+<sc-if value="{{ s.hasCourse }}" hint-placeholder-val="{{ false }}"><p style="margin: 0 0 6px; font-size: 13px; font-weight: 700; color: #8A2C3A">{{ s.course }}</p></sc-if>
 <p style="margin: 0; font-family: 'Noto Serif KR', serif; font-size: 30px; font-weight: 600; line-height: 1.2">{{ s.day }}요일</p>
 <p style="margin: 8px 0 0; font-size: 19px; font-weight: 500">{{ s.time }}</p>
 <p style="margin: 16px 0 0; display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: {{ s.stColor }}"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: {{ s.stColor }}"></span>{{ s.status }}</p>
@@ -153,7 +154,8 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 <div style="margin-top: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px">
 <sc-for list="{{ specials }}" as="s" hint-placeholder-count="4">
 <button type="button" onClick="{{ s.pick }}" aria-pressed="{{ s.on }}" style="all: unset; cursor:url('assets/cursor-gold.svg') 4 3, pointer; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; box-sizing: border-box; padding: 24px 22px; border-radius: 18px; background: {{ s.bg }}; border: 2px solid {{ s.bd }}">
-<p style="margin: 0; font-family: 'Noto Serif KR', serif; font-size: 22px; font-weight: 600; line-height: 1.35">{{ s.title }}</p>
+<sc-if value="{{ s.isSophos }}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; gap: 8px; margin: 0 0 12px"><img src="assets/50d4c58230fdac5130d13ab51b824ec3.png" alt="소포스에듀" style="display: block; height: 30px; width: auto"><span style="font-size: 12px; font-weight: 700; color: #8A2C3A; border: 1px solid #E8D4D6; background: #FFFFFF; border-radius: 999px; padding: 3px 10px">중·고등 프로그램</span></div></sc-if>
+<p style="margin: 0; font-family: 'Noto Serif KR', serif; font-size: 22px; font-weight: 600; line-height: 1.35; color: {{ s.titleColor }}">{{ s.title }}</p>
 <p style="margin: 8px 0 0; font-size: 15px; line-height: 1.6; color: #5E5866">{{ s.sub }}</p>
 <p style="margin: 14px 0 0; font-size: 14px; font-weight: 700; color: {{ s.stColor }}">{{ s.status }}</p>
 </button>
@@ -206,7 +208,7 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 
 
 <footer style="max-width: 1200px; margin: 0 auto; padding: 72px 24px 32px">
-<p style="margin: 0; font-size: 13px; line-height: 2; color: #6E6676">주니어솔로몬학원 · 학원 등록번호 중부교육지원청 제3336호 · 교습과정 학교교과교습학원 보습·논술 · 교습비 <a href="fees.html">교습비 안내 보기</a> · <a href="privacy.html">개인정보처리방침</a></p>
+<p style="margin: 0; font-size: 13px; line-height: 2; color: #6E6676">주니어솔로몬학원 · 학원 등록번호 중부교육지원청 제3336호 · 교습과정 학교교과교습학원 보습·논술 · 교습비 <a href="fees.html" style="white-space: nowrap">교습비 안내 보기</a> · <a href="privacy.html">개인정보처리방침</a></p>
 <p style="margin: 8px 0 0; font-size: 12px; line-height: 1.9; color: #6E6676">© 주니어솔로몬. 무단 복제·전재·배포·변형 및 생성형 AI를 이용한 학습·분석·유사·파생 콘텐츠 제작을 금합니다.<br>위반 시 관련 법령에 따른 책임을 물을 수 있습니다. · 주니어솔로몬®(상표등록 제40-1582862호)</p>
 </footer>
 
@@ -257,9 +259,14 @@ class Component extends DCLogic {
       { d: '월', t: '17:00–18:30', g: [0], n: 0, nw: 1 },
       { d: '수', t: '17:00–18:30', g: [0], n: 0, nw: 1 },
       { d: '월', t: '15:00–17:00', g: [1], n: 0, nw: 1 },
-      { d: '목', t: '14:30–15:30', g: [0, 1, 2, 3, 4, 5, 6], n: 0, nw: 1, hg: 1, nwLabel: 'NEW 바른 한글 쓰기' },
-      // 고원재: 무학년 세계 명작 읽기·글쓰기
-      { d: '토', t: '09:00–11:00', g: [], gw: 1, k: 'sat-0900-b' }
+      { d: '목', t: '14:30–15:30', g: [0, 1, 2], n: 0, nw: 1, hg: 1, nwLabel: 'NEW 바른 한글 쓰기' },
+      // 토 9시 글쓰기 집중반(고원재 아님)
+      { d: '토', t: '09:00–11:00', g: [5], k: 'sat-0900-b', wr: 1 },
+      // 7세(2027년 1학년) 토 11시 신규팀
+      { d: '토', t: '11:00–13:00', g: [1], n: 0, nw: 1 },
+      // 소포스에듀 중·고등 정규반
+      { d: '화', t: '16:30–19:30', g: [], mid: 1, midLabel: '중1 국어', k: 'tue-1630-m' },
+      { d: '목', t: '18:00–21:00', g: [], mid: 1, midLabel: '중등 · 고등 국어', k: 'thu-1800-m' }
     ];
     // 학년 기준: 2027년 2월 28일까지는 2026학년도(현재 학년), 3월 1일부터 2027학년도(진급 학년)로 자동 전환
     var kstNow = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
@@ -275,7 +282,7 @@ class Component extends DCLogic {
     var gradeList = ageNums.map(function (n) { return { id: 'a' + n, label: (7 + n) + '세', num: n }; }).concat([
       { id: 'g1', label: '초1', num: 1 }, { id: 'g2', label: '초2', num: 2 },
       { id: 'g3', label: '초3', num: 3 }, { id: 'g4', label: '초4', num: 4 }, { id: 'g5', label: '초5', num: 5 },
-      { id: 'g6', label: '초6', num: 6 }, { id: 'mid', label: '중·고등', num: 7 }, { id: 'dir', label: '원장 직강' }, { id: 'gw', label: '고원재' }, { id: 'sp', label: '겨울 특강' }
+      { id: 'g6', label: '초6', num: 6 }, { id: 'mid', label: '중·고등', num: 7 }, { id: 'dir', label: '원장 직강' }]).concat(classes.some(function (c) { return c.gw; }) ? [{ id: 'gw', label: '고원재' }] : []).concat([ { id: 'sp', label: '겨울 특강' }
     ]);
     var cur = null;
     gradeList.forEach(function (x) { if (x.id === self.state.grade) cur = x; });
@@ -303,6 +310,7 @@ class Component extends DCLogic {
         if (c.plan) return false;
         if (cur.id === 'dir') return !!c.dj;
         if (cur.id === 'gw') return !!c.gw;
+        if (cur.id === 'mid' && c.mid) return true;
         return c.g.indexOf(cur.num) >= 0;
       })
         .sort(function (a, b) { return dayOrder[a.d] - dayOrder[b.d] || (a.t < b.t ? -1 : 1); })
@@ -310,21 +318,21 @@ class Component extends DCLogic {
           var st = c.plan ? { s: '개설 예정', c: '#5F3D66' } : (c.k ? stageOf(c) : (c.n === null || c.n === undefined ? { s: '상담 시 안내', c: '#5F3D66' } : statusOf(c.n, c.cap)));
           var key = cur.id + c.d + c.t;
           var on = self.state.pick && self.state.pick.key === key;
-          var note = c.hg ? '천지인 한글 · 한글을 처음 배우는 친구' : (c.open ? '학년 무관 신규팀' : '');
+          var note = c.hg ? '천지인 한글 · 한글을 처음 배우는 친구' : (c.wr ? '글쓰기 집중반' : (c.open ? '학년 무관 신규팀' : ''));
           var detail = c.hg ? '학년 무관 · 1시간 수업에 독서·자기주도 시간이 함께 들어 있습니다' : c.plan ? '현재 반 이동이 확정되면 엽니다' : c.open ? '먼저 신청한 학년으로 반을 엽니다' : (c.cap ? '정원 ' + c.cap + '명 소수반' : '');
           var gLabel = function (arr) { return arr.map(function (n) { return n <= 0 ? (7 + n) + '세' : (n >= 7 ? '중1' : '초' + n); }).join('·'); };
-          var course = c.gw ? '고원재 · 무학년' : (cur.id === 'dir' ? gLabel(c.g) + ' 하브루타 정규반' : '');
+          var course = c.mid ? '소포스에듀 · ' + c.midLabel : (c.gw ? '고원재 · 무학년' : (cur.id === 'dir' ? gLabel(c.g) + ' 하브루타 정규반' : ''));
           slots.push({ isNew: !!c.nw, newLabel: c.nwLabel || 'NEW 신규팀', isDir: !!c.dj, hasCourse: !!course, course: course, hasNote: !!note, note: note, showDetail: !!(on && detail), detail: detail, day: c.d, time: c.t, status: c.plan ? '개설 예정' : (c.nw && st.s === '등록 가능' ? '신규 모집' : st.s), stColor: st.c, on: on ? 'true' : 'false',
             isFull: !c.plan && (st.s === '대기 접수' || st.s === '대기 마감'), open: c.plan || (st.s !== '대기 접수' && st.s !== '대기 마감'), waitLabel: st.s === '대기 마감' ? '대기 마감 · 상담은 가능' : '대기 신청 가능',
-            bg: on ? '#F6F1F8' : (!c.plan && (st.s === '대기 접수' || st.s === '대기 마감') ? '#FBF8FC' : (c.nw ? '#FFFBEA' : '#FFFFFF')), bd: on ? '#5F3D66' : (c.nw && !(st.s === '대기 접수' || st.s === '대기 마감') ? '#F1E4A6' : '#EEEAF0'),
-            pick: function () { setPick({ key: key, text: (c.gw ? '고원재(무학년)' : (cur.id === 'dir' ? gLabel(c.g) : cur.label)) + ' · ' + c.d + ' ' + c.t + (c.gw ? (c.nw ? ' 신규반' : '') : (c.hg ? ' 바른 한글 쓰기' : (c.open ? ' 신규팀(학년 무관)' : (c.nw ? ' 신규팀' : ' 하브루타 정규반')))) + (c.dj ? ' (원장 직강)' : ''), wait: st.s === '대기 접수', siteKey: c.k || null }); } });
+            bg: c.mid ? (on ? '#F5EAEB' : '#FBF6F6') : on ? '#F6F1F8' : (!c.plan && (st.s === '대기 접수' || st.s === '대기 마감') ? '#FBF8FC' : (c.nw ? '#FFFBEA' : '#FFFFFF')), bd: c.mid ? (on ? '#8A2C3A' : '#E8D4D6') : on ? '#5F3D66' : (c.nw && !(st.s === '대기 접수' || st.s === '대기 마감') ? '#F1E4A6' : '#EEEAF0'),
+            pick: function () { setPick({ key: key, text: c.mid ? '소포스에듀 ' + c.midLabel + ' · ' + c.d + ' ' + c.t : (c.gw ? '고원재(무학년)' : (cur.id === 'dir' ? gLabel(c.g) : cur.label)) + ' · ' + c.d + ' ' + c.t + (c.gw ? (c.nw ? ' 신규반' : '') : (c.hg ? ' 바른 한글 쓰기' : c.wr ? ' 글쓰기 집중반' : (c.open ? ' 신규팀(학년 무관)' : (c.nw ? ' 신규팀' : ' 하브루타 정규반')))) + (c.dj ? ' (원장 직강)' : ''), wait: st.s === '대기 접수', siteKey: c.k || null }); } });
         });
     }
     var spData = [
-      { id: 'maum', title: '문학으로 마음여행', sub: '하브루타 문학 특강', deadline: '2026-12-24' },
+      { id: 'maum', title: '문학으로 마음여행', sub: '하브루타 문학 특강 · 예비 초1–3학년', deadline: '2026-12-24' },
       { id: 'lab', title: '생각의 실험실', sub: '비문학 사고력 · 초등 3–6학년', deadline: '2026-12-24' },
-      { id: 'ocean', title: '리딩오션 겨울 무제한반', sub: '방학 동안 매일 읽는 집중 독서', deadline: null },
-      { id: 'sophos', title: '소포스 프라이빗', sub: '중고등 국어·수학 소수정예 코칭', deadline: '2026-12-30' }
+      { id: 'ocean', title: '리딩오션 겨울 무제한반', sub: '방학 동안 매일 읽는 집중 독서 · 전 학년', deadline: null },
+      { id: 'sophos', title: '소포스 프라이빗', sub: '국어·수학 소수정예 코칭', deadline: '2026-12-30', so: 1 }
     ];
     var now = new Date();
     var specials = spData.map(function (s) {
@@ -332,7 +340,8 @@ class Component extends DCLogic {
       var key = 'sp' + s.id;
       var on = self.state.pick && self.state.pick.key === key;
       return { title: s.title, sub: s.sub, status: closed ? '마감 · 대기 신청 가능' : '모집 중', stColor: closed ? '#8A5A97' : '#3E8A62', on: on ? 'true' : 'false',
-        bg: on ? '#F6F1F8' : '#FFFFFF', bd: on ? '#5F3D66' : '#EEEAF0',
+        bg: s.so ? (on ? '#F5EAEB' : '#FBF6F6') : (on ? '#F6F1F8' : '#FFFFFF'), bd: s.so ? (on ? '#8A2C3A' : '#E8D4D6') : (on ? '#5F3D66' : '#EEEAF0'),
+        isSophos: !!s.so, titleColor: s.so ? '#6E2230' : '#1E1A22',
         pick: function () { setPick({ key: key, text: '[겨울 특강] ' + s.title, wait: !!closed }); } };
     });
     var oceanKey = (cur ? cur.id : '') + 'ocean';
