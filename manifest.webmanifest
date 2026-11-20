@@ -1,7 +1,7 @@
 {
   "name": "주니어솔로몬",
   "short_name": "주니어솔로몬",
-  "description": "묻고, 생각하고, 말하다. 주니어솔로몬학원 학부모·선생님 앱",
+  "description": "질문이 원석을 보석으로. 주니어솔로몬학원 학부모·선생님 앱",
   "start_url": "/?app=1",
   "scope": "/",
   "display": "standalone",
