@@ -99,7 +99,7 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 <p style="margin: 0; font-family: 'Noto Serif KR', serif; font-size: 30px; font-weight: 600; line-height: 1.2">{{ s.day }}요일</p>
 <p style="margin: 8px 0 0; font-size: 19px; font-weight: 500">{{ s.time }}</p>
 <sc-if value="{{ s.open }}" hint-placeholder-val="{{ true }}"><p style="margin: 16px 0 0; display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: {{ s.stColor }}"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: {{ s.stColor }}"></span>{{ s.status }}</p></sc-if>
-<sc-if value="{{ s.isFull }}" hint-placeholder-val="{{ false }}"><p style="margin: 16px 0 0; display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: #8A5A97"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #8A5A97"></span>마감</p><p style="margin: 10px 0 0"><span style="display: inline-block; padding: 5px 12px; border-radius: 999px; background: #F1E9F4; color: #6B4477; font-size: 13px; font-weight: 600">대기 신청 가능</span></p></sc-if>
+<sc-if value="{{ s.isFull }}" hint-placeholder-val="{{ false }}"><p style="margin: 16px 0 0; display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: #8A5A97"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #8A5A97"></span>마감</p><p style="margin: 10px 0 0"><span style="display: inline-block; padding: 5px 12px; border-radius: 999px; background: #F1E9F4; color: #6B4477; font-size: 13px; font-weight: 600">{{ s.waitLabel }}</span></p></sc-if>
 <sc-if value="{{ s.hasNote }}" hint-placeholder-val="{{ false }}"><p style="margin: 8px 0 0; font-size: 14px; line-height: 1.6; color: #5E5866">{{ s.note }}</p></sc-if>
 <sc-if value="{{ s.showDetail }}" hint-placeholder-val="{{ false }}"><p style="margin: 12px 0 0; padding-top: 12px; border-top: 1px solid #E4DCE8; font-size: 14px; line-height: 1.7; color: #4A4350">{{ s.detail }}</p></sc-if>
 </button>
@@ -285,7 +285,7 @@ class Component extends DCLogic {
       return { label: x.label, on: on ? 'true' : 'false', bg: on ? '#5F3D66' : '#FFFFFF', fg: on ? '#FFFFFF' : '#1E1A22', bd: on ? '#5F3D66' : '#E4DEE8',
         pick: function () { self.setState({ grade: x.id, pick: null, copied: false }); } };
     });
-    var STAGE = { ok: { s: '등록 가능', c: '#3E8A62' }, soon: { s: '마감 임박', c: '#B42A3C' }, full: { s: '대기 접수', c: '#9A93A0' } };
+    var STAGE = { ok: { s: '등록 가능', c: '#3E8A62' }, soon: { s: '마감 임박', c: '#B42A3C' }, full: { s: '대기 접수', c: '#9A93A0' }, waitfull: { s: '대기 마감', c: '#8A5A97' } };
     var stageOf = function (c) {
       if (seats === null) return { s: '확인 중', c: '#9A93A0' };
       if (seats === false || !seats[c.k]) return { s: '상담 시 안내', c: '#5F3D66' };
@@ -315,9 +315,9 @@ class Component extends DCLogic {
           var gLabel = function (arr) { return arr.map(function (n) { return n <= 0 ? (7 + n) + '세' : (n >= 7 ? '중1' : '초' + n); }).join('·'); };
           var course = c.gw ? '고원재 · 무학년' : (cur.id === 'dir' ? gLabel(c.g) + ' 하브루타 정규반' : '');
           slots.push({ isNew: !!c.nw, newLabel: c.nwLabel || 'NEW 신규팀', isDir: !!c.dj, hasCourse: !!course, course: course, hasNote: !!note, note: note, showDetail: !!(on && detail), detail: detail, day: c.d, time: c.t, status: c.plan ? '개설 예정' : (c.nw && st.s === '등록 가능' ? '신규 모집' : st.s), stColor: st.c, on: on ? 'true' : 'false',
-            isFull: !c.plan && st.s === '대기 접수', open: c.plan || st.s !== '대기 접수',
-            bg: on ? '#F6F1F8' : (!c.plan && st.s === '대기 접수' ? '#FBF8FC' : (c.nw ? '#FFFBEA' : '#FFFFFF')), bd: on ? '#5F3D66' : (c.nw && !(st.s === '대기 접수') ? '#F1E4A6' : '#EEEAF0'),
-            pick: function () { setPick({ key: key, text: (c.gw ? '고원재(무학년)' : (cur.id === 'dir' ? gLabel(c.g) : cur.label)) + ' · ' + c.d + ' ' + c.t + (c.gw ? (c.nw ? ' 신규반' : '') : (c.hg ? ' 바른 한글 쓰기' : (c.open ? ' 신규팀(학년 무관)' : (c.nw ? ' 신규팀' : ' 하브루타 정규반')))) + (c.dj ? ' (원장 직강)' : ''), wait: st.s === '대기 접수' }); } });
+            isFull: !c.plan && (st.s === '대기 접수' || st.s === '대기 마감'), open: c.plan || (st.s !== '대기 접수' && st.s !== '대기 마감'), waitLabel: st.s === '대기 마감' ? '대기 마감 · 상담은 가능' : '대기 신청 가능',
+            bg: on ? '#F6F1F8' : (!c.plan && (st.s === '대기 접수' || st.s === '대기 마감') ? '#FBF8FC' : (c.nw ? '#FFFBEA' : '#FFFFFF')), bd: on ? '#5F3D66' : (c.nw && !(st.s === '대기 접수' || st.s === '대기 마감') ? '#F1E4A6' : '#EEEAF0'),
+            pick: function () { setPick({ key: key, text: (c.gw ? '고원재(무학년)' : (cur.id === 'dir' ? gLabel(c.g) : cur.label)) + ' · ' + c.d + ' ' + c.t + (c.gw ? (c.nw ? ' 신규반' : '') : (c.hg ? ' 바른 한글 쓰기' : (c.open ? ' 신규팀(학년 무관)' : (c.nw ? ' 신규팀' : ' 하브루타 정규반')))) + (c.dj ? ' (원장 직강)' : ''), wait: st.s === '대기 접수', siteKey: c.k || null }); } });
         });
     }
     var spData = [
@@ -405,7 +405,7 @@ class Component extends DCLogic {
         var done = { kind: kind, num: num, sent: '', msg: '[홈페이지 ' + kind + '] ' + text + ' / 보호자 ' + name + ' / ' + phone + ' / 상담 부탁드립니다.' };
         self.setState({ log: log, err: '', done: done });
         var fin = function (r) { if (self.state.done === done) { done = Object.assign({}, done, { sent: (r === 'ok' || r === 'dup') ? 'ok' : 'fail' }); self.setState({ done: done }); } };
-        if (window.jsConsult) window.jsConsult(wait ? 'wait' : 'form', text, name, phone).then(fin); else fin('fail');
+        if (window.jsConsult) window.jsConsult(wait ? 'wait' : 'form', text, name, phone, pick && pick.siteKey).then(fin); else fin('fail');
       },
       copyMsg: function () {
         try { if (navigator.clipboard && self.state.done) { navigator.clipboard.writeText(self.state.done.msg); } } catch (e) {}
@@ -416,7 +416,7 @@ class Component extends DCLogic {
   }
 }
 </script>
-<script src="assets/consult-ping.js" defer></script>
+<script src="assets/consult-ping.js?v=2" defer></script>
 <script src="assets/install.js?v=6" defer></script>
 </body>
 </html>

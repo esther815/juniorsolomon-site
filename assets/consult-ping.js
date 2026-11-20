@@ -2,15 +2,15 @@
 (function () {
   var URL = 'https://gyuuimwalbxsocnamtqk.supabase.co/rest/v1/rpc/consult_ping';
   var KEY = 'sb_publishable_Kj2bX4fe9CRSkhvGzBbaJw_y1ZqkjOz';
-  function send(kind, wish, name, phone) {
+  function send(kind, wish, name, phone, key) {
     return fetch(URL, { method: 'POST', keepalive: true,
       headers: { 'Content-Type': 'application/json', apikey: KEY, Authorization: 'Bearer ' + KEY },
-      body: JSON.stringify({ p_kind: kind, p_wish: wish || null, p_name: name || null, p_phone: phone || null, p_page: location.pathname.replace(/^\//, '') || 'index' })
+      body: JSON.stringify({ p_kind: kind, p_wish: wish || null, p_name: name || null, p_phone: phone || null, p_page: location.pathname.replace(/^\//, '') || 'index', p_key: key || null })
     }).then(function (r) { return r.ok ? r.json() : 'error'; }).catch(function () { return 'error'; });
   }
   function recent(k, min) { try { var t = +localStorage.getItem('jscp_' + k) || 0; return Date.now() - t < min * 60000; } catch (e) { return false; } }
   function mark(k) { try { localStorage.setItem('jscp_' + k, String(Date.now())); } catch (e) {} }
-  window.jsConsult = function (kind, wish, name, phone) { mark('form'); return send(kind, wish, name, phone); };
+  window.jsConsult = function (kind, wish, name, phone, key) { mark('form'); return send(kind, wish, name, phone, key); };
   document.addEventListener('click', function (e) {
     var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
     if (!a) return;

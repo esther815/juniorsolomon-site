@@ -162,3 +162,29 @@ body.app-on main.wrap{display:none}
 #app a.card.spc img{width:96px;height:128px;object-fit:cover;border-radius:12px;flex:none;background:#F6F1F8}
 #app a.card.spc div{display:flex;flex-direction:column;gap:3px;min-width:0}
 #app a.card.spc b{font-family:"Noto Serif KR",serif;font-weight:600;font-size:18px;margin-top:4px}
+/* 보강·대기 (2026-11-20) */
+#app .t7 .ti{background:var(--o1)}#app .t8 .ti{background:var(--o2)}
+#app .cal .d.s-mk{background:#F1E9F4;color:#6B4477;font-weight:600}
+#app .cal .d.s-mk::after{content:"보강";position:absolute;bottom:3px;font-size:9px;letter-spacing:-.3px}
+#app .mk{padding:14px 0;border-top:1px solid var(--line)}
+#app .mk:first-of-type{border-top:none;padding-top:4px}
+#app .mk b{font-weight:600;font-size:15.5px}
+#app .mkb{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding:12px 14px;border-radius:14px;background:var(--lav-l)}
+#app .l2{font-size:13.5px;font-weight:500;color:var(--purple);margin:12px 0 8px}
+#app .mkslots{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+#app .mkslots button{font:inherit;text-align:left;border:1px solid var(--lav);background:#fff;border-radius:14px;padding:12px 14px;cursor:pointer;color:var(--ink);display:flex;flex-direction:column;gap:3px;margin:0}
+#app .mkslots button b{font-size:15px}
+#app .mkslots button span{font-size:12.5px;color:var(--mute)}
+#app .mkslots button:active{background:var(--lav-l)}
+#app .slot{padding:14px 0;border-top:1px solid var(--line)}
+#app .card h3+.slot{border-top:none;padding-top:4px}
+#app .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#app .chips{display:flex;flex-wrap:wrap;gap:6px}
+#app .chips label{display:inline-flex;cursor:pointer}
+#app .chips input{position:absolute;opacity:0;width:1px;height:1px}
+#app .chips span{display:inline-block;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:14px}
+#app .chips input:checked+span{background:var(--plum);color:#fff;border-color:var(--plum)}
+#app details.more{margin-top:16px}
+#app details.more summary{cursor:pointer;font-size:14.5px;font-weight:500;color:var(--purple);padding:6px 0}
+#app .wb{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+#app .wb .sm{min-height:34px;padding:6px 11px;font-size:13px}

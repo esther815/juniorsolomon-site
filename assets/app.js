@@ -52,24 +52,29 @@ function tilesFor0(role){
  var T={
   parent:[['today','오늘 우리 아이','출결·다음 수업',I.home],['notice','공지','학원 소식',I.bell],['time','시간표','수업 요일·예약',I.cal],
           ['req','보강·상담','결석 알림·상담 신청',I.chat],['att','출결 기록','달력으로 한눈에',I.check],['mine','내 정보','자녀 추가·로그아웃',I.me]],
-  teacher:[['tboard','내 반 출결','반별 학생·최근 출결',I.users],['sreq','받은 상담','학부모가 보낸 신청',I.chat],['notice','공지','학원 소식',I.bell]],
-  desk:[['approve','가입 승인','학부모 가입 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],['board','반별 정원','마감·모집',I.users],['notice','공지','올리기·보기',I.send]],
+  teacher:[['tboard','내 반 출결','반별 학생·최근 출결',I.users],['mk','보강','보강 시간·출석 체크',I.cal],['sreq','받은 상담','학부모가 보낸 신청',I.chat],['notice','공지','학원 소식',I.bell]],
+  desk:[['approve','가입 승인','학부모 가입 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],['mk','보강','보강권·보강 달력',I.cal],['wait','대기 명단','반별 대기',I.note],
+        ['board','반별 정원','마감·모집',I.users],['notice','공지','올리기·보기',I.send]],
   manager:[['over','한눈에 현황','우리 지점',I.chart],['approve','가입 승인','학부모 가입 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],
-           ['board','반별 정원','마감·모집',I.users],['notice','공지','올리기·보기',I.send]],
+           ['mk','보강','보강권·보강 달력',I.cal],['wait','대기 명단','반별 대기',I.note],['board','반별 정원','마감·모집',I.users],['notice','공지','올리기·보기',I.send]],
   admin:[['over','한눈에 현황','지점별 비교',I.chart],['approve','가입 승인','학부모·직원 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],
+         ['mk','보강','보강권·보강 달력',I.cal],['wait','대기 명단','반별 대기',I.note],
          ['me','반별·출석부','정원·자료 올리기',I.users],['notice','공지','올리기·보기',I.send],['set','직원·설정','초대·알림·테스터',I.gear]]
  };
+ if(role==='parent'){ var acc=pAccess(); if(acc==='paused') return [T.parent[1],T.parent[5]]; if(acc==='closed') return [T.parent[5]] }
  return T[role]||[];
 }
 var LABEL={parent:'For Parents',teacher:'Teacher',desk:'Office',manager:'Branch',admin:'Director'};
 var TITLE={special:'방학 특강',today:'오늘 우리 아이',notice:'공지',time:'시간표',req:'보강·상담',att:'출결 기록',mine:'내 정보',tboard:'내 반 출결',sreq:'상담·요청',
-           approve:'가입 승인',board:'반별 정원',over:'한눈에 현황',me:'반별·출석부',set:'직원·설정'};
+           approve:'가입 승인',board:'반별 정원',over:'한눈에 현황',me:'반별·출석부',set:'직원·설정',mk:'보강',wait:'대기 명단'};
+function pAccess(){ var k=S.kids||[]; if(!k.length) return 'open'; if(k.some(function(x){return !x.access||x.access==='open'})) return 'open'; if(k.some(function(x){return x.access==='paused'})) return 'paused'; return 'closed' }
 
 function badge(k){
  if(k==='notice') return (S.notices||[]).filter(function(n){return !n.read}).length+evUnseen();
  if(k==='sreq') return (S.sreq||[]).filter(function(r){return r.status==='접수'}).length+(C.role==='teacher'?0:sum('consults'));
  if(k==='approve') return sum('pending');
- if(k==='req') return 0;
+ if(k==='req') return (S.mk||[]).reduce(function(a,c){ return a+(c.tickets||[]).filter(function(t){return t.state==='발급'&&(t.slots||[]).length}).length },0);
+ if(k==='mk'&&S.mb){ var td=kst().day; return (S.mb.slots||[]).reduce(function(a,z){ return a+(S.mb.staff&&z.status==='대기'?1:0)+((z.day<=td&&(S.mb.staff||z.mine))?(z.bookings||[]).filter(function(b){return b.status==='신청'}).length:0) },0) }
  return 0;
 }
 function sum(f){ return (S.over||[]).filter(function(b){return S.branch==='all'||b.id===S.branch}).reduce(function(a,b){return a+(+b[f]||0)},0) }
@@ -81,13 +86,17 @@ function home(){
  var hi={parent:'안녕하세요, 학부모님',teacher:(name?name+' 선생님, ':'')+'오늘도 수고 많으십니다',desk:'오늘도 수고 많으십니다',manager:'지점장님, 오늘 현황입니다',admin:'원장님, 오늘 현황입니다'}[r];
  var un=badge('notice');
  h+='<div class="row" style="align-items:flex-start"><div><p class="hello">'+LABEL[r]+'</p><div class="hello-b">'+hi+'</div></div>'+
-    '<button class="bell" data-go="notice" aria-label="공지 '+un+'건">'+I.bell+nb(un,true)+'</button></div>';
- h+='<div id="pushSlot"></div>'+summary();
+    (r==='parent'&&pAccess()==='closed'?'':'<button class="bell" data-go="notice" aria-label="공지 '+un+'건">'+I.bell+nb(un,true)+'</button>')+'</div>';
+ h+='<div id="pushSlot"></div>'+(r==='parent'&&pAccess()!=='open'?accCard():summary());
  if(!C.pv&&C.real==='admin') h=h.replace('<div id="pushSlot"></div>','<div id="pushSlot"></div>'+pvCard());
  h+='<div class="tiles">'+tilesFor(r).map(function(t,i){ return '<button class="tile t'+i+'" data-go="'+t[0]+'">'+nb(badge(t[0]))+'<div class="ti">'+t[3]+'</div><div><b>'+t[1]+'</b><span class="s">'+t[2]+'</span></div></button>' }).join('')+'</div>';
  if(r!=='parent') h+='<div style="margin-top:18px">'+C.L.installBox()+'</div>';
  h+=foot(r!=='parent');
  return h;
+}
+function accCard(){
+ if(pAccess()==='closed') return '<div class="card hl"><p class="sub">학부모 화면</p><h3 style="font-size:19px;margin:6px 0 4px">퇴원 처리되어 화면을 닫았습니다</h3><p class="sub">다시 등록하시면 이 화면이 바로 다시 열립니다.<br>문의 <a class="link" href="tel:027948123">02-794-8123</a></p></div>';
+ return '<div class="card hl"><p class="sub">학부모 화면</p><h3 style="font-size:19px;margin:6px 0 4px">휴원 중입니다</h3><p class="sub">휴원 중에는 학원 공지만 볼 수 있습니다. 복귀하시면 출결·보강 화면이 다시 열립니다.<br>문의 <a class="link" href="tel:027948123">02-794-8123</a></p></div>';
 }
 function foot(withOut){
  return '<div class="foot">주니어솔로몬®(상표등록 제40-1582862호)<br>중부교육지원청 제3336호 · 서울 용산구 이촌로 200, LG프라자 4층'+
@@ -136,6 +145,8 @@ function nextClass(k){
 }
 function kidState(k){
  if(!k.linked) return {head:'원생 명부와 연결을 기다리고 있습니다',sub:'연결되면 출결과 수업이 여기에 나옵니다.'};
+ if(k.access==='closed') return {head:'퇴원 처리된 원생입니다',sub:''};
+ if(k.access==='paused') return {head:'휴원 중입니다',sub:'복귀하시면 출결·수업이 다시 보입니다.'};
  if(k.status&&k.status!=='재원') return {head:esc(k.status)+' 중입니다',sub:''};
  var t=kst(), todayAtt=(k.attendance||[]).filter(function(a){return a.day===t.day})[0];
  var n=nextClass(k);
@@ -178,7 +189,8 @@ function vAtt(){
  var t=kst(), mon=S.mon||t.day.slice(0,7), A={}; (k.attendance||[]).forEach(function(a){ if(!A[a.day]) A[a.day]=a.status });
  var y=+mon.slice(0,4), m=+mon.slice(5,7), first=mon+'-01', days=new Date(Date.UTC(y,m,0)).getUTCDate(), lead=wd(first);
  var wds=(k.classes||[]).map(function(c){return c.weekday}).filter(function(x){return x!=null});
- var minMon=addDays(t.day,-118).slice(0,7);
+ var minMon=addDays(t.day,-118).slice(0,7), MK={}, mkl=[];
+ (S.mk||[]).filter(function(c){return c.child_id===k.id}).forEach(function(c){ (c.tickets||[]).forEach(function(x){ if(x.booking&&x.booking.status!=='취소'){ MK[x.booking.day]=x.booking.status; mkl.push(x) } }) });
  var list=Object.keys(A).filter(function(d){return d.slice(0,7)===mon}).sort().reverse();
  var cnt=function(s){return list.filter(function(d){return A[d]===s}).length};
  h+='<div class="card hl"><p class="sub">'+esc(k.name)+' · '+y+'년 '+m+'월</p><div class="row" style="margin-top:4px"><b class="big" style="font-size:26px">'+(cnt('출석')+cnt('지각'))+'/'+list.length+'회 출석</b><span class="sub">지각 포함</span></div></div>';
@@ -186,10 +198,11 @@ function vAtt(){
  h+='<div class="cal">'+'일월화수목금토'.split('').map(function(d){return '<div class="h">'+d+'</div>'}).join('');
  for(var i=0;i<lead;i++) h+='<div class="d x">.</div>';
  for(var d=1;d<=days;d++){ var ds=mon+'-'+(d<10?'0':'')+d, s=A[ds], cls='d';
-  if(s) cls+=' s-'+stCls(s); else if(wds.indexOf(wd(ds))>=0&&ds>=t.day) cls+=' sch';
+  if(s) cls+=' s-'+stCls(s); else if(MK[ds]) cls+=' s-mk'; else if(wds.indexOf(wd(ds))>=0&&ds>=t.day) cls+=' sch';
   if(ds===t.day) cls+=' today';
   h+='<div class="'+cls+'" title="'+esc(s||'')+'">'+d+(s?'<i></i>':'')+'</div>' }
- h+='</div><div class="legend"><span><i style="background:#3E8A62"></i>출석</span><span><i style="background:#C9A227"></i>지각</span><span><i style="background:#B9573A"></i>결석</span><span><i style="background:#9C94A0"></i>기타</span><span><i style="background:#fff;outline:1px dashed #CDBBD6"></i>수업 예정</span></div></div>';
+ h+='</div><div class="legend"><span><i style="background:#3E8A62"></i>출석</span><span><i style="background:#C9A227"></i>지각</span><span><i style="background:#B9573A"></i>결석</span><span><i style="background:#9C94A0"></i>기타</span><span><i style="background:#8A5A97"></i>보강</span><span><i style="background:#fff;outline:1px dashed #CDBBD6"></i>수업 예정</span></div></div>';
+ if(mkl.length) h+='<div class="card"><h3>보강</h3><div class="list">'+mkl.map(function(x){return '<div><span>'+md(x.booking.day)+'('+DAYS[wd(x.booking.day)]+') 보강<br><span class="sub">'+md(x.absent_day)+' 결석분 · '+esc(x.reason)+'</span></span><span class="tag '+(x.booking.status==='출석'?'ok':x.booking.status==='결석'?'warn':'')+'">'+(x.booking.status==='신청'?'예정':esc(x.booking.status))+'</span></div>'}).join('')+'</div></div>';
  if(list.length) h+='<div class="card"><div class="list">'+list.map(function(d){return '<div><span>'+md(d)+'('+DAYS[wd(d)]+')</span>'+stTag(A[d])+'</div>'}).join('')+'</div></div>';
  return h+tip('출결은 학원 출결 기록(메이크에듀)과 같습니다. 기록이 다르면 보강·상담에서 알려 주세요.');
 }
@@ -202,6 +215,7 @@ function vReq(){
    '<div><span>법정 공휴일·학원 지정 휴무일은 보강하지 않습니다.</span></div>'+
    '<div><span>결석은 수업 시작 전에 알려 주세요.</span></div></div></div>';
  if(!kids.length) return h+'<div class="card"><p class="sub">원장님 확인 뒤 신청할 수 있습니다.</p></div>';
+ h=h.replace('<h2>보강·상담</h2>','<h2>보강·상담</h2>'+mkParent());
  var k=S.rkind||'결석 알림';
  h+='<div class="card"><h3>보내기</h3><form id="fReq">'+
    (kids.length>1?'<label class="l">자녀</label><select name="child">'+kids.map(function(x,i){return '<option value="'+esc(x.id)+'"'+(i===S.kid?' selected':'')+'>'+esc(x.name)+'</option>'}).join('')+'</select>':'<input type="hidden" name="child" value="'+esc(kids[0].id)+'">')+
@@ -213,7 +227,7 @@ function vReq(){
    '<div style="margin-top:16px"><button class="btn">보내기</button></div></form></div>';
  var mine=S.myreq||[];
  h+='<div class="card"><h3>보낸 신청</h3>'+(mine.length?'<div class="list">'+mine.map(function(r){return '<div><span>'+esc(r.kind)+' · '+esc(r.child)+'<br><span class="sub">'+tName(r)+(r.day?' · '+md(r.day):'')+' · '+ago(r.created_at)+'</span></span>'+reqTag(r.status)+'</div>'}).join('')+'</div>':'<p class="sub">아직 보낸 신청이 없습니다.</p>')+'</div>';
- return h+tip('보낸 신청은 받는 분과 원장님께 함께 전달됩니다. 보강 날짜를 앱에서 바로 고르는 기능은 다음 단계에서 열립니다.');
+ return h+tip('보낸 신청은 받는 분과 원장님께 함께 전달됩니다. 병결·학교 행사 결석을 알려 주시면 담임 선생님 확인 뒤 보강권이 나오고, 위에서 보강 날짜를 고를 수 있습니다.');
 }
 function reqTag(s,staff){ return '<span class="tag '+(s==='완료'?'ok':s==='확인'?'':'y')+'">'+(s==='접수'?(staff?'새 신청':'보냄'):s==='확인'?'확인함':'완료')+'</span>' }
 function tName(r){ return r.to==='담임'?(r.teacher==='원장'?'담임 원장님':'담임 '+esc(r.teacher||'')+' 선생님'):esc(r.to) }
@@ -226,6 +240,99 @@ function vMine(){
  h+='<div style="margin-top:14px"><button class="btn ghost" type="button" id="logout">로그아웃</button></div>'+
     '<p style="text-align:center;margin-top:14px"><button type="button" id="delacct" style="border:0;background:none;color:#8A7F8E;font-size:13px;text-decoration:underline;cursor:pointer;font-family:inherit">회원 탈퇴</button></p>';
  return h+tip('개인정보는 학원 수업 안내와 연락에만 씁니다. <a class="link" href="privacy.html">개인정보 처리방침</a>');
+}
+
+/* ── 보강 ── */
+var GR=['4세','5세','6세','7세','초1','초2','초3','초4','초5','초6','중1','중2','중3','고1','고2','고3'];
+function grLabel(a){ return a&&a.length?a.join('·'):'학년 무관' }
+function dLabel(ds,t){ return md(ds)+'('+DAYS[wd(ds)]+')'+(t?' '+hm12(t):'') }
+function mkSt(s){ return {'발급':['y','날짜 고르기'],'신청':['','신청함'],'완료':['ok','보강 완료'],'만료':['g','기한 지남']}[s]||['g',s] }
+function mkParent(){
+ var kids=S.mk||[], any=kids.some(function(k){return (k.tickets||[]).length}), h='<div class="card"><h3>보강권</h3>';
+ if(!any) return h+'<p class="sub">발급된 보강권이 없습니다. 병결·학교 행사로 결석하시면 아래에서 「결석 알림」을 보내 주세요. 담임 선생님 확인 뒤 보강권이 나옵니다.</p></div>';
+ kids.forEach(function(k){ (k.tickets||[]).forEach(function(t){ var st=mkSt(t.state);
+   h+='<div class="mk"><div class="row"><b>'+esc(k.name)+' · '+md(t.absent_day)+' 결석분</b><span class="tag '+st[0]+'">'+st[1]+'</span></div><p class="sub">'+esc(t.reason)+' · '+(t.state==='완료'?'보강을 마쳤습니다':'보강 기한 '+md(t.expires)+'까지')+'</p>';
+   if(t.booking) h+='<div class="mkb"><span>'+dLabel(t.booking.day,t.booking.starts)+'<br><span class="sub">'+esc(t.booking.teacher)+' 선생님 · '+t.booking.minutes+'분</span></span>'+(t.booking.status==='신청'?'<button class="sm" data-mkc="'+t.booking.id+'">취소</button>':'<span class="tag '+(t.booking.status==='출석'?'ok':'warn')+'">보강 '+esc(t.booking.status)+'</span>')+'</div>';
+   else if(t.state==='발급') h+=(t.slots||[]).length?'<p class="l2">보강 날짜를 고르세요</p><div class="mkslots">'+t.slots.map(function(z){return '<button type="button" data-mkb="'+t.id+'|'+z.id+'"><b>'+md(z.day)+'('+DAYS[wd(z.day)]+') '+z.starts+'</b><span>'+esc(z.teacher)+' 선생님 · '+z.minutes+'분'+(z.memo?' · '+esc(z.memo):'')+'</span></button>'}).join('')+'</div>'
+     :'<p class="sub" style="margin-top:8px">아직 열린 보강 시간이 없습니다. 열리면 여기에 나오고 알려 드립니다.</p>';
+   h+='</div>' }) });
+ return h+'</div>';
+}
+function slotRow(z){
+ var st=z.status, b=z.bookings||[], full=b.length>=z.cap, td=kst().day, can=S.mb.staff||z.mine;
+ var h='<div class="slot"><div class="row"><b>'+dLabel(z.day,z.starts)+' · '+z.minutes+'분</b><span class="tag '+(st==='열림'?(full?'warn':'ok'):st==='대기'?'y':'g')+'">'+(st==='열림'?(full?'정원 참':'열림 '+b.length+'/'+z.cap):st==='대기'?'원장님 확인 대기':'닫힘')+'</span></div>'+
+  '<p class="sub">'+esc(z.teacher)+' 선생님 · '+esc(grLabel(z.grades))+(z.memo?' · '+esc(z.memo):'')+'</p>';
+ if(b.length) h+='<div class="list">'+b.map(function(x){ return '<div><span>'+esc(x.name)+(x.grade?' ('+esc(x.grade)+')':'')+'<br><span class="sub">'+md(x.absent_day)+' 결석분 · '+esc(x.reason)+'</span></span>'+
+   (x.status==='신청'?(z.day<=td&&can?'<span><button class="sm" data-mkm="'+x.id+'|출석">출석</button> <button class="sm" data-mkm="'+x.id+'|결석">결석</button></span>':'<span class="tag">신청</span>')
+     :'<span class="tag '+(x.status==='출석'?'ok':'warn')+'">'+esc(x.status)+'</span>')+'</div>' }).join('')+'</div>';
+ var bt=[]; if(S.mb.staff&&st==='대기') bt.push('<button class="sm on" data-mks="'+z.id+'|열림">열기</button>');
+ if(st!=='닫힘'&&can&&z.day>=td) bt.push('<button class="sm" data-mks="'+z.id+'|닫힘">닫기</button>');
+ return h+(bt.length?'<div class="row" style="justify-content:flex-start;gap:8px;margin-top:10px">'+bt.join('')+'</div>':'')+'</div>';
+}
+function vMk(){
+ var b=S.mb, h='<h2>보강</h2>';
+ if(!b) return h+'<div class="card"><p class="sub">불러오는 중…</p></div>';
+ var staff=b.staff, td=kst().day, sl=b.slots||[];
+ var pend=sl.filter(function(z){return z.status==='대기'&&z.day>=td}), up=sl.filter(function(z){return z.status==='열림'&&z.day>=td}),
+     past=sl.filter(function(z){return z.day<td&&(z.bookings||[]).length});
+ if(pend.length) h+='<div class="card hl"><h3>'+(staff?'열어 주세요 · 선생님이 올린 보강 시간':'원장님 확인을 기다리는 시간')+'</h3>'+pend.map(slotRow).join('')+'</div>';
+ h+='<div class="card"><h3>열린 보강 시간</h3>'+(up.length?up.map(slotRow).join(''):'<p class="sub">열린 보강 시간이 없습니다.</p>')+'</div>';
+ if(past.length) h+='<div class="card"><h3>지난 보강 · 출석 체크</h3>'+past.slice().reverse().map(slotRow).join('')+'</div>';
+ h+='<div class="card"><h3>보강 시간 '+(staff?'열기':'올리기')+'</h3><form id="fSlot">'+(staff?'<label class="l">선생님</label><input name="teacher" maxlength="30" placeholder="예) 손수영 · 비우면 원장님">':'')+
+  '<label class="l">날짜</label><input name="day" type="date" min="'+td+'" max="'+addDays(td,70)+'">'+
+  '<div class="two"><div><label class="l">시작</label><input name="starts" type="time" value="16:00" step="600"></div><div><label class="l">수업 시간</label><select name="minutes"><option value="60">60분</option><option value="90" selected>90분</option><option value="120">120분</option></select></div></div>'+
+  '<label class="l">학년 (안 고르면 학년 무관)</label><div class="chips">'+GR.map(function(g){return '<label><input type="checkbox" name="g" value="'+g+'"><span>'+g+'</span></label>'}).join('')+'</div>'+
+  '<div class="two"><div><label class="l">정원</label><select name="cap">'+[1,2,3,4,5,6].map(function(n){return '<option'+(n===4?' selected':'')+'>'+n+'</option>'}).join('')+'</select></div><div><label class="l">교실·메모</label><input name="memo" maxlength="200"></div></div>'+
+  '<div style="margin-top:16px"><button class="btn">'+(staff?'바로 열기':'올리기 · 원장님 확인 뒤 열림')+'</button></div></form></div>';
+ h+='<div class="card"><h3>보강권 발급</h3><p class="sub">병결·학교 행사·학원 사정 결석만 보강합니다. 개인 사정 결석은 보강하지 않습니다(학원 규약). 보강 기한은 15일까지 결석이면 그 달 말일, 16일 이후 결석이면 다음 달 말일입니다.</p><form id="fTicket">'+
+  '<label class="l">학생</label><select name="st"><option value="">고르세요</option>'+(b.students||[]).slice().sort(function(a,c){return a.name<c.name?-1:1}).map(function(x){return '<option value="'+esc(x.id)+'">'+esc(x.name)+(x.grade?' ('+esc(x.grade)+')':'')+'</option>'}).join('')+'</select>'+
+  '<div class="two"><div><label class="l">결석한 날</label><input name="day" type="date" min="'+addDays(td,-62)+'" max="'+addDays(td,60)+'"></div><div><label class="l">사유</label><select name="why"><option>병결</option><option>학교 행사</option><option>학원 사정</option>'+(staff?'<option>기타 인정</option>':'')+'</select></div></div>'+
+  '<label class="l">메모</label><input name="memo" maxlength="200">'+
+  '<div style="margin-top:16px"><button class="btn ghost">발급하기</button></div></form>'+
+  (staff?'<details class="more"><summary>학원 사정으로 한 반이 통째로 휴강했을 때</summary><form id="fClassOff"><label class="l">반</label><select name="cls"><option value="">고르세요</option>'+(b.classes||[]).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cname(c.name))+'</option>'}).join('')+'</select>'+
+   '<label class="l">휴강한 날</label><input name="day" type="date" min="'+addDays(td,-62)+'" max="'+addDays(td,60)+'"><div style="margin-top:12px"><button class="btn ghost">그 반 재원생 모두에게 발급</button></div></form></details>':'')+'</div>';
+ if(staff){ var tk=b.tickets||[], open=tk.filter(function(t){return t.state==='발급'||t.state==='신청'||t.state==='만료'});
+  h+='<div class="card"><h3>쓰지 않은 보강권</h3>'+(open.length?'<div class="list">'+open.map(function(t){ var st=mkSt(t.state); return '<div><span>'+esc(t.name)+(t.grade?' ('+esc(t.grade)+')':'')+'<br><span class="sub">'+md(t.absent_day)+' 결석 · '+esc(t.reason)+' · 기한 '+md(t.expires)+'</span></span><span><span class="tag '+st[0]+'">'+(t.state==='발급'?'미신청':st[1])+'</span> <button class="sm" data-mkt="'+t.id+'">취소</button></span></div>' }).join('')+'</div>':'<p class="sub">쓰지 않은 보강권이 없습니다.</p>')+'</div>';
+ }
+ return h+tip('보강 출석은 보강이 끝난 날부터 이 화면에서 체크합니다. 메이크에듀 출석부에도 보강으로 적어 주세요.');
+}
+
+function sub2(f){
+ var b=f.querySelector('button.btn'), job, ok;
+ if(f.id==='fSlot'){ if(!f.day.value) return toast('날짜를 골라 주세요.'); if(!f.starts.value) return toast('시작 시간을 골라 주세요.');
+   var g=[].slice.call(f.querySelectorAll('input[name=g]:checked')).map(function(x){return x.value});
+   job=rpc('makeup_slot_add',{p_day:f.day.value,p_starts:f.starts.value,p_minutes:+f.minutes.value,p_grades:g,p_cap:+f.cap.value,p_memo:f.memo.value.trim(),p_teacher:f.teacher?f.teacher.value.trim():null});
+   ok=S.mb&&S.mb.staff?'보강 시간을 열었습니다. 학부모 화면에 보입니다.':'올렸습니다. 원장님이 확인하면 열립니다.' }
+ if(f.id==='fTicket'){ if(!f.st.value) return toast('학생을 골라 주세요.'); if(!f.day.value) return toast('결석한 날을 골라 주세요.');
+   job=rpc('makeup_issue',{p_student:f.st.value,p_day:f.day.value,p_reason:f.why.value,p_class:null,p_memo:f.memo.value.trim(),p_request:null}); ok='보강권을 발급했습니다' }
+ if(f.id==='fClassOff'){ if(!f.cls.value||!f.day.value) return toast('반과 날짜를 골라 주세요.'); if(!confirm('그 반 재원생 모두에게 보강권을 발급할까요?')) return;
+   job=rpc('makeup_issue_class',{p_class:f.cls.value,p_day:f.day.value,p_memo:'학원 사정 휴강'}); ok='발급했습니다' }
+ if(f.id==='fWait'){ if(!f.cls.value) return toast('반을 골라 주세요.'); if(!f.child.value.trim()) return toast('학생 이름을 적어 주세요.');
+   job=rpc('waitlist_add',{p_class:f.cls.value,p_child:f.child.value.trim(),p_grade:f.grade.value.trim(),p_guardian:f.guardian.value.trim(),p_phone:f.phone.value.trim(),p_source:f.src.value,p_memo:f.memo.value.trim()}); ok='대기 명단에 넣었습니다' }
+ b.disabled=true;
+ job.then(function(r){ if(f.id==='fClassOff') ok=r+'명에게 '+ok; return f.id==='fWait'?rpc('waitlist_board').then(function(x){S.wl=x}):loadMb() })
+  .then(function(){ render(); toast(ok) })
+  .catch(function(er){ b.disabled=false; toast(er&&er.message?er.message.replace(/^.*?: /,''):'저장하지 못했습니다. 다시 눌러 주세요.') });
+}
+
+/* ── 대기 명단 (원장·지점장·관리자) ── */
+function vWait(){
+ var w=S.wl, h='<h2>대기 명단</h2>';
+ if(!w) return h+'<div class="card"><p class="sub">불러오는 중…</p></div>';
+ var cap=w.cap, it=w.items||[], act=it.filter(function(x){return x.status==='대기'||x.status==='연락함'}), done=it.filter(function(x){return x.status==='등록'||x.status==='취소'}), G={}, order=[];
+ act.forEach(function(x){ var k=x.class_name||x.class_label; if(!G[k]){ G[k]=[]; order.push(k) } G[k].push(x) });
+ h+=order.length?order.map(function(k){ var L=G[k]; return '<div class="card"><div class="row"><h3 style="margin:0">'+esc(cname(k))+'</h3><span class="tag '+(L.length>=cap?'warn':'')+'">대기 '+L.length+'/'+cap+'</span></div><div class="list">'+L.map(function(x,i){
+   return '<div><span><b style="font-weight:600">'+(i+1)+'. '+esc(x.child)+'</b>'+(x.grade?' ('+esc(x.grade)+')':'')+'<br><span class="sub">'+esc(x.source)+' · '+ago(x.created_at)+(x.guardian?' · '+esc(x.guardian):'')+(x.phone?' · <a class="link" href="tel:'+esc(x.phone)+'">'+phone(x.phone)+'</a>':'')+(x.memo?'<br>'+esc(x.memo):'')+'</span></span>'+
+    '<span class="wb">'+(x.status==='대기'?'<button class="sm" data-wls="'+x.id+'|연락함">연락함</button>':'<span class="tag">연락함</span>')+'<button class="sm on" data-wls="'+x.id+'|등록">등록</button><button class="sm" data-wls="'+x.id+'|취소">빼기</button></span></div>' }).join('')+'</div></div>' }).join('')
+  :'<div class="card"><p class="sub">지금 대기 중인 학생이 없습니다.</p></div>';
+ h+='<div class="card"><h3>대기 넣기</h3><p class="sub">반마다 '+cap+'명까지 받습니다. 다 차면 홈페이지에 「대기 마감」으로 바뀝니다.</p><form id="fWait">'+
+  '<label class="l">반</label><select name="cls"><option value="">고르세요</option>'+(w.classes||[]).map(function(c){return '<option value="'+esc(c.id)+'">'+esc(cname(c.name))+(c.stage==='full'?' · 마감':'')+'</option>'}).join('')+'</select>'+
+  '<div class="two"><div><label class="l">학생 이름</label><input name="child" maxlength="40"></div><div><label class="l">학년</label><input name="grade" maxlength="20" placeholder="예) 초3"></div></div>'+
+  '<div class="two"><div><label class="l">보호자</label><input name="guardian" maxlength="40"></div><div><label class="l">연락처</label><input name="phone" inputmode="tel" placeholder="010-0000-0000"></div></div>'+
+  '<div class="two"><div><label class="l">받은 곳</label><select name="src"><option>전화</option><option>카톡</option><option>방문</option><option>원장</option></select></div><div><label class="l">메모</label><input name="memo" maxlength="300"></div></div>'+
+  '<div style="margin-top:16px"><button class="btn">대기 넣기</button></div></form></div>';
+ if(done.length) h+='<details class="more card"><summary>최근 30일 등록·뺀 기록 '+done.length+'건</summary><div class="list">'+done.map(function(x){return '<div><span>'+esc(x.child)+' · '+esc(cname(x.class_name||x.class_label))+'<br><span class="sub">'+esc(x.source)+' · '+ago(x.created_at)+'</span></span><span class="tag '+(x.status==='등록'?'ok':'g')+'">'+(x.status==='등록'?'등록':'뺌')+'</span></div>'}).join('')+'</div></details>';
+ return h+tip('홈페이지에서 「대기 신청」한 학부모는 자동으로 올라옵니다(학생 이름은 상담 때 확인). 연락처는 원장·관리자만 봅니다.');
 }
 
 /* ── 공지 (모두) ── */
@@ -258,7 +365,8 @@ function vSreq(){
    '<p class="sub" style="margin:4px 0 10px">'+tName(r)+' 앞 · '+ago(r.created_at)+(r.day?' · '+(r.kind==='결석 알림'?'결석일 ':'희망 ')+md(r.day):'')+(r.method?' · '+esc(r.method):'')+'</p>'+
    (r.memo?'<p style="font-size:15px;white-space:pre-wrap">'+esc(r.memo)+'</p>':'')+
    (staff&&r.phone?'<p class="sub" style="margin-top:8px">'+esc(r.parent||'학부모')+' · <a class="link" href="tel:'+esc(r.phone)+'">'+phone(r.phone)+'</a></p>':'')+
-   (r.status==='완료'?'':'<div class="row" style="justify-content:flex-start;gap:8px;margin-top:14px">'+(r.status==='접수'?'<button class="sm" data-rs="'+r.id+'|확인">확인했어요</button>':'')+'<button class="sm on" data-rs="'+r.id+'|완료">처리 완료</button></div>')+'</div>' }).join('')
+   (r.status==='완료'?'':'<div class="row" style="justify-content:flex-start;gap:8px;margin-top:14px;flex-wrap:wrap">'+(r.status==='접수'?'<button class="sm" data-rs="'+r.id+'|확인">확인했어요</button>':'')+
+     (r.kind==='결석 알림'&&/^\[사유: (병결|학교 행사)\]/.test(r.memo||'')?'<button class="sm on" data-mki="'+r.id+'">보강권 발급</button>':'')+'<button class="sm'+(r.kind==='결석 알림'&&/^\[사유: (병결|학교 행사)\]/.test(r.memo||'')?'':' on')+'" data-rs="'+r.id+'|완료">처리 완료</button></div>')+'</div>' }).join('')
   :'<div class="card"><p class="sub">'+(f==='open'?'처리할 신청이 없습니다.':'최근 120일 동안 받은 신청이 없습니다.')+'</p></div>';
  if(!staff) h+=tip('학부모 연락처는 보이지 않습니다. 연락이 필요하면 관리자에게 요청해 주세요.');
  if(staff) h+='<div class="legacy" style="margin-top:26px"><div id="cons"></div></div>';
@@ -443,7 +551,7 @@ function startPv(pv){ C.pv=pv; C.role=pv.kind; S.tab=null; S.kid=0; S.kids=[]; S
 function endPv(){ C.pv=null; C.role=C.real; S.tab=null; load().then(function(){ S.sig=sigOf(); render(); window.scrollTo(0,0) }) }
 
 /* ── 화면 그리기 ── */
-var VIEWS={special:vSpecial,today:vToday,notice:vNotice,time:vTime,req:vReq,att:vAtt,mine:vMine,sreq:vSreq,over:vOver,set:vSet,
+var VIEWS={special:vSpecial,today:vToday,notice:vNotice,time:vTime,req:vReq,att:vAtt,mine:vMine,sreq:vSreq,over:vOver,set:vSet,mk:vMk,wait:vWait,
  tboard:function(){return '<h2>내 반 출결</h2><div class="legacy"><div id="tboard"></div></div>'+tip('학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.')},
  approve:function(){return '<h2>가입 승인</h2><div class="legacy"><div id="admin"></div></div>'},
  board:function(){return '<h2>반별 정원</h2><div class="legacy"><div id="board"></div></div>'},
@@ -451,6 +559,7 @@ var VIEWS={special:vSpecial,today:vToday,notice:vNotice,time:vTime,req:vReq,att:
 
 function render(){
  var v=$('#aView'), back=$('#aBack');
+ if(C.role==='parent'&&S.tab&&S.tab!=='special'&&tilesFor0('parent').map(function(t){return t[0]}).indexOf(S.tab)<0) S.tab=null;
  $('#aRole').textContent=S.tab?TITLE[S.tab]:LABEL[C.role]; $('#aRole').className=S.tab?'ko':'';
  back.hidden=!S.tab&&history.length<2;
  v.innerHTML=pvBanner()+(S.tab?(VIEWS[S.tab]||home)():home());
@@ -467,6 +576,8 @@ function after(){
  if(t==='approve') L.admin(C.role==='admin');
  if(t==='board') L.classBoard();
  if(t==='me') L.meBoard();
+ if(t==='mk'&&!S.mbFresh){ S.mbFresh=1; loadMb().then(function(){ if(S.tab==='mk') render() }) }
+ if(t==='wait'&&!S.wlFresh){ S.wlFresh=1; rpc('waitlist_board').then(function(d){ S.wl=d; if(S.tab==='wait') render() }).catch(function(){ toast('대기 명단을 불러오지 못했습니다') }) }
  if(t==='set'){ L.inviteBtn('tinv','tinvm','new_teacher_invite','t','강사'); L.inviteBtn('dinv','dinvm','new_desk_invite','d','관리자'); L.kakaoSetup(); L.betaList(); L.usage();
    $('#pv').onclick=function(){ L.openForm(null,true) } }
  if(t==='mine'){ L.bindInstall(); bindLogout();
@@ -475,24 +586,27 @@ function after(){
      $('#editKids').onclick=function(){ L.openForm(kids) } }) }
 }
 function bindLogout(){ C.L.bindLogout() }
-function go(t){ S.tab=t; history.pushState({jsTab:t},'',''); render(); window.scrollTo(0,0) }
+function loadMb(){ if(C.pv) { S.mb={staff:C.role!=='teacher',slots:[],tickets:[],students:[],classes:[]}; return Promise.resolve() } return rpc('makeup_board').then(function(d){ S.mb=d }).catch(function(){ S.mb=S.mb||null }) }
+function go(t){ S.mbFresh=0; S.wlFresh=0; S.tab=t; history.pushState({jsTab:t},'',''); render(); window.scrollTo(0,0) }
 
 function load(){
  var r=C.role, pv=C.pv, jobs=[rpc('my_notices').then(function(d){ d=d||[];
    if(pv&&r==='parent') d=d.filter(function(n){return n.audience!=='staff'}); if(pv&&r==='teacher') d=d.filter(function(n){return n.audience!=='parents'});
    S.notices=d }).catch(function(){S.notices=[]})];
  if(r==='parent'){ jobs.push(rpc(pv?'admin_preview_children':'my_children',pv?{p_parent:pv.id}:{}).then(function(d){S.kids=d||[]}).catch(function(){S.kids=[]}));
-                   jobs.push(rpc(pv?'admin_preview_requests':'my_requests',pv?{p_parent:pv.id}:{}).then(function(d){S.myreq=d||[]}).catch(function(){S.myreq=[]})) }
+                   jobs.push(rpc(pv?'admin_preview_requests':'my_requests',pv?{p_parent:pv.id}:{}).then(function(d){S.myreq=d||[]}).catch(function(){S.myreq=[]}));
+                   if(pv) S.mk=[]; else jobs.push(rpc('my_makeup').then(function(d){S.mk=d||[]}).catch(function(){S.mk=[]})) }
  else { jobs.push(rpc('staff_requests').then(function(d){ d=d||[];
    if(pv&&r==='teacher') d=d.filter(function(x){return x.to==='담임'&&String(x.teacher||'').replace(/\s/g,'')===pv.name}).map(function(x){ return Object.assign({},x,{parent:null,phone:null}) });
    S.sreq=d }).catch(function(){S.sreq=[]})) }
+ if(r!=='parent') jobs.push(loadMb());
  if(r==='admin'||r==='manager'||r==='desk') jobs.push(rpc('branch_overview').then(function(d){S.over=d||[]}).catch(function(){S.over=[]}));
  return Promise.all(jobs);
 }
 
 function onClick(e){
  ac();
- var el=e.target.closest('[data-go],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],[data-pv],[data-pvexit],#aBack,#aRefresh'); if(!el) return;
+ var el=e.target.closest('[data-go],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],[data-pv],[data-pvexit],[data-mkb],[data-mkc],[data-mkm],[data-mks],[data-mkt],[data-mki],[data-wls],#aBack,#aRefresh'); if(!el) return;
  if(el.id==='aBack'){ history.back(); return }
  if(el.id==='aRefresh'){ el.classList.add('spin'); try{ sessionStorage.setItem('js_tab',S.tab||'') }catch(x){} setTimeout(function(){ location.replace('/member.html?r='+Date.now()) },350); return }
  var d=el.dataset;
@@ -509,12 +623,29 @@ function onClick(e){
  if(d.rs){ var a=d.rs.split('|'); el.disabled=true;
    rpc('set_request_status',{p_id:+a[0],p_status:a[1]}).then(function(){ return rpc('staff_requests') }).then(function(x){ S.sreq=x||[]; render(); toast(a[1]==='완료'?'처리 완료로 표시했습니다':'확인으로 표시했습니다') })
    .catch(function(){ el.disabled=false; toast('처리하지 못했습니다. 다시 눌러 주세요.') }); return }
+ if(d.mkb||d.mkc||d.mkm||d.mks||d.mkt||d.mki||d.wls){ if(C.pv){ toast('미리보기에서는 바꾸지 않습니다'); return } act(el,d); return }
  if(d.delnotice){ if(!confirm('이 공지를 지울까요?')) return; el.disabled=true;
    rpc('delete_notice',{p_id:+d.delnotice}).then(function(){ return rpc('my_notices') }).then(function(x){ S.notices=x||[]; render(); toast('지웠습니다') })
    .catch(function(){ el.disabled=false; toast('지우지 못했습니다.') }); return }
 }
+function act(el,d){
+ var job, ok, after1;
+ if(d.mkb){ var a=d.mkb.split('|'); if(!confirm('이 시간으로 보강을 신청할까요?')) return; job=rpc('makeup_book',{p_ticket:+a[0],p_slot:+a[1]}); ok='보강을 신청했습니다. 담임 선생님과 원장님께 전달됩니다.' }
+ if(d.mkc){ if(!confirm('보강 신청을 취소할까요? 보강권은 다시 쓸 수 있습니다.')) return; job=rpc('makeup_cancel',{p_booking:+d.mkc}); ok='취소했습니다' }
+ if(d.mkm){ var m=d.mkm.split('|'); job=rpc('makeup_mark',{p_booking:+m[0],p_status:m[1]}); ok=m[1]+'으로 체크했습니다' }
+ if(d.mks){ var q=d.mks.split('|'); if(q[1]==='닫힘'&&!confirm('이 보강 시간을 닫을까요? 신청한 학생의 보강권은 다시 쓸 수 있게 됩니다.')) return; job=rpc('makeup_slot_set',{p_slot:+q[0],p_status:q[1]}); ok=q[1]==='열림'?'열었습니다. 학부모 화면에 보입니다.':'닫았습니다' }
+ if(d.mkt){ if(!confirm('이 보강권을 취소할까요?')) return; job=rpc('makeup_ticket_cancel',{p_ticket:+d.mkt}); ok='보강권을 취소했습니다' }
+ if(d.mki){ job=rpc('makeup_issue_from_request',{p_request:+d.mki}); ok='보강권을 발급했습니다. 학부모 화면에서 날짜를 고를 수 있습니다.'; after1=function(){ return rpc('staff_requests').then(function(x){S.sreq=x||[]}) } }
+ if(d.wls){ var w=d.wls.split('|'); if(w[1]!=='연락함'&&!confirm(w[1]==='등록'?'등록으로 옮길까요? 대기에서 빠집니다.':'대기 명단에서 뺄까요?')) return; job=rpc('waitlist_set',{p_id:+w[0],p_status:w[1]}); ok=w[1]==='등록'?'등록으로 옮겼습니다':w[1]==='취소'?'대기에서 뺐습니다':'연락함으로 표시했습니다' }
+ el.disabled=true;
+ job.then(function(){ return Promise.all([after1?after1():null, C.role==='parent'?rpc('my_makeup').then(function(x){S.mk=x||[]}):(d.wls?rpc('waitlist_board').then(function(x){S.wl=x}):loadMb())]) })
+  .then(function(){ render(); toast(ok) })
+  .catch(function(er){ el.disabled=false; toast(er&&er.message?er.message.replace(/^.*?: /,''):'처리하지 못했습니다. 다시 눌러 주세요.') });
+}
 function onSubmit(e){
- var f=e.target; if(f.id!=='fReq'&&f.id!=='fNotice') return; e.preventDefault();
+ var f=e.target;
+ if(f.id==='fSlot'||f.id==='fTicket'||f.id==='fClassOff'||f.id==='fWait'){ e.preventDefault(); if(C.pv){ toast('미리보기에서는 저장하지 않습니다'); return } return sub2(f) }
+ if(f.id!=='fReq'&&f.id!=='fNotice') return; e.preventDefault();
  var b=f.querySelector('button.btn');
  if(f.id==='fReq'&&C.pv){ toast('미리보기에서는 보내지 않습니다'); return }
  if(f.id==='fReq'){
