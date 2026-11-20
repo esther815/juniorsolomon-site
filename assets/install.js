@@ -97,7 +97,7 @@ if('serviceWorker' in navigator){ try{ navigator.serviceWorker.register('/sw.js'
 window.JSInstall={mount:mount,open:go};
 function loggedIn(){ try{ return !!localStorage.getItem('sb-gyuuimwalbxsocnamtqk-auth-token') }catch(e){ return false } }
 function entryBar(){
-  if(!inApp()||onMember()||document.getElementById('jsEntry')) return;
+  if(!inApp()||onMember()||document.getElementById('jsEntry')||document.getElementById('jsBottom')||/consult/.test(location.pathname)) return;
   var bar=document.createElement('div'); bar.id='jsEntry';
   bar.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:60;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid #EFEAF1;padding:10px 14px calc(10px + env(safe-area-inset-bottom));font-family:"Noto Sans KR",sans-serif';
   var btn='flex:1 1 0!important;min-height:50px!important;border-radius:999px!important;border:1px solid #E3DAE7!important;background:#fff!important;color:#3E2843!important;font:600 15px sans-serif!important;display:flex!important;align-items:center!important;justify-content:center!important;text-decoration:none!important;padding:0!important;margin:0!important;letter-spacing:0!important';
@@ -113,13 +113,21 @@ function floatRefresh(){
   if(!inApp()||document.getElementById('app')||document.getElementById('jsRf')) return;
   var b=document.createElement('button'); b.id='jsRf'; b.type='button'; b.setAttribute('aria-label','새로고침');
   b.innerHTML='<svg viewBox="0 0 24 24" width="22" height="22"><path d="M20 11a8 8 0 1 0-2.3 5.7" fill="none" stroke="#5F3D66" stroke-width="2" stroke-linecap="round"/><path d="M20 4.5V11h-6.5" fill="none" stroke="#5F3D66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  var eb=document.getElementById('jsEntry'); b.style.cssText='position:fixed;right:16px;bottom:'+(eb?(eb.offsetHeight+14)+'px':'calc(18px + env(safe-area-inset-bottom))')+';z-index:50;width:48px;height:48px;border-radius:50%;border:1px solid #EFEAF1;background:#fff;box-shadow:0 8px 20px rgba(62,40,67,.18);display:grid;place-items:center;cursor:pointer;padding:0';
+  var eb=document.getElementById('jsEntry')||document.getElementById('jsBottom'); b.style.cssText='position:fixed;right:16px;bottom:'+(eb?(eb.offsetHeight+14)+'px':'calc(18px + env(safe-area-inset-bottom))')+';z-index:50;width:48px;height:48px;border-radius:50%;border:1px solid #EFEAF1;background:#fff;box-shadow:0 8px 20px rgba(62,40,67,.18);display:grid;place-items:center;cursor:pointer;padding:0';
   b.onclick=function(){ b.firstChild.style.transition='transform .5s'; b.firstChild.style.transform='rotate(360deg)'; setTimeout(function(){ location.reload() },300) };
+  document.body.appendChild(b);
+}
+function floatBack(){
+  if(!inApp()||document.getElementById('app')||document.getElementById('jsBk')||history.length<2) return;
+  var b=document.createElement('button'); b.id='jsBk'; b.type='button'; b.setAttribute('aria-label','이전 화면');
+  b.innerHTML='<svg viewBox="0 0 24 24" width="24" height="24"><path d="M15 5l-7 7 7 7" fill="none" stroke="#5F3D66" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var eb=document.getElementById('jsEntry')||document.getElementById('jsBottom'); b.style.cssText='position:fixed;left:16px;bottom:'+(eb?(eb.offsetHeight+14)+'px':'calc(18px + env(safe-area-inset-bottom))')+';z-index:50;width:48px;height:48px;border-radius:50%;border:1px solid #EFEAF1;background:#fff;box-shadow:0 8px 20px rgba(62,40,67,.18);display:grid;place-items:center;cursor:pointer;padding:0';
+  b.onclick=function(){ history.back() };
   document.body.appendChild(b);
 }
 function boot(){
   try{ if(new URLSearchParams(location.search).get('app')==='1') sessionStorage.setItem('js_inapp','1') }catch(e){}
-  mount(); entryBar(); setTimeout(floatRefresh,1500);
+  mount(); entryBar(); setTimeout(function(){ floatRefresh(); floatBack() },1500);
   try{ var a=new URLSearchParams(location.search).get('add'); if(a&&!inApp()) setTimeout(function(){ go(a==='android'?'android':'ios') },400) }catch(e){}
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();

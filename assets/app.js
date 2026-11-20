@@ -452,7 +452,7 @@ var VIEWS={special:vSpecial,today:vToday,notice:vNotice,time:vTime,req:vReq,att:
 function render(){
  var v=$('#aView'), back=$('#aBack');
  $('#aRole').textContent=S.tab?TITLE[S.tab]:LABEL[C.role]; $('#aRole').className=S.tab?'ko':'';
- back.hidden=!S.tab;
+ back.hidden=!S.tab&&history.length<2;
  v.innerHTML=pvBanner()+(S.tab?(VIEWS[S.tab]||home)():home());
  after();
 }
