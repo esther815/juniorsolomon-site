@@ -494,8 +494,8 @@ function vOps(){
   (lr<50?'<p class="sub" style="margin-top:8px">수업 피드백·공지는 앱에 연결된 학부모에게만 닿습니다. 재원생 학부모 가입 안내를 먼저 보내 주세요.</p>':'')+'</div>';
  var CP=d.captures||[], RL={parent:'학부모',teacher:'강사',desk:'관리자',manager:'지점장'};
  h+='<div class="card'+(CP.length?' fbwarn':'')+'" style="cursor:default"><h3>학습지 캡처 시도 (최근 7일)</h3>'+(CP.length?'<div class="list">'+CP.map(function(x){
-   return '<div style="display:block"><b>'+esc(x.who)+'</b> <span class="sub">'+esc(RL[x.role]||'')+' · '+x.n+'회 · 마지막 '+esc(md(String(x.last).slice(0,10)))+'</span><br><span class="sub">'+esc(x.what||'')+'</span></div>' }).join('')+'</div>'
-   :'<p class="sub">캡처·인쇄·저장 시도가 없습니다.</p>')+'<p class="sub" style="margin-top:8px">컴퓨터의 캡처 키·단축키, 인쇄, 길게 누르기(오른쪽 클릭)를 기록합니다. 휴대폰 화면 캡처는 정식 앱부터 잡힙니다.</p></div>';
+   return '<div><span><b>'+esc(x.who)+'</b> <span class="sub">'+esc(RL[x.role]||'')+' · '+x.n+'회 · 마지막 '+esc(md(String(x.last).slice(0,10)))+'</span><br><span class="sub">'+esc(x.what||'')+'</span></span>'+(x.blocked?'<button type="button" class="sm" data-cunb="'+esc(x.user)+'">🔒 잠금 풀기</button>':'')+'</div>' }).join('')+'</div>'
+   :'<p class="sub">캡처·인쇄·저장 시도가 없습니다.</p>')+'<p class="sub" style="margin-top:8px">컴퓨터의 캡처 키·단축키, 인쇄, 길게 누르기(오른쪽 클릭)를 기록합니다. 7일 안에 3번이면 학습지가 잠기고 원장님께 알림이 갑니다. 휴대폰 화면 캡처는 정식 앱부터 잡힙니다.</p></div>';
  return h;
 }
 function vStat(){
@@ -847,7 +847,8 @@ function asgSend(f){
  .catch(function(x){ bb.disabled=false; prog(''); toast((x&&x.message)||'보내지 못했습니다') });
 }
 /* 학습지 화면: 원본 + 학생 층 + 선생님 층, 이름 워터마크·저작권 바닥글·캡처 경고 */
-function asgOpen(o){ S.asgOpen=o; S.tab='asg'; render(); window.scrollTo(0,0);
+function asgOpen(o){ if(!C.pv&&C.real!=='admin'){ return rpc('capture_status').then(function(r){ if(r&&r.blocked){ S.capBlocked=true; toast('학습지가 잠겨 있습니다. 학원(02-794-8123)으로 연락해 주세요'); return } asgOpen0(o) }).catch(function(){ asgOpen0(o) }) } asgOpen0(o) }
+function asgOpen0(o){ S.asgOpen=o; S.tab='asg'; render(); window.scrollTo(0,0);
  var x, sub, name, pages, paths=[];
  if(o.mode==='do'){ x=(S.asg||[]).filter(function(a){return a.id==o.id&&a.student===o.student})[0]; if(!x) return asgClose(); sub=x.sub; name=x.child; pages=x.pages }
  else { x=(S.asg||[]).filter(function(a){return a.id==o.id})[0]; if(!x) return asgClose(); var st=(x.students||[]).filter(function(s){return s.sub==o.sub})[0]; sub={id:o.sub,status:st.status,pages:st.pages,answer:st.answer,review_note:st.review_note,review_pages:st.review_pages}; name=st.name; pages=x.pages }
@@ -912,12 +913,14 @@ function asgCanvas(v, o, sub, U, canDraw){
 }
 /* 캡처 경고: 학습지가 열려 있을 때 화면 캡처·인쇄·저장 시도를 막고 기록 */
 function capWarn(what){ if(!S||!S.asgOpen) return; var o=S.asgOpen;
- try{ rpc('capture_report',{p_assignment:o.id,p_what:what}).catch(function(){}) }catch(e){}
- var old=document.getElementById('capWarn'); if(old) old.remove();
- var el=document.createElement('div'); el.id='capWarn'; el.className='star-bg';
- el.innerHTML='<div class="star-box"><b>⚠️ 캡처·저장은 금지되어 있습니다</b><p>이 학습지는 주니어솔로몬의 저작물입니다. 화면에 학생 이름이 새겨져 있어 밖으로 퍼지면 누가 찍었는지 알 수 있습니다. 이 시도는 학원에 기록됩니다.</p><button type="button" class="btn">확인</button></div>';
- el.addEventListener('click',function(e){ if(e.target.tagName==='BUTTON') el.remove() });
- (document.getElementById('app')||document.body).appendChild(el);
+ function show(r){ var old=document.getElementById('capWarn'); if(old) old.remove();
+  var el=document.createElement('div'), bl=!!(r&&r.blocked); el.id='capWarn'; el.className='star-bg';
+  el.innerHTML=bl?'<div class="star-box"><b>🔒 학습지가 잠겼습니다</b><p>캡처·저장 시도가 여러 번 기록되어 학습지를 열 수 없습니다. 다시 열려면 학원(02-794-8123)으로 연락해 주세요.</p><button type="button" class="btn">확인</button></div>'
+   :'<div class="star-box"><b>⚠️ 캡처·저장은 금지되어 있습니다</b><p>이 학습지는 주니어솔로몬의 저작물입니다. 화면에 학생 이름이 새겨져 있어 밖으로 퍼지면 누가 찍었는지 알 수 있습니다. 이 시도는 학원에 기록됩니다.'+(r&&r.left>0?'<span style="display:block;margin-top:10px;color:#A3402A;font-weight:800;font-size:15px">'+r.left+'번 더 시도하면 학습지가 잠깁니다.</span>':'')+'</p><button type="button" class="btn">확인</button></div>';
+  el.addEventListener('click',function(e){ if(e.target.tagName==='BUTTON'){ el.remove(); if(bl) asgClose() } });
+  (document.getElementById('app')||document.body).appendChild(el); if(bl) S.capBlocked=true }
+ if(C.pv){ show(null); return }
+ rpc('capture_report',{p_assignment:o.id,p_what:what}).then(show).catch(function(){ show(null) });
 }
 document.addEventListener('keyup',function(e){ if(e.key==='PrintScreen'){ try{ navigator.clipboard&&navigator.clipboard.writeText('') }catch(x){} capWarn('PrintScreen') } });
 document.addEventListener('keydown',function(e){ var k=(e.key||'').toLowerCase();
@@ -993,7 +996,7 @@ function load(){
 
 function onClick(e){
  ac();
- var el=e.target.closest('[data-go],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],[data-pv],[data-pvexit],[data-mkb],[data-mkc],[data-mkm],[data-mks],[data-mkt],[data-mki],[data-wls],[data-fbwk],[data-fbskip],[data-asgo],[data-asgr],[data-asgnew],#aBack,#aRefresh'); if(!el) return;
+ var el=e.target.closest('[data-go],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],[data-pv],[data-pvexit],[data-mkb],[data-mkc],[data-mkm],[data-mks],[data-mkt],[data-mki],[data-wls],[data-fbwk],[data-fbskip],[data-asgo],[data-asgr],[data-asgnew],[data-cunb],#aBack,#aRefresh'); if(!el) return;
  if(el.id==='aBack'){ history.back(); return }
  if(el.id==='aRefresh'){ el.classList.add('spin'); try{ sessionStorage.setItem('js_tab',S.tab||'') }catch(x){} setTimeout(function(){ location.replace('/member.html?r='+Date.now()) },350); return }
  var d=el.dataset;
@@ -1001,6 +1004,7 @@ function onClick(e){
  if(d.asgo){ var q=d.asgo.split('|'); history.pushState({jsTab:'asg',asg:1},'',''); asgOpen({mode:'do',id:+q[0],student:q[1]}); return }
  if(d.asgr){ var q2=d.asgr.split('|'); history.pushState({jsTab:'asg',asg:1},'',''); asgOpen({mode:'review',id:+q2[0],sub:+q2[1]}); return }
  if(d.asgnew){ S.asgNew=!S.asgNew; render(); return }
+ if(d.cunb){ if(C.pv){ toast('미리보기에서는 바꾸지 않습니다'); return } el.disabled=true; rpc('capture_unblock',{p_user:d.cunb}).then(function(){ toast('잠금을 풀었습니다'); S.opsFresh=0; render() }).catch(function(x){ el.disabled=false; toast(x.message||'풀지 못했습니다') }); return }
  if(d.fbwk!=null){ S.fbwk=(+d.fbwk===0)?0:(S.fbwk||0)+(+d.fbwk); S.fbw2=null; loadFbw(S.fbwk).then(render); return }
  if(d.fbskip){ var ff=$('#fFb'); if(!ff) return; if(C.pv){ toast('미리보기에서는 저장하지 않습니다'); return } if(!confirmSoft(el)) return; rpc('feedback_post',{p_class:ff.cls.value,p_day:ff.day.value,p_body:ff.body.value||'',p_kind:'휴강'}).then(function(){ toast('휴강으로 표시했습니다'); S.fbFresh=0; render() }).catch(function(x){ toast(x.message||'저장하지 못했습니다') }); return }
  if(d.pv){ pvPick(d.pv); return }
