@@ -220,14 +220,14 @@ function vReq(){
  h+='<div class="card"><h3>보내기</h3><form id="fReq">'+
    (kids.length>1?'<label class="l">자녀</label><select name="child">'+kids.map(function(x,i){return '<option value="'+esc(x.id)+'"'+(i===S.kid?' selected':'')+'>'+esc(x.name)+'</option>'}).join('')+'</select>':'<input type="hidden" name="child" value="'+esc(kids[0].id)+'">')+
    '<label class="l">무엇을 보낼까요?</label><div class="seg" style="margin:0">'+['결석 알림','보강 문의','상담 신청'].map(function(x){return '<button type="button" class="sm'+(x===k?' on':'')+'" data-rk="'+x+'">'+x+'</button>'}).join('')+'</div>'+
-   '<label class="l">누구에게 보낼까요?</label><select name="to"><option value="담임">담임 선생님</option><option value="원장">원장님</option><option value="관리자">관리자 (행정·교습비)</option></select>'+
+   '<input type="hidden" name="to" value="'+(k==='상담 신청'?'원장':'담임')+'"><p class="sub" style="margin:10px 0 0">'+(k==='상담 신청'?'원장님께 바로 갑니다.':'담임 선생님께 갑니다.')+'</p>'+
    '<label class="l">'+(k==='결석 알림'?'결석하는 날':'희망 날짜')+'</label><input name="day" type="date" min="'+kst().day+'">'+
    (k==='결석 알림'?'<label class="l">사유</label><select name="why"><option>병결</option><option>학교 행사</option><option>개인 사정</option><option>기타</option></select>':'<label class="l">편한 연락 방법</label><select name="method"><option>전화</option><option>카톡</option><option>방문</option></select>')+
    '<label class="l">내용</label><textarea name="memo" placeholder="'+(k==='결석 알림'?'선생님께 전할 말씀이 있으면 적어 주세요.':'궁금하신 점을 적어 주세요.')+'"></textarea>'+
    '<div style="margin-top:16px"><button class="btn">보내기</button></div></form></div>';
  var mine=S.myreq||[];
  h+='<div class="card"><h3>보낸 신청</h3>'+(mine.length?'<div class="list">'+mine.map(function(r){return '<div><span>'+esc(r.kind)+' · '+esc(r.child)+'<br><span class="sub">'+tName(r)+(r.day?' · '+md(r.day):'')+' · '+ago(r.created_at)+'</span></span>'+reqTag(r.status)+'</div>'}).join('')+'</div>':'<p class="sub">아직 보낸 신청이 없습니다.</p>')+'</div>';
- return h+tip('보낸 신청은 받는 분과 원장님께 함께 전달됩니다. 병결·학교 행사 결석을 알려 주시면 담임 선생님 확인 뒤 보강권이 나오고, 위에서 보강 날짜를 고를 수 있습니다.');
+ return h+tip('결석 알림·보강 문의는 담임 선생님께, 상담 신청은 원장님께 갑니다. 병결·학교 행사 결석을 알려 주시면 담임 선생님 확인 뒤 보강권이 나오고, 위에서 보강 날짜를 고를 수 있습니다.');
 }
 function reqTag(s,staff){ return '<span class="tag '+(s==='완료'?'ok':s==='확인'?'':'y')+'">'+(s==='접수'?(staff?'새 신청':'보냄'):s==='확인'?'확인함':'완료')+'</span>' }
 function tName(r){ return r.to==='담임'?(r.teacher==='원장'?'담임 원장님':'담임 '+esc(r.teacher||'')+' 선생님'):esc(r.to) }
