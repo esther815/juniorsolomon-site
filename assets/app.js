@@ -55,7 +55,7 @@ function tilesFor0(role){
  var T={
   parent:[['today','오늘 우리 아이','출결·다음 수업',I.home],['fb','수업 피드백','선생님이 보낸 수업 이야기',I.note],['asg','과제','선생님이 보낸 학습지',I.book],['notice','공지','학원 소식',I.bell],['time','시간표','수업 요일·예약',I.cal],
           ['req','보강·상담','결석 알림·상담 신청',I.chat],['att','출결 기록','달력으로 한눈에',I.check],['mine','내 정보','자녀 추가·로그아웃',I.me]],
-  teacher:[['fb','수업 피드백','오늘 수업 보내기',I.send],['asg','학습지 과제','보내기·제출 확인',I.book],['tboard','내 반 출결','반별 학생·최근 출결',I.users],['mk','보강','보강 시간·출석 체크',I.cal],['sreq','받은 상담','학부모가 보낸 신청',I.chat],['notice','공지','학원 소식',I.bell]],
+  teacher:[['fb','수업 피드백','오늘 수업 보내기',I.send],['stu','학생 정보','출결·보강·피드백·메모',I.users],['asg','학습지 과제','보내기·제출 확인',I.book],['tboard','내 반 출결','반별 학생·최근 출결',I.users],['mk','보강','보강 시간·출석 체크',I.cal],['sreq','받은 상담','학부모가 보낸 신청',I.chat],['notice','공지','학원 소식',I.bell]],
   desk:[['approve','가입 승인','학부모 가입 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],['mk','보강','보강권·보강 달력',I.cal],['wait','대기 명단','반별 대기',I.note],
         ['board','반별 정원','마감·모집',I.users],['notice','공지','올리기·보기',I.send]],
   manager:[['over','한눈에 현황','우리 지점',I.chart],['approve','가입 승인','학부모 가입 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],
@@ -68,7 +68,7 @@ function tilesFor0(role){
  return T[role]||[];
 }
 var LABEL={parent:'For Parents',teacher:'Teacher',desk:'Office',manager:'Branch',admin:'Director'};
-var TITLE={ops:'운영 숫자',asg:'과제',special:'방학 특강',today:'오늘 우리 아이',notice:'공지',time:'시간표',req:'보강·상담',att:'출결 기록',mine:'내 정보',tboard:'내 반 출결',sreq:'상담·요청',
+var TITLE={ops:'운영 숫자',stu:'학생 정보',asg:'과제',special:'방학 특강',today:'오늘 우리 아이',notice:'공지',time:'시간표',req:'보강·상담',att:'출결 기록',mine:'내 정보',tboard:'내 반 출결',sreq:'상담·요청',
            approve:'가입 승인',board:'반별 정원',over:'한눈에 현황',me:'반별·출석부',set:'직원·설정',mk:'보강',wait:'대기 명단',stat:'숫자 기록',fb:'수업 피드백',fbw:'피드백 현황'};
 function pAccess(){ var k=S.kids||[]; if(!k.length) return 'open'; if(k.some(function(x){return !x.access||x.access==='open'})) return 'open'; if(k.some(function(x){return x.access==='paused'})) return 'paused'; return 'closed' }
 
@@ -443,6 +443,19 @@ function vFbw(){
   h+='<div class="card"><h3>'+WD[wd]+'요일 · '+md(D[0].day)+'</h3><div class="list">'+D.map(function(x){ return '<div><span>'+esc(String(x.starts||'').slice(0,5))+' '+esc(cname(x['class']))+'<br><span class="sub">'+esc(x.teacher||'')+' · 재원 '+x.n+'명'+(x.at?' · '+ago(x.at)+' 보냄 · 학부모 '+(x.sent||0)+'분':'')+'</span></span>'+fbState(x.state)+'</div>' }).join('')+'</div></div>' });
  return h+tip('수업이 끝나고 2시간이 지나도 피드백이 없으면 「안 나감」으로 바뀝니다. 매일 밤 안 나간 반의 담당 선생님께 경고 알림이 갑니다. 1:1 수업처럼 요일이 정해지지 않은 반은 이 표에 나오지 않습니다.');
 }
+function wqList(x){
+ var L=((S.wl&&S.wl.items)||[]).filter(function(w){ return w.class_id===x.id&&(w.status==='대기'||w.status==='연락함') });
+ if(!S.wl) return '<div class="wq"><p class="sub">대기 명단을 불러오는 중…</p></div>';
+ if(!L.length) return '<div class="wq"><p class="sub">대기 명단에서 이 반 학생을 찾지 못했습니다. 대기 명단 화면에서 반을 확인해 주세요.</p></div>';
+ var W=['일','월','화','수','목','금','토'], when=W[x.weekday]+'요일 '+String(x.starts||'').slice(0,5);
+ return '<div class="wq">'+L.map(function(w,i){
+  var body=w.child+' 학부모님, 대기 신청하신 '+cname(x.class)+' 반('+when+')에 자리가 생겼습니다. 내일까지 등록 여부를 알려 주시면 자리를 잡아 두겠습니다. 연락이 없으시면 다음 대기 학생께 안내드립니다.';
+  return '<div class="wqi"><p><b>'+(i+1)+'순위 '+esc(w.child)+'</b>'+(w.grade?' <span class="sub">('+esc(w.grade)+')</span>':'')+(w.status==='연락함'?' <span class="tag">연락함</span>':'')+'</p>'+
+   '<p class="sub">'+(w.guardian?esc(w.guardian)+' · ':'')+(w.phone?phone(w.phone)+' · ':'연락처 없음 · ')+esc(w.source)+' · '+ago(w.created_at)+' 신청'+(w.memo?'<br>메모: '+esc(w.memo):'')+'</p>'+
+   '<div class="wb">'+(w.phone?'<a class="sm" href="tel:'+esc(w.phone)+'">전화</a><a class="sm on" href="sms:'+esc(w.phone)+'?&body='+encodeURIComponent(body)+'">자리 알림 문자</a>':'')+
+   (w.status==='대기'?'<button class="sm" data-wls="'+w.id+'|연락함">연락함</button>':'')+'<button class="sm" data-wls="'+w.id+'|등록">등록</button></div></div>' }).join('')+
+  '<p class="sub">「자리 알림 문자」를 누르면 휴대폰 문자 창에 안내 문구가 채워집니다. 보낸 뒤 「연락함」을 눌러 두세요.</p></div>';
+}
 function gradeRank(nm){ var s=String(nm||'');
  var m=s.match(/(\d)세/); if(m) return +m[1]-5;
  m=s.match(/(\d)(\d)학년/); if(m) return 2+(+m[1]+ +m[2])/2;
@@ -453,6 +466,45 @@ function gradeRank(nm){ var s=String(nm||'');
  if(/고등|수능/.test(s)) return 12.5;
  if(/고학년/.test(s)) return 7; if(/저학년/.test(s)) return 4;
  return 20 }
+function stuSearch(){
+ var q=S.stuQ;
+ return '<form id="fStuQ" class="sq"><input name="q" placeholder="학생 이름으로 찾기" value="'+esc(q?q.q:'')+'" autocomplete="off"><button class="sm on">찾기</button></form>'+
+  (q?'<div class="card"><div class="list">'+(q.rows.length?q.rows.map(function(x){ return '<div class="tapr" data-stu="'+esc(x.id)+'"><span><b>'+esc(x.name)+'</b> <span class="sub">'+esc(x.grade||'')+'</span>'+(x.status!=='재원'?' <span class="tag g">'+esc(x.status)+'</span>':'')+'</span><i class="chev">›</i></div>' }).join(''):'<p class="sub">「'+esc(q.q)+'」 학생이 없습니다.</p>')+'</div></div>':'');
+}
+function vStu(){
+ var h=''; function n(v){ return (+v||0).toLocaleString('ko-KR') }
+ if(!S.stuId) return '<h2>학생 정보</h2>'+stuSearch()+(S.stuQ?'':'<div class="card"><p class="sub">이름 일부만 적어도 찾습니다. '+(C.role==='teacher'?'내 반 학생만 보입니다.':'')+'</p></div>');
+ var c=S.stuC;
+ if(!c||c.id!==S.stuId) return '<h2>학생 정보</h2><div class="card"><p class="sub">불러오는 중…</p></div>';
+ if(c.err) return '<h2>학생 정보</h2><div class="card"><p class="sub">'+esc(c.err)+'</p></div>';
+ var W=['일','월','화','수','목','금','토'], A={'출석':'●','지각':'◑','결석':'○','보강':'◐'};
+ h+='<h2>'+esc(c.name)+' <span class="sub" style="font-size:15px">'+esc(c.grade||'')+(c.school?' · '+esc(c.school):'')+'</span></h2>';
+ h+='<div class="card hl"><div class="list">'+
+  '<div><span>상태</span><span class="tag '+(c.status==='재원'?'ok':'warn')+'">'+esc(c.status)+'</span></div>'+
+  '<div><span>등록일</span><span>'+esc(String(c.joined_on||'-').replace(/-/g,'.'))+(c.left_on?' · 퇴원 '+esc(String(c.left_on).replace(/-/g,'.')):'')+'</span></div>'+
+  (c.classes||[]).map(function(k){ return '<div><span>'+esc(cname(k.name))+'</span><span class="sub">'+(k.weekday!=null?W[k.weekday]+' '+esc(String(k.starts||'').slice(0,5))+' · ':'')+esc(k.teacher||'')+'</span></div>' }).join('')+
+  (c.staff?'<div><span>학부모 연락처</span>'+(c.phone?'<a class="sm on" href="tel:'+esc(c.phone)+'">'+phone(c.phone)+' 전화</a>':'<span class="sub">메이크에듀에 없음</span>')+'</div>':'')+
+  '<div><span>학부모 앱</span><span>'+(c.parent.linked?'<span class="tag ok">연결됨</span>':c.parent.pending?'<span class="tag warn">승인 대기</span>':'<span class="sub">아직 안 들어옴</span>')+'</span></div></div></div>';
+ // 조치 기록
+ h+='<div class="card"><h3>조치 기록</h3><div class="wb" style="margin:8px 0">'+['통화함','상담 잡음','지켜봄'].map(function(k){ return '<button class="sm" data-snote="'+k+'">'+k+'</button>' }).join('')+'</div>'+
+  '<div class="sq" style="margin:0"><input id="stuMemo" maxlength="300" placeholder="한 줄 메모 (선택)"><button type="button" class="sm on" data-snote="메모">메모</button></div>'+
+  ((c.notes||[]).length?'<div class="list" style="margin-top:8px">'+c.notes.map(function(x){ return '<div style="display:block"><b>'+esc(x.kind)+'</b> <span class="sub">'+ago(x.at)+(x.author?' · '+esc(x.author):'')+'</span>'+(x.memo?'<br>'+esc(x.memo):'')+'</div>' }).join('')+'</div>':'<p class="sub" style="margin-top:8px">아직 기록이 없습니다. 버튼을 누르면 메모 칸의 글도 함께 남습니다.</p>')+'</div>';
+ // 출결
+ var at=c.att||[];
+ h+='<div class="card"><h3>출결 <span class="sub">최근 '+at.length+'회 · 30일 결석 '+n(c.abs30)+'회</span></h3>'+(at.length?'<div class="atts">'+at.slice().reverse().map(function(x){ return '<span title="'+esc(x.status)+'"><i class="'+(x.status==='결석'?'ab':x.status==='출석'?'ok':'')+'">'+(A[x.status]||'◇')+'</i><small>'+esc(String(x.day).slice(5).replace('-','/'))+'</small></span>' }).join('')+'</div><p class="sub">● 출석 ○ 결석 ◑ 지각 ◐ 보강</p>':'<p class="sub">메이크에듀 출석 기록이 없습니다.</p>')+'</div>';
+ // 보강권
+ var tk=c.tickets||[], open=tk.filter(function(t){ return t.status==='발급'&&!t.booked });
+ h+='<div class="card"><h3>보강권 <span class="sub">안 쓴 것 '+open.length+'장</span></h3>'+(tk.length?'<div class="list">'+tk.map(function(t){ return '<div><span>'+esc(String(t.absent_day).slice(5).replace('-','/'))+' 결석분 <span class="sub">'+ago(t.issued_at)+' 발급 · '+esc(String(t.expires).slice(5).replace('-','/'))+'까지</span></span><span class="tag '+(t.status==='완료'?'ok':t.booked?'':'warn')+'">'+(t.status==='발급'?(t.booked?'신청함':'안 씀'):esc(t.status))+'</span></div>' }).join('')+'</div>':'<p class="sub">최근 4개월 보강권이 없습니다.</p>')+'</div>';
+ // 수납
+ if(c.staff){ var P=c.pay||[], un=P.reduce(function(a,x){ return a+(x.unpaid||0) },0);
+  h+='<div class="card"><h3>수납 '+(un?'<span class="tag warn">미납 '+n(un)+'원</span>':'')+'</h3>'+(P.length?'<div class="list">'+P.map(function(x){ return '<div><span>'+esc(x.month.slice(5))+'월 <span class="sub">청구 '+n(x.billed)+'원</span></span><span>'+(x.unpaid?'<b style="color:#b3261e">미납 '+n(x.unpaid)+'원</b>':'<span class="sub">납부 '+n(x.paid)+'원</span>')+'</span></div>' }).join('')+'</div>':'<p class="sub">올라온 수납 내역에 이 학생이 없습니다.</p>')+'</div>' }
+ // 피드백·과제·요청
+ var F=c.feedback||[];
+ h+='<div class="card"><h3>최근 수업 피드백</h3>'+(F.length?'<div class="list">'+F.map(function(x){ return '<div style="display:block"><b>'+esc(String(x.day).slice(5).replace('-','/'))+'</b> <span class="sub">'+esc(cname(x.class))+(x.kind==='휴강'?' · 휴강':'')+'</span><br><span style="white-space:pre-wrap">'+esc(x.body||'')+'</span></div>' }).join('')+'</div>':'<p class="sub">이 학생 반에 올라온 피드백이 없습니다.</p>')+'</div>';
+ h+='<div class="card"><div class="list"><div><span>학습지 과제</span><span>'+n(c.asg.done)+' / '+n(c.asg.sent)+'건 제출</span></div>'+
+  ((c.requests||[]).length?c.requests.map(function(r){ return '<div><span>'+esc(r.kind)+' <span class="sub">'+ago(r.at)+'</span></span><span class="tag '+(r.status==='완료'?'ok':'warn')+'">'+esc(r.status)+'</span></div>' }).join(''):'<div><span>학부모 신청</span><span class="sub">없음</span></div>')+'</div></div>';
+ return h+tip(c.staff?'학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.':'학부모 연락처와 수납은 원장님만 봅니다. 학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.');
+}
 function vOps(){
  var h='<h2>운영 숫자</h2>', d=S.ops;
  if(!d) return h+'<div class="card"><p class="sub">불러오는 중입니다.</p></div>';
@@ -462,6 +514,7 @@ function vOps(){
  var g=d.growth||{}, r=d.risk||[], p=d.pay||{}, c=d.consult||{}, se=d.seats||{}, w=d.wait||{}, T=d.teachers||[], re=d.reach||{};
  var W=['일','월','화','수','목','금','토'];
  var gap=Math.max(0,(g.target||170)-(g.students||0)), pct=Math.min(100,Math.round((g.students||0)/(g.target||170)*100));
+ h+=stuSearch();
  h+='<p class="sub" style="margin:-6px 0 12px">'+esc(String(d.today||'').slice(5).replace('-','/'))+' 기준 · 메이크에듀 자료가 들어오는 대로 바뀝니다</p>';
  // 1 재원 순증
  h+='<div class="card hl"><p class="sub">재원생 · 목표 '+n(g.target)+'명</p><div class="row" style="margin-top:4px"><b class="big" style="font-size:30px">'+n(g.students)+'명</b><span class="sub">'+(gap?n(gap)+'명 남음':'목표 달성')+' · 휴원 '+n(g.paused)+'명</span></div>'+
@@ -471,15 +524,15 @@ function vOps(){
   (g.last_left_on&&g.last_left_on<String(d.today).slice(0,8)+'01'?'<p class="sub" style="margin-top:8px">메이크에듀에 기록된 마지막 퇴원일이 '+esc(String(g.last_left_on).slice(5).replace('-','/'))+'입니다. 그 뒤 퇴원생을 메이크에듀에서 퇴원 처리해야 이 숫자가 맞습니다.</p>':'')+'</div>';
  // 2 퇴원 위험
  h+='<div class="card'+(r.length?' fbwarn':'')+'"><h3>퇴원 위험 '+n(r.length)+'명</h3>'+(r.length?'<div class="list">'+r.map(function(x){
-   return '<div style="display:block"><b>'+esc(x.name)+'</b> <span class="sub">'+esc(x.grade||'')+' · '+esc(x.teacher||'')+'</span><br><span class="sub">'+esc(x.why)+'</span></div>' }).join('')+'</div>'
-   :'<p class="sub">연속 결석·장기 미출석 학생이 없습니다.</p>')+'<p class="sub" style="margin-top:8px">기준: 최근 2회 연속 결석 · 30일 결석 3회 이상 · 3주째 출석 기록 없음 · 보강권 2주 넘게 안 씀. 미납이 겹치면 위로 올립니다. 담임 확인 후 학부모 통화를 권합니다.</p></div>';
+   return '<div class="tapr" data-stu="'+esc(x.id||'')+'"><span><b>'+esc(x.name)+'</b> <span class="sub">'+esc(x.grade||'')+' · '+esc(x.teacher||'')+'</span>'+(x.note?' <span class="tag ok">'+esc(x.note)+'</span>':'')+'<br><span class="sub">'+esc(x.why)+'</span></span><i class="chev">›</i></div>' }).join('')+'</div>'
+   :'<p class="sub">연속 결석·장기 미출석 학생이 없습니다.</p>')+'<p class="sub" style="margin-top:8px">기준: 최근 2회 연속 결석 · 30일 결석 3회 이상 · 3주째 출석 기록 없음 · 보강권 2주 넘게 안 씀. 미납이 겹치면 위로 올립니다. 이름을 누르면 학생 카드가 열립니다. 통화·상담을 기록한 학생은 2주 동안 아래로 내려갑니다.</p></div>';
  // 미납
  var M=p.months||[], U=p.unpaid||[], m0=M[0]||{};
  h+='<div class="card"><h3>수납 · 미납</h3>'+(M.length?
    '<div class="grid2 k4" style="margin:6px 0 10px"><div class="kpi"><b>'+won(m0.billed)+'</b><span>'+esc(String(m0.month||'').slice(5))+'월 청구(원)</span></div><div class="kpi"><b>'+won(m0.paid)+'</b><span>받은 금액(원)</span></div><div class="kpi"><b>'+won(m0.unpaid)+'</b><span>미납(원) · '+n(m0.unpaid_n)+'명</span></div><div class="kpi"><b>'+(m0.billed?Math.round(m0.paid/m0.billed*100):0)+'%</b><span>수납률</span></div></div>'+
    '<div class="stt"><table><thead><tr><th>달</th><th>인원</th><th>청구</th><th>받음</th><th>미납</th></tr></thead><tbody>'+M.map(function(x){return '<tr><td>'+esc(x.month.slice(5))+'월</td><td>'+n(x.n)+'</td><td>'+man(x.billed)+'</td><td>'+man(x.paid)+'</td><td>'+man(x.unpaid)+(x.unpaid_n?'<br><small>'+x.unpaid_n+'명</small>':'')+'</td></tr>'}).join('')+'</tbody></table></div><p class="sub" style="margin-top:4px">표 금액 단위: 만 원</p>'+
    (U.length?'<h3 style="margin-top:14px">미납 명단 '+n(U.length)+'명 · '+won(U.reduce(function(a,x){return a+(x.total||0)},0))+'원</h3><div class="list">'+U.map(function(x){
-     return '<div><span><b>'+esc(x.name)+'</b> <span class="sub">'+esc(x.grade||'')+' · '+esc(x.months)+(x.status&&x.status!=='재원'?' · <span class="tag warn">'+esc(x.status)+'</span>':'')+'</span></span><b>'+n(x.total)+'원</b></div>' }).join('')+'</div>':'')+
+     return '<div class="tapr" data-stu="'+esc(x.id||'')+'"><span><b>'+esc(x.name)+'</b> <span class="sub">'+esc(x.grade||'')+' · '+esc(x.months)+(x.status&&x.status!=='재원'?' · <span class="tag warn">'+esc(x.status)+'</span>':'')+'</span></span><b>'+n(x.total)+'원</b></div>' }).join('')+'</div>':'')+
    '<p class="sub" style="margin-top:8px">메이크에듀 「월별 수납 내역」 엑셀을 올린 만큼 반영됩니다 (마지막 반영 '+esc(String(p.loaded||'').slice(5,10).replace('-','/'))+').</p>'
    :'<p class="sub">아직 수납 내역이 들어오지 않았습니다.</p>')+'</div>';
  // 3 상담
@@ -494,8 +547,8 @@ function vOps(){
   return eb-ea||ga-gb });
  h+='<div class="card"><h3>반별 빈자리 '+n(se.empty_total)+'석 <span class="sub">/ 정원 '+n(se.cap_total)+'석</span></h3>'+
   '<div class="seg" style="margin:10px 0 4px;flex-wrap:wrap;overflow:visible">'+[['empty','빈자리순'],['gl','학년 낮은순'],['gh','학년 높은순']].map(function(t){ return '<button type="button" class="sm'+(so===t[0]?' on':'')+'" data-seatsort="'+t[0]+'">'+t[1]+'</button>' }).join('')+'</div>'+
-  (S2.length?'<div class="list">'+S2.map(function(x){ var e=x.cap-x.n;
-   return '<div><span>'+esc(cname(x.class))+'<br><span class="sub">'+W[x.weekday]+' '+esc(String(x.starts||'').slice(0,5))+(x.teacher?' · '+esc(x.teacher):'')+'</span></span><span style="text-align:right;white-space:nowrap"><b>'+(e>0?'빈자리 '+e:'마감')+'</b><br><span class="sub">'+n(x.n)+'/'+n(x.cap)+'명</span>'+(x.wait?'<br><span class="tag warn">대기 '+x.wait+'</span>':'')+'</span></div>'}).join('')+'</div>':'')+
+  (S2.length?'<div class="list">'+S2.map(function(x){ var e=x.cap-x.n, op=S.wq===x.id;
+   return '<div><span>'+esc(cname(x.class))+'<br><span class="sub">'+W[x.weekday]+' '+esc(String(x.starts||'').slice(0,5))+(x.teacher?' · '+esc(x.teacher):'')+'</span></span><span style="text-align:right;white-space:nowrap"><b>'+(e>0?'빈자리 '+e:'마감')+'</b><br><span class="sub">'+n(x.n)+'/'+n(x.cap)+'명</span>'+(x.wait?'<br><button type="button" class="tag warn wqb'+(e>0?' hot':'')+'" data-wq="'+esc(x.id)+'">'+(e>0?'자리 있음 · ':'')+'대기 '+x.wait+(op?' ▴':' ▾')+'</button>':'')+'</span></div>'+(op?wqList(x):'')}).join('')+'</div>':'')+
   '<p class="sub" style="margin-top:8px">정원은 메이크에듀에 적힌 값입니다. 실제 정원과 다르면 메이크에듀에서 고쳐 주세요.</p></div>';
  var WR=w.rows||[];
  h+='<div class="card"><h3>대기 '+n(w.open)+'명'+(w.old?' · <span class="tag warn">2주 넘음 '+n(w.old)+'</span>':'')+'</h3>'+(WR.length?'<div class="list">'+WR.map(function(x){
@@ -945,7 +998,7 @@ document.addEventListener('contextmenu',function(e){ if(S&&S.asgOpen&&e.target.c
 window.addEventListener('beforeprint',function(){ capWarn('인쇄') });
 
 /* ── 화면 그리기 ── */
-var VIEWS={special:vSpecial,today:vToday,notice:vNotice,time:vTime,req:vReq,att:vAtt,mine:vMine,sreq:vSreq,over:vOver,set:vSet,mk:vMk,wait:vWait,stat:vStat,ops:vOps,asg:vAsg,fb:vFb,fbw:vFbw,
+var VIEWS={special:vSpecial,today:vToday,notice:vNotice,time:vTime,req:vReq,att:vAtt,mine:vMine,sreq:vSreq,over:vOver,set:vSet,mk:vMk,wait:vWait,stat:vStat,ops:vOps,stu:vStu,asg:vAsg,fb:vFb,fbw:vFbw,
  tboard:function(){return '<h2>내 반 출결</h2><div class="legacy"><div id="tboard"></div></div>'+tip('학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.')},
  approve:function(){return '<h2>가입 승인</h2><div id="bulkSlot"></div><div class="legacy"><div id="admin"></div></div>'},
  board:function(){return '<h2>반별 정원</h2><div class="legacy"><div id="board"></div></div>'},
@@ -977,8 +1030,9 @@ function after(){
  if(t==='fb'&&C.role!=='parent'){ var sel=$('#fbClass'); if(sel) sel.onchange=function(){ var o=sel.options[sel.selectedIndex]; if(o&&o.dataset.day) $('#fbDay').value=o.dataset.day } }
  if(t==='mk'&&!S.mbFresh){ S.mbFresh=1; loadMb().then(function(){ if(S.tab==='mk') render() }) }
  if(t==='asg'){ var ac2=$('#asgCls'); if(ac2) ac2.onchange=function(){ var c=(S.asgCls||[]).filter(function(x){return x.class_id===ac2.value})[0]; $('#asgStu').innerHTML=asgStu(c||{}) } }
- if(t==='ops'&&!S.opsFresh){ S.opsFresh=1; rpc('admin_ops_stats').then(function(d){ S.ops=d; if(S.tab==='ops') render() }).catch(function(){ toast('숫자를 불러오지 못했습니다') }) }
+ if(t==='ops'&&!S.opsFresh){ S.opsFresh=1; rpc('waitlist_board').then(function(x){ S.wl=x; if(S.tab==='ops') render() }).catch(function(){}); rpc('admin_ops_stats').then(function(d){ S.ops=d; if(S.tab==='ops') render() }).catch(function(){ toast('숫자를 불러오지 못했습니다') }) }
  if(t==='stat'&&!S.stFresh){ S.stFresh=1; rpc('admin_daily_stats',{p_days:14}).then(function(d){ S.st=d; if(S.tab==='stat') render() }).catch(function(){ toast('숫자를 불러오지 못했습니다') }) }
+ if(t==='stu'&&S.stuId&&(!S.stuC||S.stuC.id!==S.stuId)&&S.stuLoad!==S.stuId){ S.stuLoad=S.stuId; rpc('student_card',{p_id:S.stuId}).then(function(x){ S.stuC=x; S.stuLoad=null; if(S.tab==='stu') render() }).catch(function(er){ S.stuLoad=null; S.stuC={id:S.stuId,err:(er&&er.message||'').replace(/^.*?: /,'')||'불러오지 못했습니다'}; if(S.tab==='stu') render() }) }
  if(t==='wait'&&!S.wlFresh){ S.wlFresh=1; rpc('waitlist_board').then(function(d){ S.wl=d; if(S.tab==='wait') render() }).catch(function(){ toast('대기 명단을 불러오지 못했습니다') }) }
  if(t==='set'){ L.inviteBtn('tinv','tinvm','new_teacher_invite','t','강사'); L.inviteBtn('dinv','dinvm','new_desk_invite','d','관리자'); L.kakaoSetup(); L.betaList(); L.usage();
    $('#pv').onclick=function(){ L.openForm(null,true) } }
@@ -1012,7 +1066,7 @@ function load(){
 
 function onClick(e){
  ac();
- var el=e.target.closest('[data-go],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],[data-pv],[data-pvexit],[data-mkb],[data-mkc],[data-mkm],[data-mks],[data-mkt],[data-mki],[data-wls],[data-fbwk],[data-fbskip],[data-asgo],[data-asgr],[data-asgnew],[data-cunb],[data-seatsort],#aBack,#aRefresh'); if(!el) return;
+ var el=e.target.closest('[data-go],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],[data-pv],[data-pvexit],[data-mkb],[data-mkc],[data-mkm],[data-mks],[data-mkt],[data-mki],[data-wls],[data-fbwk],[data-fbskip],[data-asgo],[data-asgr],[data-asgnew],[data-cunb],[data-seatsort],[data-stu],[data-wq],[data-snote],#aBack,#aRefresh'); if(!el) return;
  if(el.id==='aBack'){ history.back(); return }
  if(el.id==='aRefresh'){ el.classList.add('spin'); try{ sessionStorage.setItem('js_tab',S.tab||'') }catch(x){} setTimeout(function(){ location.replace('/member.html?r='+Date.now()) },350); return }
  var d=el.dataset;
@@ -1021,6 +1075,10 @@ function onClick(e){
  if(d.asgr){ var q2=d.asgr.split('|'); history.pushState({jsTab:'asg',asg:1},'',''); asgOpen({mode:'review',id:+q2[0],sub:+q2[1]}); return }
  if(d.asgnew){ S.asgNew=!S.asgNew; render(); return }
  if(d.seatsort){ S.seatSort=d.seatsort; render(); return }
+ if(d.wq){ S.wq=S.wq===d.wq?null:d.wq; render(); return }
+ if(el.hasAttribute('data-stu')){ if(!d.stu){ toast('메이크에듀에서 이 학생을 찾지 못했습니다'); return } S.stuId=d.stu; S.stuQ=null; go('stu'); return }
+ if(d.snote){ if(C.pv){ toast('미리보기에서는 저장하지 않습니다'); return } var mi=document.getElementById('stuMemo'), mv=mi?mi.value.trim():''; if(d.snote==='메모'&&!mv){ toast('메모를 적어 주세요'); if(mi) mi.focus(); return } el.disabled=true;
+  rpc('student_note_add',{p_id:S.stuId,p_kind:d.snote,p_memo:mv}).then(function(){ S.stuC=null; S.opsFresh=0; toast(d.snote==='메모'?'메모를 남겼습니다':'「'+d.snote+'」 기록했습니다'); render() }).catch(function(er){ el.disabled=false; toast(er&&er.message?er.message.replace(/^.*?: /,''):'저장하지 못했습니다') }); return }
  if(d.cunb){ if(C.pv){ toast('미리보기에서는 바꾸지 않습니다'); return } el.disabled=true; rpc('capture_unblock',{p_user:d.cunb}).then(function(){ toast('잠금을 풀었습니다'); S.opsFresh=0; render() }).catch(function(x){ el.disabled=false; toast(x.message||'풀지 못했습니다') }); return }
  if(d.fbwk!=null){ S.fbwk=(+d.fbwk===0)?0:(S.fbwk||0)+(+d.fbwk); S.fbw2=null; loadFbw(S.fbwk).then(render); return }
  if(d.fbskip){ var ff=$('#fFb'); if(!ff) return; if(C.pv){ toast('미리보기에서는 저장하지 않습니다'); return } if(!confirmSoft(el)) return; rpc('feedback_post',{p_class:ff.cls.value,p_day:ff.day.value,p_body:ff.body.value||'',p_kind:'휴강'}).then(function(){ toast('휴강으로 표시했습니다'); S.fbFresh=0; render() }).catch(function(x){ toast(x.message||'저장하지 못했습니다') }); return }
@@ -1058,6 +1116,7 @@ function act(el,d){
 function onSubmit(e){
  var f=e.target;
  if(f.id==='fSlot'||f.id==='fTicket'||f.id==='fClassOff'||f.id==='fWait'){ e.preventDefault(); if(C.pv){ toast('미리보기에서는 저장하지 않습니다'); return } return sub2(f) }
+ if(f.id==='fStuQ'){ e.preventDefault(); var qv=(f.q.value||'').trim(); if(!qv){ toast('이름을 적어 주세요'); return } rpc('student_search',{p_q:qv}).then(function(x){ S.stuQ={q:qv,rows:x||[]}; render() }).catch(function(){ toast('찾지 못했습니다') }); return }
  if(f.id==='fAsg'){ e.preventDefault(); if(C.pv){ toast('미리보기에서는 보내지 않습니다'); return } asgSend(f); return }
  if(f.id==='fFb'){ e.preventDefault(); if(C.pv){ toast('미리보기에서는 보내지 않습니다'); return } var bb=f.querySelector('button.btn'); bb.disabled=true;
    rpc('feedback_post',{p_class:f.cls.value,p_day:f.day.value,p_body:f.body.value,p_kind:'피드백'}).then(function(r){ toast(r&&r.new?(r.sent?'학부모 '+r.sent+'분께 보냈습니다':'저장했습니다 (앱에 가입한 학부모가 아직 없습니다)'):'고쳐 썼습니다'); S.fbFresh=0; render() }).catch(function(x){ bb.disabled=false; toast(x.message||'보내지 못했습니다') }); return }
