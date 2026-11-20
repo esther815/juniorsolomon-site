@@ -282,18 +282,25 @@ function vSet(){
 }
 
 /* ── 알림음 (앱이 열려 있을 때) ── */
-var SND={ding:'띵동',twinkle:'반짝',bell:'종소리',pop:'톡'}, AC=null;
-function sndPref(){ try{ var v=JSON.parse(localStorage.getItem('js_snd')||'null'); if(v&&SND[v.s]) return v }catch(e){} return {on:true,s:'ding'} }
+var SND={solomon:'솔로몬',crown:'왕관 팡파르',xylo:'실로폰 계단',orgel:'오르골 별',kalimba:'칼림바',bubble:'물방울',ding:'띵동'}, AC=null;
+function sndPref(){ try{ var v=JSON.parse(localStorage.getItem('js_snd')||'null'); if(v){ if(!SND[v.s]) v.s='solomon'; return v } }catch(e){} return {on:true,s:'solomon'} }
 function sndSave(v){ try{ localStorage.setItem('js_snd',JSON.stringify(v)) }catch(e){} }
 function ac(){ try{ if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==='suspended') AC.resume(); }catch(e){ AC=null } return AC }
-function tone(c,f,t0,dur,vol,type){ var o=c.createOscillator(), g=c.createGain(); o.type=type||'sine'; o.frequency.value=f;
+function tone(c,f,t0,dur,vol,type,f2){ var o=c.createOscillator(), g=c.createGain(); o.type=type||'sine'; o.frequency.setValueAtTime(f,t0); if(f2) o.frequency.exponentialRampToValueAtTime(f2,t0+dur*0.6);
  g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(vol,t0+0.015); g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
  o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0+dur+0.05) }
-function playSnd(name){ var c=ac(); if(!c) return; var t=c.currentTime+0.02;
- if(name==='ding'){ tone(c,1318.5,t,0.9,0.28); tone(c,2637,t,0.5,0.05); tone(c,1046.5,t+0.32,1.3,0.26); tone(c,2093,t+0.32,0.7,0.05) }
- else if(name==='twinkle'){ [1568,1976,2349,3136].forEach(function(f,i){ tone(c,f,t+i*0.09,0.6,0.16,'triangle') }) }
- else if(name==='bell'){ [[880,1.6,.22],[1760,1.1,.08],[2640,.8,.05],[1318.5,1.4,.07]].forEach(function(x){ tone(c,x[0],t,x[1],x[2]) }) }
- else { tone(c,660,t,0.18,0.3); tone(c,990,t+0.07,0.22,0.18) } }
+function glock(c,f,t,d,v){ tone(c,f,t,d,v); tone(c,f*2.76,t,d*0.25,v*0.18); tone(c,f*5.4,t,d*0.1,v*0.06) }
+function brass(c,f,t,d,v){ tone(c,f,t,d,v,'triangle'); tone(c,f*2,t,d*0.8,v*0.35,'triangle'); tone(c,f*1.003,t,d,v*0.5,'sawtooth') }
+function playSnd(name){ var c=ac(); if(!c) return; var t=c.currentTime+0.03;
+ if(name==='solomon'){ glock(c,783.99,t,.35,.24); glock(c,783.99,t+.17,.35,.22); glock(c,1046.5,t+.36,1.5,.26);
+   tone(c,523.25,t+.36,1.2,.06,'triangle'); tone(c,659.25,t+.36,1.2,.04,'triangle'); tone(c,783.99,t+.36,1.2,.035,'triangle');
+   tone(c,2637,t+.62,.35,.07); tone(c,3135.96,t+.7,.35,.06); tone(c,3951.07,t+.78,.5,.05) }
+ else if(name==='crown'){ brass(c,392,t,.14,.09); brass(c,523.25,t+.12,.14,.09); brass(c,659.25,t+.24,.14,.09); brass(c,783.99,t+.36,.7,.1); tone(c,1567.98,t+.36,.6,.03) }
+ else if(name==='xylo'){ [1046.5,1174.66,1318.5,1567.98,1760,2093].forEach(function(f,i){ tone(c,f,t+i*.07,.35,.2); tone(c,f*4,t+i*.07,.08,.04) }); tone(c,2637,t+.48,.6,.16); tone(c,2093,t+.48,.6,.1) }
+ else if(name==='orgel'){ [[1567.98,0],[1318.5,.18],[1046.5,.36],[1318.5,.54],[1567.98,.72],[2093,.9]].forEach(function(x){ tone(c,x[0],t+x[1],1.1,.14); tone(c,x[0]*3,t+x[1],.4,.025); tone(c,x[0]*2.01,t+x[1],.6,.03) }) }
+ else if(name==='kalimba'){ [[880,0],[1046.5,.11],[1318.5,.22],[1046.5,.4],[1760,.52]].forEach(function(x){ tone(c,x[0],t+x[1],.5,.22,'triangle'); tone(c,x[0]*2.76,t+x[1],.12,.05) }) }
+ else if(name==='bubble'){ [[600,1500,0],[800,2000,.16],[700,2400,.3]].forEach(function(x){ tone(c,x[0],t+x[2],.16,.25,'sine',x[1]) }) }
+ else { tone(c,1318.5,t,0.9,0.28); tone(c,2637,t,0.5,0.05); tone(c,1046.5,t+0.32,1.3,0.26); tone(c,2093,t+0.32,0.7,0.05) } }
 function sigOf(){ var g={n:{},r:{},a:{}};
  (S.notices||[]).forEach(function(n){ if(!n.read) g.n[n.id]=1 });
  (S.sreq||[]).forEach(function(r){ if(r.status==='접수') g.r[r.id]=1 });
