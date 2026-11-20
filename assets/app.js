@@ -16,8 +16,10 @@ var I={
  send:'<svg viewBox="0 0 24 24"><path class="w" d="M20.5 3.5 3.5 10.3l6.4 2.6 2.6 6.6z"/><path class="g" d="M9.9 12.9l2.6 6.6 1.6-4z"/><path d="M20.5 3.5 9.9 12.9"/></svg>',
  gear:'<svg viewBox="0 0 24 24"><circle class="w" cx="12" cy="12" r="8.4"/><circle class="a" cx="12" cy="12" r="3"/><path d="M12 3.6v2.2M12 18.2v2.2M3.6 12h2.2M18.2 12h2.2"/><circle class="g" cx="18" cy="6" r="1.6"/></svg>',
  me:'<svg viewBox="0 0 24 24"><circle class="w" cx="12" cy="8.6" r="3.8"/><path class="w" d="M4.6 20a7.4 7.4 0 0 1 14.8 0z"/><circle class="g" cx="17.6" cy="5" r="1.5"/></svg>',
+ star:'<svg viewBox="0 0 24 24"><path class="g" d="M12 2.5c.9 4.6 2.6 6.4 7.5 7.5-4.9 1.1-6.6 2.9-7.5 7.5-.9-4.6-2.6-6.4-7.5-7.5 4.9-1.1 6.6-2.9 7.5-7.5z"/><path class="w" d="M18.5 15.5c.3 1.6.9 2.2 2.5 2.5-1.6.3-2.2.9-2.5 2.5-.3-1.6-.9-2.2-2.5-2.5 1.6-.3 2.2-.9 2.5-2.5z"/></svg>',
  info:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>',
  back:'<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',
+ home2:'<svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7"/><path d="M6 10v9.5h12V10"/></svg>',
  refresh:'<svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4.5V11h-6.5"/></svg>'
 };
 var DAYS='일월화수목금토', NAVER='https://buly.kr/6tf0VoO', GOAL={ichon:170};
@@ -45,7 +47,8 @@ function stCls(s){ return s==='출석'?'ok':s==='지각'?'late':s==='결석'?'ab
 function stTag(s){ return '<span class="tag '+({'출석':'ok','지각':'y','결석':'warn'}[s]||'g')+'">'+esc(s)+'</span>' }
 
 /* ── 역할별 첫 화면 버튼 ── */
-function tilesFor(role){
+function tilesFor(role){ var T0=tilesFor0(role); if(specials().length&&role!=='teacher') T0=T0.concat([['special','방학 특강','지금 모집 중',I.star||I.cal]]); return T0 }
+function tilesFor0(role){
  var T={
   parent:[['today','오늘 우리 아이','출결·다음 수업',I.home],['notice','공지','학원 소식',I.bell],['time','시간표','수업 요일·예약',I.cal],
           ['req','보강·상담','결석 알림·상담 신청',I.chat],['att','출결 기록','달력으로 한눈에',I.check],['mine','내 정보','자녀 추가·로그아웃',I.me]],
@@ -59,11 +62,11 @@ function tilesFor(role){
  return T[role]||[];
 }
 var LABEL={parent:'For Parents',teacher:'Teacher',desk:'Office',manager:'Branch',admin:'Director'};
-var TITLE={today:'오늘 우리 아이',notice:'공지',time:'시간표',req:'보강·상담',att:'출결 기록',mine:'내 정보',tboard:'내 반 출결',sreq:'상담·요청',
+var TITLE={special:'방학 특강',today:'오늘 우리 아이',notice:'공지',time:'시간표',req:'보강·상담',att:'출결 기록',mine:'내 정보',tboard:'내 반 출결',sreq:'상담·요청',
            approve:'가입 승인',board:'반별 정원',over:'한눈에 현황',me:'반별·출석부',set:'직원·설정'};
 
 function badge(k){
- if(k==='notice') return (S.notices||[]).filter(function(n){return !n.read}).length;
+ if(k==='notice') return (S.notices||[]).filter(function(n){return !n.read}).length+evUnseen();
  if(k==='sreq') return (S.sreq||[]).filter(function(r){return r.status==='접수'}).length+(C.role==='teacher'?0:sum('consults'));
  if(k==='approve') return sum('pending');
  if(k==='req') return 0;
@@ -238,7 +241,7 @@ function vNotice(){
    '<label class="chk2"><input type="checkbox" name="pin"> 맨 위에 고정</label>'+
    '<div style="margin-top:16px"><button class="btn">올리기</button></div></form></div>';
  }
- var L=S.notices||[];
+ h+=evCards(); var L=S.notices||[];
  if(!L.length) return h+'<div class="card"><p class="sub">아직 공지가 없습니다.</p></div>'+sndCard();
  var AUD={parents:'학부모',staff:'강사·직원',all:'모두'};
  h+=L.map(function(n){ return '<div class="ncard'+(n.read?'':' new')+'"><div class="nt"><b>'+(n.read?'':'<span class="ndot"></span>')+(n.pinned?'📌 ':'')+esc(n.title)+'</b><span class="sub" style="flex:none">'+ago(n.created_at)+'</span></div>'+
@@ -392,6 +395,24 @@ function welcome(){
  setTimeout(function(){ el.classList.add('done') },6000);
 }
 
+/* ── 홈페이지와 한 세트: 이벤트·방학 특강 (assets/site-data.js 하나에서 읽음) ── */
+function todayK(){ return kst().day }
+function events(){ var D=window.JS_DATA||{}; return (D.events||[]).filter(function(e){ return todayK()<=e.until }) }
+function specials(){ var D=window.JS_DATA||{}; var t=todayK(); return (D.specials||[]).filter(function(x){ return t<=x.end }) }
+function evUnseen(){ try{ var seen=JSON.parse(localStorage.getItem('js_ev_seen')||'[]'); return events().filter(function(e){ return seen.indexOf(e.id)<0 }).length }catch(e){ return 0 } }
+function evMarkSeen(){ try{ localStorage.setItem('js_ev_seen',JSON.stringify(events().map(function(e){return e.id}))) }catch(e){} }
+function evCards(){
+ var E=events(); if(!E.length) return '';
+ return '<p class="hello" style="margin:4px 0 10px">Events</p>'+E.map(function(e){ return '<a class="card evc" href="/'+esc(e.href)+'"><img src="/'+esc(e.img)+'" alt="'+esc(e.alt)+'" loading="lazy"><span class="sub">~ '+md(e.until)+'까지 · 자세히 보기 ›</span></a>' }).join('')+'<p class="hello" style="margin:18px 0 10px">Notices</p>';
+}
+function vSpecial(){
+ var L=specials(), t=todayK();
+ var h='<h2>방학 특강</h2><p class="sub" style="margin-bottom:14px">방학 동안만 열리는 임시 방입니다. 마지막 수업일이 지나면 자동으로 닫힙니다.</p>';
+ if(!L.length) return h+'<div class="card"><p class="sub">지금은 모집 중인 특강이 없습니다.</p></div>';
+ h+=L.map(function(x){ var closed=x.deadline&&t>x.deadline;
+  return '<a class="card spc" href="/special.html#'+esc(x.id)+'"><img src="/'+esc(x.posters[0])+'" alt="'+esc(x.title)+' 포스터" loading="lazy"><div><span class="tag '+(closed?'g':'')+'">'+(closed?'모집 마감':'모집 중')+'</span><b>'+esc(x.title)+'</b><span class="sub">'+esc(x.sub)+'</span><span class="sub">'+esc(x.period)+'</span></div></a>' }).join('');
+ return h+tip('카드를 누르면 포스터와 카톡 상담이 열립니다. 홈페이지 방학 특강과 같은 내용입니다.');
+}
 /* ── 원장 미리보기: 관리자·강사·학부모·승인 대기·비회원 화면 ── */
 function pvCard(){
  if(C.real!=='admin'||C.pv) return '';
@@ -422,7 +443,7 @@ function startPv(pv){ C.pv=pv; C.role=pv.kind; S.tab=null; S.kid=0; S.kids=[]; S
 function endPv(){ C.pv=null; C.role=C.real; S.tab=null; load().then(function(){ S.sig=sigOf(); render(); window.scrollTo(0,0) }) }
 
 /* ── 화면 그리기 ── */
-var VIEWS={today:vToday,notice:vNotice,time:vTime,req:vReq,att:vAtt,mine:vMine,sreq:vSreq,over:vOver,set:vSet,
+var VIEWS={special:vSpecial,today:vToday,notice:vNotice,time:vTime,req:vReq,att:vAtt,mine:vMine,sreq:vSreq,over:vOver,set:vSet,
  tboard:function(){return '<h2>내 반 출결</h2><div class="legacy"><div id="tboard"></div></div>'+tip('학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.')},
  approve:function(){return '<h2>가입 승인</h2><div class="legacy"><div id="admin"></div></div>'},
  board:function(){return '<h2>반별 정원</h2><div class="legacy"><div id="board"></div></div>'},
@@ -440,7 +461,7 @@ function after(){
  if(!t){ if(C.role!=='parent') L.bindInstall(); bindLogout();
    pushState().then(function(st){ var sl=$('#pushSlot'); if(!sl) return; sl.innerHTML=pushCard(st); var b=$('#pushOn'); if(b) b.onclick=function(){ pushOn(b) }; var i=$('#pushIos'); if(i) i.onclick=function(){ window.JSInstall&&JSInstall.open('ios') } });
    return }
- if(t==='notice'){ var un=(S.notices||[]).filter(function(n){return !n.read}).map(function(n){return n.id}); if(un.length) rpc('mark_notices_read',{p_ids:un}).then(function(){ (S.notices||[]).forEach(function(n){n.read=true}) }).catch(function(){}) }
+ if(t==='notice'){ evMarkSeen(); var un=(S.notices||[]).filter(function(n){return !n.read}).map(function(n){return n.id}); if(un.length) rpc('mark_notices_read',{p_ids:un}).then(function(){ (S.notices||[]).forEach(function(n){n.read=true}) }).catch(function(){}) }
  if(t==='sreq'&&C.role!=='teacher') L.consults();
  if(t==='tboard') L.teacherBoard(C.pv&&C.pv.kind==='teacher'?C.pv.name:undefined);
  if(t==='approve') L.admin(C.role==='admin');
@@ -519,12 +540,13 @@ window.JSApp={mount:function(ctx){
  var root=document.createElement('div'); root.id='app';
  root.innerHTML='<div class="app"><header class="top"><button class="back" id="aBack" hidden>'+I.back+'<span>뒤로</span></button>'+
   '<button class="refresh" id="aRefresh" type="button" aria-label="새로고침" title="새로고침">'+I.refresh+'</button>'+
+  '<a class="refresh" id="aHome" href="/?app=1" aria-label="학원 둘러보기" title="학원 둘러보기">'+I.home2+'</a>'+
   '<div class="brand">주니어솔로몬<small id="aRole"></small></div></header><main class="v" id="aView"><p class="sub" style="padding:40px 0;text-align:center">불러오는 중…</p></main><div class="toast" id="aToast"></div></div>';
  document.body.appendChild(root); document.body.classList.add('app-on');
  root.addEventListener('click',onClick); root.addEventListener('submit',onSubmit);
  history.replaceState({jsTab:null},'','');
  window.onpopstate=function(e){ if(!document.getElementById('app')) return; S.tab=(e.state&&e.state.jsTab)||null; render() };
- clearInterval(window.__jsPoll); window.__jsPoll=setInterval(poll,60000);
+ clearInterval(window.__jsPoll); window.__jsPoll=setInterval(poll,120000);
  if(!window.__jsVis){ window.__jsVis=1; document.addEventListener('visibilitychange',function(){ if(!document.hidden) poll() }) }
  var keep=''; try{ keep=sessionStorage.getItem('js_tab')||''; sessionStorage.removeItem('js_tab') }catch(x){}
  return load().then(function(){ S.sig=sigOf(); if(keep&&VIEWS[keep]){ S.tab=keep; history.pushState({jsTab:keep},'','') } render(); setTimeout(welcome,400) });

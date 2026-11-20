@@ -153,3 +153,12 @@ body.app-on main.wrap{display:none}
 
 #app .pvbar{position:sticky;top:64px;z-index:4;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#FBF4E2;border:1px solid #EBD476;color:#7A5A12;border-radius:16px;padding:10px 12px 10px 16px;margin:0 0 16px;font-size:14px;font-weight:500}
 #app .pvbar button{border:0;background:#3E2843;color:#fff;border-radius:999px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer;flex:none}
+
+#app a.refresh{text-decoration:none}
+#app a.card.evc{display:block;padding:0;overflow:hidden;text-decoration:none;color:inherit}
+#app a.card.evc img{display:block;width:100%;height:auto;max-height:520px;object-fit:contain;background:#F6F1F8}
+#app a.card.evc .sub{display:block;padding:12px 18px}
+#app a.card.spc{display:flex;gap:14px;align-items:center;text-decoration:none;color:inherit;padding:14px}
+#app a.card.spc img{width:96px;height:128px;object-fit:cover;border-radius:12px;flex:none;background:#F6F1F8}
+#app a.card.spc div{display:flex;flex-direction:column;gap:3px;min-width:0}
+#app a.card.spc b{font-family:"Noto Serif KR",serif;font-weight:600;font-size:18px;margin-top:4px}

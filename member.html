@@ -2,6 +2,8 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
+<script>(function(){try{var q=new URLSearchParams(location.search);if(q.get("app")==="1"&&!q.get("as")){sessionStorage.setItem("js_inapp","1");location.replace("/?app=1")}}catch(e){}})();</script>
+
 <title>회원 | 주니어솔로몬학원</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
@@ -56,7 +58,7 @@ h2{font-family:'Noto Serif KR',serif;font-weight:600;font-size:20px;margin:36px 
 .me .up input{display:block;margin:6px 0 12px;font-size:14px;max-width:100%}
 </style>
 <style>@media (hover:hover) and (pointer:fine){html,body{cursor:url("assets/cursor.svg") 3 2, auto}a,button,summary,label,[role="button"],.js-login{cursor:url("assets/cursor-gold.svg") 4 3, pointer}}</style>
-<link rel="stylesheet" href="assets/app.css?v=7">
+<link rel="stylesheet" href="assets/app.css?v=8">
 </head>
 <body>
 <main class="wrap">
@@ -70,11 +72,12 @@ h2{font-family:'Noto Serif KR',serif;font-weight:600;font-size:20px;margin:36px 
     <div class="js-install"></div>
   </div>
   <div id="msg"></div>
-  <a class="home" href="index.html">← 홈페이지로</a>
+  <a class="home" href="/?app=1" id="homeLink">← 학원 둘러보기</a>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="assets/app.js?v=10"></script>
-<script src="assets/install.js?v=2"></script>
+<script src="assets/site-data.js?v=1"></script>
+<script src="assets/app.js?v=11"></script>
+<script src="assets/install.js?v=4"></script>
 <script>
 (function(){
   var sb = window.supabase.createClient(
@@ -528,7 +531,12 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
     out.querySelectorAll('[data-tab]').forEach(function(b){ b.onclick=function(){ demo(b.getAttribute('data-tab')); scrollTo(0,0) } });
   }
   if(new URLSearchParams(location.search).get('demo')==='1'){ demo(new URLSearchParams(location.search).get('tab')||'p'); return }
-  var guest=new URLSearchParams(location.search).get('guest')==='1';
+  // 앱을 열면 기본은 「학원 둘러보기」(홈페이지). 들어가기 버튼(as=)으로 온 경우에만 회원 화면을 엽니다.
+  var _qs=new URLSearchParams(location.search), _as=_qs.get('as');
+  if(_as==='student'){ out.innerHTML='<h1>학생 화면</h1><p class="lead">학생 화면은 준비하고 있습니다.<br>열리면 학부모님 앱에서 만든<br>로그인 코드로 들어옵니다.</p><a class="home" href="/?app=1">← 학원 둘러보기</a>'; return }
+  if(_as==='teacher'){ var _l=out.querySelector('.lead'); if(_l) _l.innerHTML='선생님은 카카오로 로그인합니다.<br>처음이면 원장님께 받은 초대 링크로 가입해 주세요.' }
+  var guest=_qs.get('guest')==='1';
+  try{ if(sessionStorage.getItem('js_inapp')!=='1'){ var _hl=document.getElementById('homeLink'); if(_hl){ _hl.href='index.html'; _hl.textContent='← 홈페이지로' } } }catch(e){}
   if(guest){ out.insertAdjacentHTML('afterbegin','<div class="err" style="background:#FBF4E2;color:#7A5A12;margin:0 0 18px">미리보기 · 가입하지 않은 사람이 보는 화면입니다. <a href="member.html" style="color:#5F3D66;font-weight:700">원장 화면으로 돌아가기</a></div>') }
   else {
   sb.auth.getSession().then(function(r){ var s=r.data&&r.data.session; if(s) show(s.user) });
