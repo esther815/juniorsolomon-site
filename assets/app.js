@@ -57,7 +57,7 @@ function tilesFor0(role){
         ['board','반별 정원','마감·모집',I.users],['notice','공지','올리기·보기',I.send]],
   manager:[['over','한눈에 현황','우리 지점',I.chart],['approve','가입 승인','학부모 가입 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],
            ['mk','보강','보강권·보강 달력',I.cal],['wait','대기 명단','반별 대기',I.note],['board','반별 정원','마감·모집',I.users],['notice','공지','올리기·보기',I.send]],
-  admin:[['fbw','피드백 현황','이번 주 안 나간 반',I.check],['fb','수업 피드백','올리기·기록',I.send],['over','한눈에 현황','지점별 비교',I.chart],['stat','숫자 기록','방문·가입·탈퇴',I.chart],['approve','가입 승인','학부모·직원 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],
+  admin:[['ops','운영 숫자','재원·위험·미납·빈자리',I.chart],['fbw','피드백 현황','이번 주 안 나간 반',I.check],['fb','수업 피드백','올리기·기록',I.send],['over','한눈에 현황','지점별 비교',I.chart],['stat','숫자 기록','방문·가입·탈퇴',I.chart],['approve','가입 승인','학부모·직원 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],
          ['mk','보강','보강권·보강 달력',I.cal],['wait','대기 명단','반별 대기',I.note],
          ['me','반별·출석부','정원·자료 올리기',I.users],['notice','공지','올리기·보기',I.send],['set','직원·설정','초대·알림·테스터',I.gear]]
  };
@@ -65,7 +65,7 @@ function tilesFor0(role){
  return T[role]||[];
 }
 var LABEL={parent:'For Parents',teacher:'Teacher',desk:'Office',manager:'Branch',admin:'Director'};
-var TITLE={special:'방학 특강',today:'오늘 우리 아이',notice:'공지',time:'시간표',req:'보강·상담',att:'출결 기록',mine:'내 정보',tboard:'내 반 출결',sreq:'상담·요청',
+var TITLE={ops:'운영 숫자',special:'방학 특강',today:'오늘 우리 아이',notice:'공지',time:'시간표',req:'보강·상담',att:'출결 기록',mine:'내 정보',tboard:'내 반 출결',sreq:'상담·요청',
            approve:'가입 승인',board:'반별 정원',over:'한눈에 현황',me:'반별·출석부',set:'직원·설정',mk:'보강',wait:'대기 명단',stat:'숫자 기록',fb:'수업 피드백',fbw:'피드백 현황'};
 function pAccess(){ var k=S.kids||[]; if(!k.length) return 'open'; if(k.some(function(x){return !x.access||x.access==='open'})) return 'open'; if(k.some(function(x){return x.access==='paused'})) return 'paused'; return 'closed' }
 
@@ -439,6 +439,57 @@ function vFbw(){
   h+='<div class="card"><h3>'+WD[wd]+'요일 · '+md(D[0].day)+'</h3><div class="list">'+D.map(function(x){ return '<div><span>'+esc(String(x.starts||'').slice(0,5))+' '+esc(cname(x['class']))+'<br><span class="sub">'+esc(x.teacher||'')+' · 재원 '+x.n+'명'+(x.at?' · '+ago(x.at)+' 보냄 · 학부모 '+(x.sent||0)+'분':'')+'</span></span>'+fbState(x.state)+'</div>' }).join('')+'</div></div>' });
  return h+tip('수업이 끝나고 2시간이 지나도 피드백이 없으면 「안 나감」으로 바뀝니다. 매일 밤 안 나간 반의 담당 선생님께 경고 알림이 갑니다. 1:1 수업처럼 요일이 정해지지 않은 반은 이 표에 나오지 않습니다.');
 }
+function vOps(){
+ var h='<h2>운영 숫자</h2>', d=S.ops;
+ if(!d) return h+'<div class="card"><p class="sub">불러오는 중입니다.</p></div>';
+ function n(v){ return (v||0).toLocaleString('ko-KR') }
+ function won(v){ v=v||0; return v>=10000?Math.round(v/10000).toLocaleString('ko-KR')+'만':n(v) }
+ function man(v){ v=v||0; return (Math.round(v/1000)/10).toLocaleString('ko-KR') }
+ var g=d.growth||{}, r=d.risk||[], p=d.pay||{}, c=d.consult||{}, se=d.seats||{}, w=d.wait||{}, T=d.teachers||[], re=d.reach||{};
+ var W=['일','월','화','수','목','금','토'];
+ var gap=Math.max(0,(g.target||170)-(g.students||0)), pct=Math.min(100,Math.round((g.students||0)/(g.target||170)*100));
+ h+='<p class="sub" style="margin:-6px 0 12px">'+esc(String(d.today||'').slice(5).replace('-','/'))+' 기준 · 메이크에듀 자료가 들어오는 대로 바뀝니다</p>';
+ // 1 재원 순증
+ h+='<div class="card hl"><p class="sub">재원생 · 목표 '+n(g.target)+'명</p><div class="row" style="margin-top:4px"><b class="big" style="font-size:30px">'+n(g.students)+'명</b><span class="sub">'+(gap?n(gap)+'명 남음':'목표 달성')+' · 휴원 '+n(g.paused)+'명</span></div>'+
+  '<div class="bar"><i style="width:'+pct+'%"></i></div>'+
+  '<div class="list" style="margin-top:10px"><div><span>이번 주 신규 등록</span><b>'+n(g.join_week)+'명</b></div><div><span>이번 달 신규 등록 / 퇴원</span><span>'+n(g.join_month)+' / '+n(g.left_month)+'명</span></div>'+
+  '<div><span>이번 달 순증</span><b>'+((g.join_month||0)-(g.left_month||0)>=0?'+':'')+n((g.join_month||0)-(g.left_month||0))+'명</b></div></div>'+
+  (g.last_left_on&&g.last_left_on<String(d.today).slice(0,8)+'01'?'<p class="sub" style="margin-top:8px">메이크에듀에 기록된 마지막 퇴원일이 '+esc(String(g.last_left_on).slice(5).replace('-','/'))+'입니다. 그 뒤 퇴원생을 메이크에듀에서 퇴원 처리해야 이 숫자가 맞습니다.</p>':'')+'</div>';
+ // 2 퇴원 위험
+ h+='<div class="card'+(r.length?' fbwarn':'')+'"><h3>퇴원 위험 '+n(r.length)+'명</h3>'+(r.length?'<div class="list">'+r.map(function(x){
+   return '<div style="display:block"><b>'+esc(x.name)+'</b> <span class="sub">'+esc(x.grade||'')+' · '+esc(x.teacher||'')+'</span><br><span class="sub">'+esc(x.why)+'</span></div>' }).join('')+'</div>'
+   :'<p class="sub">연속 결석·장기 미출석 학생이 없습니다.</p>')+'<p class="sub" style="margin-top:8px">기준: 최근 2회 연속 결석 · 30일 결석 3회 이상 · 3주째 출석 기록 없음 · 보강권 2주 넘게 안 씀. 미납이 겹치면 위로 올립니다. 담임 확인 후 학부모 통화를 권합니다.</p></div>';
+ // 미납
+ var M=p.months||[], U=p.unpaid||[], m0=M[0]||{};
+ h+='<div class="card"><h3>수납 · 미납</h3>'+(M.length?
+   '<div class="grid2 k4" style="margin:6px 0 10px"><div class="kpi"><b>'+won(m0.billed)+'</b><span>'+esc(String(m0.month||'').slice(5))+'월 청구(원)</span></div><div class="kpi"><b>'+won(m0.paid)+'</b><span>받은 금액(원)</span></div><div class="kpi"><b>'+won(m0.unpaid)+'</b><span>미납(원) · '+n(m0.unpaid_n)+'명</span></div><div class="kpi"><b>'+(m0.billed?Math.round(m0.paid/m0.billed*100):0)+'%</b><span>수납률</span></div></div>'+
+   '<div class="stt"><table><thead><tr><th>달</th><th>인원</th><th>청구</th><th>받음</th><th>미납</th></tr></thead><tbody>'+M.map(function(x){return '<tr><td>'+esc(x.month.slice(5))+'월</td><td>'+n(x.n)+'</td><td>'+man(x.billed)+'</td><td>'+man(x.paid)+'</td><td>'+man(x.unpaid)+(x.unpaid_n?'<br><small>'+x.unpaid_n+'명</small>':'')+'</td></tr>'}).join('')+'</tbody></table></div><p class="sub" style="margin-top:4px">표 금액 단위: 만 원</p>'+
+   (U.length?'<h3 style="margin-top:14px">미납 명단 '+n(U.length)+'명 · '+won(U.reduce(function(a,x){return a+(x.total||0)},0))+'원</h3><div class="list">'+U.map(function(x){
+     return '<div><span><b>'+esc(x.name)+'</b> <span class="sub">'+esc(x.grade||'')+' · '+esc(x.months)+(x.status&&x.status!=='재원'?' · <span class="tag warn">'+esc(x.status)+'</span>':'')+'</span></span><b>'+n(x.total)+'원</b></div>' }).join('')+'</div>':'')+
+   '<p class="sub" style="margin-top:8px">메이크에듀 「월별 수납 내역」 엑셀을 올린 만큼 반영됩니다 (마지막 반영 '+esc(String(p.loaded||'').slice(5,10).replace('-','/'))+').</p>'
+   :'<p class="sub">아직 수납 내역이 들어오지 않았습니다.</p>')+'</div>';
+ // 3 상담
+ h+='<div class="card"><h3>상담 → 등록</h3><div class="list"><div><span>이번 달 홈페이지 상담 신청</span><b>'+n(c.month)+'건</b></div><div><span>이번 달 신규 등록</span><span>'+n(c.join_month)+'명</span></div>'+
+  '<div><span>아직 연락 안 한 상담</span>'+(c.open?'<b style="color:#b3261e">'+n(c.open)+'건'+(c.open_old?' (하루 넘김 '+n(c.open_old)+')':'')+'</b>':'<span>0건</span>')+'</div><div><span>앱 상담 신청 접수 대기</span><span>'+n(c.app_open)+'건</span></div></div>'+
+  '<p class="sub" style="margin-top:8px">신규 등록 대부분은 전화·카톡·방문으로 들어옵니다. 홈페이지 신청 숫자만으로 홍보 효과를 판단하지 마세요.</p></div>';
+ // 4 빈자리 · 대기
+ var S2=(se.rows||[]);
+ h+='<div class="card"><h3>반별 빈자리 '+n(se.empty_total)+'석 <span class="sub">/ 정원 '+n(se.cap_total)+'석</span></h3>'+(S2.length?'<div class="list">'+S2.map(function(x){
+   return '<div><span>'+esc(x.class)+' <span class="sub">'+W[x.weekday]+' '+esc(String(x.starts||'').slice(0,5))+'</span></span><span>'+n(x.n)+'/'+n(x.cap)+(x.wait?' · <span class="tag warn">대기 '+x.wait+'</span>':'')+'</span></div>'}).join('')+'</div>':'')+
+  '<p class="sub" style="margin-top:8px">정원은 메이크에듀에 적힌 값입니다. 실제 정원과 다르면 메이크에듀에서 고쳐 주세요.</p></div>';
+ var WR=w.rows||[];
+ h+='<div class="card"><h3>대기 '+n(w.open)+'명'+(w.old?' · <span class="tag warn">2주 넘음 '+n(w.old)+'</span>':'')+'</h3>'+(WR.length?'<div class="list">'+WR.map(function(x){
+   return '<div><span><b>'+esc(x.name)+'</b> <span class="sub">'+esc(x.grade||'')+' · '+esc(x.class||'')+'</span></span><span>'+n(x.days)+'일째</span></div>'}).join('')+'</div>':'<p class="sub">대기 학생이 없습니다.</p>')+'</div>';
+ // 5 강사별
+ h+='<div class="card"><h3>강사별</h3><div class="stt"><table><thead><tr><th>강사</th><th>반</th><th>재원생</th><th>피드백<br><small>11/23부터</small></th></tr></thead><tbody>'+T.map(function(x){
+   return '<tr><td>'+esc(x.teacher)+'</td><td>'+n(x.classes)+'</td><td>'+n(x.students)+'</td><td>'+(x.fb_due?n(x.fb_done)+'/'+n(x.fb_due)+' ('+Math.round(x.fb_done/x.fb_due*100)+'%)':'—')+'</td></tr>'}).join('')+'</tbody></table></div></div>';
+ // 앱 도달
+ var lr=re.students?Math.round((re.linked||0)/re.students*100):0;
+ h+='<div class="card'+(lr<50?' fbwarn':'')+'"><h3>앱이 닿는 학부모</h3><div class="list"><div><span>재원생 중 학부모가 앱에 연결된 학생</span><b>'+n(re.linked)+' / '+n(re.students)+'명 ('+lr+'%)</b></div>'+
+  '<div><span>알림을 켠 학부모</span><span>'+n(re.push_parents)+'명</span></div><div><span>알림을 켠 강사</span><span>'+n(re.push_teachers)+' / '+n(re.teachers)+'명</span></div></div>'+
+  (lr<50?'<p class="sub" style="margin-top:8px">수업 피드백·공지는 앱에 연결된 학부모에게만 닿습니다. 재원생 학부모 가입 안내를 먼저 보내 주세요.</p>':'')+'</div>';
+ return h;
+}
 function vStat(){
  var h='<h2>숫자 기록</h2>', d=S.st;
  if(!d) return h+'<div class="card"><p class="sub">불러오는 중입니다.</p></div>';
@@ -647,7 +698,7 @@ function startPv(pv){ C.pv=pv; C.role=pv.kind; S.tab=null; S.kid=0; S.kids=[]; S
 function endPv(){ C.pv=null; C.role=C.real; S.tab=null; load().then(function(){ S.sig=sigOf(); render(); window.scrollTo(0,0) }) }
 
 /* ── 화면 그리기 ── */
-var VIEWS={special:vSpecial,today:vToday,notice:vNotice,time:vTime,req:vReq,att:vAtt,mine:vMine,sreq:vSreq,over:vOver,set:vSet,mk:vMk,wait:vWait,stat:vStat,fb:vFb,fbw:vFbw,
+var VIEWS={special:vSpecial,today:vToday,notice:vNotice,time:vTime,req:vReq,att:vAtt,mine:vMine,sreq:vSreq,over:vOver,set:vSet,mk:vMk,wait:vWait,stat:vStat,ops:vOps,fb:vFb,fbw:vFbw,
  tboard:function(){return '<h2>내 반 출결</h2><div class="legacy"><div id="tboard"></div></div>'+tip('학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.')},
  approve:function(){return '<h2>가입 승인</h2><div class="legacy"><div id="admin"></div></div>'},
  board:function(){return '<h2>반별 정원</h2><div class="legacy"><div id="board"></div></div>'},
@@ -677,6 +728,7 @@ function after(){
  if(t==='fbw'&&!S.fbwFresh){ S.fbwFresh=1; loadFbw(S.fbwk||0).then(function(){ if(S.tab==='fbw') render() }) }
  if(t==='fb'&&C.role!=='parent'){ var sel=$('#fbClass'); if(sel) sel.onchange=function(){ var o=sel.options[sel.selectedIndex]; if(o&&o.dataset.day) $('#fbDay').value=o.dataset.day } }
  if(t==='mk'&&!S.mbFresh){ S.mbFresh=1; loadMb().then(function(){ if(S.tab==='mk') render() }) }
+ if(t==='ops'&&!S.opsFresh){ S.opsFresh=1; rpc('admin_ops_stats').then(function(d){ S.ops=d; if(S.tab==='ops') render() }).catch(function(){ toast('숫자를 불러오지 못했습니다') }) }
  if(t==='stat'&&!S.stFresh){ S.stFresh=1; rpc('admin_daily_stats',{p_days:14}).then(function(d){ S.st=d; if(S.tab==='stat') render() }).catch(function(){ toast('숫자를 불러오지 못했습니다') }) }
  if(t==='wait'&&!S.wlFresh){ S.wlFresh=1; rpc('waitlist_board').then(function(d){ S.wl=d; if(S.tab==='wait') render() }).catch(function(){ toast('대기 명단을 불러오지 못했습니다') }) }
  if(t==='set'){ L.inviteBtn('tinv','tinvm','new_teacher_invite','t','강사'); L.inviteBtn('dinv','dinvm','new_desk_invite','d','관리자'); L.kakaoSetup(); L.betaList(); L.usage();
