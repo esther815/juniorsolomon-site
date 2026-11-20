@@ -17,7 +17,8 @@ var I={
  gear:'<svg viewBox="0 0 24 24"><circle class="w" cx="12" cy="12" r="8.4"/><circle class="a" cx="12" cy="12" r="3"/><path d="M12 3.6v2.2M12 18.2v2.2M3.6 12h2.2M18.2 12h2.2"/><circle class="g" cx="18" cy="6" r="1.6"/></svg>',
  me:'<svg viewBox="0 0 24 24"><circle class="w" cx="12" cy="8.6" r="3.8"/><path class="w" d="M4.6 20a7.4 7.4 0 0 1 14.8 0z"/><circle class="g" cx="17.6" cy="5" r="1.5"/></svg>',
  info:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>',
- back:'<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>'
+ back:'<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',
+ refresh:'<svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4.5V11h-6.5"/></svg>'
 };
 var DAYS='일월화수목금토', NAVER='https://buly.kr/6tf0VoO', GOAL={ichon:170};
 var C,S;   // C: 연결 정보, S: 화면 상태
@@ -436,8 +437,9 @@ function load(){
 
 function onClick(e){
  ac();
- var el=e.target.closest('[data-go],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],#aBack'); if(!el) return;
+ var el=e.target.closest('[data-go],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],#aBack,#aRefresh'); if(!el) return;
  if(el.id==='aBack'){ history.back(); return }
+ if(el.id==='aRefresh'){ el.classList.add('spin'); try{ sessionStorage.setItem('js_tab',S.tab||'') }catch(x){} setTimeout(function(){ location.replace('/member.html?r='+Date.now()) },350); return }
  var d=el.dataset;
  if(d.go){ go(d.go); return }
  if(d.snd){ var p=sndPref(); p.s=d.snd; p.on=true; p.v2=1; sndSave(p); playSnd(p.s); render(); return }
@@ -476,9 +478,10 @@ function onSubmit(e){
 
 window.JSApp={mount:function(ctx){
  C=ctx; S={tab:null,kid:0,branch:'all',rf:'open'};
- var old=document.getElementById('app'); if(old) old.remove();
+ var old=document.getElementById('app'); if(old) old.remove(); var rf=document.getElementById('jsRf'); if(rf) rf.remove();
  var root=document.createElement('div'); root.id='app';
  root.innerHTML='<div class="app"><header class="top"><button class="back" id="aBack" hidden>'+I.back+'<span>뒤로</span></button>'+
+  '<button class="refresh" id="aRefresh" type="button" aria-label="새로고침" title="새로고침">'+I.refresh+'</button>'+
   '<div class="brand">주니어솔로몬<small id="aRole"></small></div></header><main class="v" id="aView"><p class="sub" style="padding:40px 0;text-align:center">불러오는 중…</p></main><div class="toast" id="aToast"></div></div>';
  document.body.appendChild(root); document.body.classList.add('app-on');
  root.addEventListener('click',onClick); root.addEventListener('submit',onSubmit);
@@ -486,7 +489,8 @@ window.JSApp={mount:function(ctx){
  window.onpopstate=function(e){ if(!document.getElementById('app')) return; S.tab=(e.state&&e.state.jsTab)||null; render() };
  clearInterval(window.__jsPoll); window.__jsPoll=setInterval(poll,60000);
  if(!window.__jsVis){ window.__jsVis=1; document.addEventListener('visibilitychange',function(){ if(!document.hidden) poll() }) }
- return load().then(function(){ S.sig=sigOf(); render(); setTimeout(welcome,400) });
+ var keep=''; try{ keep=sessionStorage.getItem('js_tab')||''; sessionStorage.removeItem('js_tab') }catch(x){}
+ return load().then(function(){ S.sig=sigOf(); if(keep&&VIEWS[keep]){ S.tab=keep; history.pushState({jsTab:keep},'','') } render(); setTimeout(welcome,400) });
 },
  unmount:function(){ clearInterval(window.__jsPoll); var a=document.getElementById('app'); if(a) a.remove(); document.body.classList.remove('app-on') }
 };

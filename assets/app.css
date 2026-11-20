@@ -16,6 +16,10 @@ body.app-on main.wrap{display:none}
 #app .back{background:none;border:none;color:var(--purple);font:inherit;font-size:15px;font-weight:500;padding:8px 6px 8px 0;cursor:pointer;display:flex;align-items:center;gap:2px}
 #app .back svg{width:20px;height:20px;stroke:var(--purple);fill:none;stroke-width:1.8}
 #app .back[hidden]{display:none}
+#app .refresh{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:#fff;display:grid;place-items:center;cursor:pointer;padding:0;margin:0 0 0 8px;flex:none}
+#app .refresh svg{width:20px;height:20px;stroke:var(--purple);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#app .refresh.spin svg{animation:rspin .6s linear infinite}
+@keyframes rspin{to{transform:rotate(360deg)}}
 #app main.v{padding:24px 20px 8px;margin:0;max-width:none}
 #app h2{font-family:"Noto Serif KR",serif;font-size:25px;font-weight:600;margin:2px 0 16px;letter-spacing:-.6px;line-height:1.35;text-align:left}
 #app h3{font-size:16px;font-weight:700;margin:0 0 8px;letter-spacing:-.2px}

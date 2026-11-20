@@ -95,8 +95,16 @@ function mount(){
 window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); deferred=e });
 if('serviceWorker' in navigator){ try{ navigator.serviceWorker.register('/sw.js').catch(function(){}) }catch(e){} }
 window.JSInstall={mount:mount,open:go};
+function floatRefresh(){
+  if(!inApp()||document.getElementById('app')||document.getElementById('jsRf')) return;
+  var b=document.createElement('button'); b.id='jsRf'; b.type='button'; b.setAttribute('aria-label','새로고침');
+  b.innerHTML='<svg viewBox="0 0 24 24" width="22" height="22"><path d="M20 11a8 8 0 1 0-2.3 5.7" fill="none" stroke="#5F3D66" stroke-width="2" stroke-linecap="round"/><path d="M20 4.5V11h-6.5" fill="none" stroke="#5F3D66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  b.style.cssText='position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:50;width:48px;height:48px;border-radius:50%;border:1px solid #EFEAF1;background:#fff;box-shadow:0 8px 20px rgba(62,40,67,.18);display:grid;place-items:center;cursor:pointer;padding:0';
+  b.onclick=function(){ b.firstChild.style.transition='transform .5s'; b.firstChild.style.transform='rotate(360deg)'; setTimeout(function(){ location.reload() },300) };
+  document.body.appendChild(b);
+}
 function boot(){
-  mount();
+  mount(); setTimeout(floatRefresh,1500);
   try{ var a=new URLSearchParams(location.search).get('add'); if(a&&!inApp()) setTimeout(function(){ go(a==='android'?'android':'ios') },400) }catch(e){}
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
