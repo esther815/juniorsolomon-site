@@ -443,6 +443,16 @@ function vFbw(){
   h+='<div class="card"><h3>'+WD[wd]+'요일 · '+md(D[0].day)+'</h3><div class="list">'+D.map(function(x){ return '<div><span>'+esc(String(x.starts||'').slice(0,5))+' '+esc(cname(x['class']))+'<br><span class="sub">'+esc(x.teacher||'')+' · 재원 '+x.n+'명'+(x.at?' · '+ago(x.at)+' 보냄 · 학부모 '+(x.sent||0)+'분':'')+'</span></span>'+fbState(x.state)+'</div>' }).join('')+'</div></div>' });
  return h+tip('수업이 끝나고 2시간이 지나도 피드백이 없으면 「안 나감」으로 바뀝니다. 매일 밤 안 나간 반의 담당 선생님께 경고 알림이 갑니다. 1:1 수업처럼 요일이 정해지지 않은 반은 이 표에 나오지 않습니다.');
 }
+function gradeRank(nm){ var s=String(nm||'');
+ var m=s.match(/(\d)세/); if(m) return +m[1]-5;
+ m=s.match(/(\d)(\d)학년/); if(m) return 2+(+m[1]+ +m[2])/2;
+ m=s.match(/(\d)학년/); if(m) return 2+ +m[1];
+ m=s.match(/중\s*(\d)/); if(m) return 8+ +m[1];
+ if(/중등|중학/.test(s)) return 10;
+ m=s.match(/고\s*(\d)/); if(m) return 11+ +m[1];
+ if(/고등|수능/.test(s)) return 12.5;
+ if(/고학년/.test(s)) return 7; if(/저학년/.test(s)) return 4;
+ return 20 }
 function vOps(){
  var h='<h2>운영 숫자</h2>', d=S.ops;
  if(!d) return h+'<div class="card"><p class="sub">불러오는 중입니다.</p></div>';
@@ -477,9 +487,15 @@ function vOps(){
   '<div><span>아직 연락 안 한 상담</span>'+(c.open?'<b style="color:#b3261e">'+n(c.open)+'건'+(c.open_old?' (하루 넘김 '+n(c.open_old)+')':'')+'</b>':'<span>0건</span>')+'</div><div><span>앱 상담 신청 접수 대기</span><span>'+n(c.app_open)+'건</span></div></div>'+
   '<p class="sub" style="margin-top:8px">신규 등록 대부분은 전화·카톡·방문으로 들어옵니다. 홈페이지 신청 숫자만으로 홍보 효과를 판단하지 마세요.</p></div>';
  // 4 빈자리 · 대기
- var S2=(se.rows||[]);
- h+='<div class="card"><h3>반별 빈자리 '+n(se.empty_total)+'석 <span class="sub">/ 정원 '+n(se.cap_total)+'석</span></h3>'+(S2.length?'<div class="list">'+S2.map(function(x){
-   return '<div><span>'+esc(x.class)+' <span class="sub">'+W[x.weekday]+' '+esc(String(x.starts||'').slice(0,5))+'</span></span><span>'+n(x.n)+'/'+n(x.cap)+(x.wait?' · <span class="tag warn">대기 '+x.wait+'</span>':'')+'</span></div>'}).join('')+'</div>':'')+
+ var S2=(se.rows||[]).slice(), so=S.seatSort||'empty';
+ S2.sort(function(a,b){ var ga=gradeRank(a.class), gb=gradeRank(b.class), ea=a.cap-a.n, eb=b.cap-b.n;
+  if(so==='gl') return ga-gb||a.weekday-b.weekday||String(a.starts).localeCompare(String(b.starts));
+  if(so==='gh') return gb-ga||a.weekday-b.weekday||String(a.starts).localeCompare(String(b.starts));
+  return eb-ea||ga-gb });
+ h+='<div class="card"><h3>반별 빈자리 '+n(se.empty_total)+'석 <span class="sub">/ 정원 '+n(se.cap_total)+'석</span></h3>'+
+  '<div class="seg" style="margin:10px 0 4px;flex-wrap:wrap;overflow:visible">'+[['empty','빈자리순'],['gl','학년 낮은순'],['gh','학년 높은순']].map(function(t){ return '<button type="button" class="sm'+(so===t[0]?' on':'')+'" data-seatsort="'+t[0]+'">'+t[1]+'</button>' }).join('')+'</div>'+
+  (S2.length?'<div class="list">'+S2.map(function(x){ var e=x.cap-x.n;
+   return '<div><span>'+esc(cname(x.class))+'<br><span class="sub">'+W[x.weekday]+' '+esc(String(x.starts||'').slice(0,5))+(x.teacher?' · '+esc(x.teacher):'')+'</span></span><span style="text-align:right;white-space:nowrap"><b>'+(e>0?'빈자리 '+e:'마감')+'</b><br><span class="sub">'+n(x.n)+'/'+n(x.cap)+'명</span>'+(x.wait?'<br><span class="tag warn">대기 '+x.wait+'</span>':'')+'</span></div>'}).join('')+'</div>':'')+
   '<p class="sub" style="margin-top:8px">정원은 메이크에듀에 적힌 값입니다. 실제 정원과 다르면 메이크에듀에서 고쳐 주세요.</p></div>';
  var WR=w.rows||[];
  h+='<div class="card"><h3>대기 '+n(w.open)+'명'+(w.old?' · <span class="tag warn">2주 넘음 '+n(w.old)+'</span>':'')+'</h3>'+(WR.length?'<div class="list">'+WR.map(function(x){
@@ -996,7 +1012,7 @@ function load(){
 
 function onClick(e){
  ac();
- var el=e.target.closest('[data-go],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],[data-pv],[data-pvexit],[data-mkb],[data-mkc],[data-mkm],[data-mks],[data-mkt],[data-mki],[data-wls],[data-fbwk],[data-fbskip],[data-asgo],[data-asgr],[data-asgnew],[data-cunb],#aBack,#aRefresh'); if(!el) return;
+ var el=e.target.closest('[data-go],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],[data-pv],[data-pvexit],[data-mkb],[data-mkc],[data-mkm],[data-mks],[data-mkt],[data-mki],[data-wls],[data-fbwk],[data-fbskip],[data-asgo],[data-asgr],[data-asgnew],[data-cunb],[data-seatsort],#aBack,#aRefresh'); if(!el) return;
  if(el.id==='aBack'){ history.back(); return }
  if(el.id==='aRefresh'){ el.classList.add('spin'); try{ sessionStorage.setItem('js_tab',S.tab||'') }catch(x){} setTimeout(function(){ location.replace('/member.html?r='+Date.now()) },350); return }
  var d=el.dataset;
@@ -1004,6 +1020,7 @@ function onClick(e){
  if(d.asgo){ var q=d.asgo.split('|'); history.pushState({jsTab:'asg',asg:1},'',''); asgOpen({mode:'do',id:+q[0],student:q[1]}); return }
  if(d.asgr){ var q2=d.asgr.split('|'); history.pushState({jsTab:'asg',asg:1},'',''); asgOpen({mode:'review',id:+q2[0],sub:+q2[1]}); return }
  if(d.asgnew){ S.asgNew=!S.asgNew; render(); return }
+ if(d.seatsort){ S.seatSort=d.seatsort; render(); return }
  if(d.cunb){ if(C.pv){ toast('미리보기에서는 바꾸지 않습니다'); return } el.disabled=true; rpc('capture_unblock',{p_user:d.cunb}).then(function(){ toast('잠금을 풀었습니다'); S.opsFresh=0; render() }).catch(function(x){ el.disabled=false; toast(x.message||'풀지 못했습니다') }); return }
  if(d.fbwk!=null){ S.fbwk=(+d.fbwk===0)?0:(S.fbwk||0)+(+d.fbwk); S.fbw2=null; loadFbw(S.fbwk).then(render); return }
  if(d.fbskip){ var ff=$('#fFb'); if(!ff) return; if(C.pv){ toast('미리보기에서는 저장하지 않습니다'); return } if(!confirmSoft(el)) return; rpc('feedback_post',{p_class:ff.cls.value,p_day:ff.day.value,p_body:ff.body.value||'',p_kind:'휴강'}).then(function(){ toast('휴강으로 표시했습니다'); S.fbFresh=0; render() }).catch(function(x){ toast(x.message||'저장하지 못했습니다') }); return }
