@@ -22,6 +22,9 @@ self.addEventListener('push', function (e) {
     // 알림 방식: 소리(기본) / 진동(길게) / 무음(알림만)
     if (m === '무음') { opt.silent = true; delete opt.vibrate; }
     else if (m === '진동') { opt.vibrate = [300, 120, 300, 120, 600]; }
+    // 강사(알림 방식을 고른 사람): 밤 10시~아침 8시는 소리·진동 없이 알림만
+    var h = new Date().getHours();
+    if (m && (h >= 22 || h < 8)) { opt.silent = true; delete opt.vibrate; }
     return Promise.all([
     self.registration.showNotification(title, opt),
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (cs) {

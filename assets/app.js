@@ -223,14 +223,14 @@ function vReq(){
  h+='<div class="card"><h3>보내기</h3><form id="fReq">'+
    (kids.length>1?'<label class="l">자녀</label><select name="child">'+kids.map(function(x,i){return '<option value="'+esc(x.id)+'"'+(i===S.kid?' selected':'')+'>'+esc(x.name)+'</option>'}).join('')+'</select>':'<input type="hidden" name="child" value="'+esc(kids[0].id)+'">')+
    '<label class="l">무엇을 보낼까요?</label><div class="seg" style="margin:0">'+['결석 알림','보강 문의','상담 신청'].map(function(x){return '<button type="button" class="sm'+(x===k?' on':'')+'" data-rk="'+x+'">'+x+'</button>'}).join('')+'</div>'+
-   '<input type="hidden" name="to" value="'+(k==='상담 신청'?'원장':'담임')+'"><p class="sub" style="margin:10px 0 0">'+(k==='상담 신청'?'원장님께 바로 갑니다.':'담임 선생님께 갑니다.')+'</p>'+
+   '<input type="hidden" name="to" value="'+(k==='상담 신청'?'원장':'담임')+'"><p class="sub" style="margin:10px 0 0">'+(k==='상담 신청'?'원장님과 담임 선생님께 함께 갑니다.':'담임 선생님께 갑니다.')+'</p>'+
    '<label class="l">'+(k==='결석 알림'?'결석하는 날':'희망 날짜')+'</label><input name="day" type="date" min="'+kst().day+'">'+
    (k==='결석 알림'?'<label class="l">사유</label><select name="why"><option>병결</option><option>학교 행사</option><option>개인 사정</option><option>기타</option></select>':'<label class="l">편한 연락 방법</label><select name="method"><option>전화</option><option>카톡</option><option>방문</option></select>')+
    '<label class="l">내용</label><textarea name="memo" placeholder="'+(k==='결석 알림'?'선생님께 전할 말씀이 있으면 적어 주세요.':'궁금하신 점을 적어 주세요.')+'"></textarea>'+
    '<div style="margin-top:16px"><button class="btn">보내기</button></div></form></div>';
  var mine=S.myreq||[];
  h+='<div class="card"><h3>보낸 신청</h3>'+(mine.length?'<div class="list">'+mine.map(function(r){return '<div><span>'+esc(r.kind)+' · '+esc(r.child)+'<br><span class="sub">'+tName(r)+(r.day?' · '+md(r.day):'')+' · '+ago(r.created_at)+'</span></span>'+reqTag(r.status)+'</div>'}).join('')+'</div>':'<p class="sub">아직 보낸 신청이 없습니다.</p>')+'</div>';
- return h+tip('결석 알림·보강 문의는 담임 선생님께, 상담 신청은 원장님께 갑니다. 병결·학교 행사 결석을 알려 주시면 담임 선생님 확인 뒤 보강권이 나오고, 위에서 보강 날짜를 고를 수 있습니다.');
+ return h+tip('결석 알림·보강 문의는 담임 선생님께, 상담 신청은 원장님과 담임 선생님께 함께 갑니다. 병결·학교 행사 결석을 알려 주시면 담임 선생님 확인 뒤 보강권이 나오고, 위에서 보강 날짜를 고를 수 있습니다.');
 }
 function reqTag(s,staff){ return '<span class="tag '+(s==='완료'?'ok':s==='확인'?'':'y')+'">'+(s==='접수'?(staff?'새 신청':'보냄'):s==='확인'?'확인함':'완료')+'</span>' }
 function tName(r){ return r.to==='담임'?(r.teacher==='원장'?'담임 원장님':'담임 '+esc(r.teacher||'')+' 선생님'):esc(r.to) }
@@ -612,14 +612,14 @@ function gateCard(st){
   unsupported:'<p class="sub" style="margin-top:12px">이 브라우저는 알림을 받을 수 없습니다. 크롬(안드로이드)이나 홈 화면에 추가한 앱(아이폰)으로 열어 주세요.</p>',
   off:'<button class="btn" type="button" id="pushOn" style="margin-top:14px"'+(m?'':' disabled')+'>'+(m?'「'+m+'」으로 알림 켜기':'먼저 알림 방식을 고르세요')+'</button>'}[st]||'';
  return '<div class="card fbwarn" style="cursor:default"><b>✦ 알림 설정이 필요합니다 (필수)</b>'+
-  '<span>학부모 상담·요청, 보강 신청이 들어오거나 미결 과제(안 나간 피드백, 보강 출석 체크)가 있을 때 바로 알려 드립니다. 셋 중 하나를 고르고 알림을 켜면 화면이 열립니다.</span>'+
+  '<span>학부모 상담·요청, 보강 신청이 들어오거나 미결 과제(안 나간 피드백, 보강 출석 체크)가 있을 때 바로 알려 드립니다. 셋 중 하나를 고르고 알림을 켜면 화면이 열립니다.<br>밤 10시~아침 8시에는 소리·진동 없이 알림만 오고, 선생님 수업 중에 온 알림은 모아 두었다가 수업이 끝나면 한 번에 보내 드립니다.</span>'+
   '<div class="seg" style="margin:14px 0 0;flex-wrap:wrap;overflow:visible">'+Object.keys(NMODE).map(function(k){return '<button type="button" class="sm'+(m===k?' on':'')+'" data-nmode="'+k+'">'+(k==='소리'?'🔔 소리':k==='진동'?'📳 진동':'🔕 무음 알림')+'</button>'}).join('')+'</div>'+
   (m?'<p class="sub" style="margin-top:8px">'+esc(NMODE[m])+'</p>':'')+how+'</div>';
 }
 function modeCard(){ var m=nMode();
  return '<div class="card"><div class="row"><div><h3 style="margin:0">알림 방식 · '+esc(m)+'</h3><p class="sub">'+esc(NMODE[m]||'')+'</p></div></div>'+
   '<div class="seg" style="margin:12px 0 0;flex-wrap:wrap;overflow:visible">'+Object.keys(NMODE).map(function(k){return '<button type="button" class="sm'+(m===k?' on':'')+'" data-nmode="'+k+'">'+(k==='소리'?'🔔 소리':k==='진동'?'📳 진동':'🔕 무음 알림')+'</button>'}).join('')+'</div>'+
-  '<p class="sub" style="margin-top:8px">알림 끄기는 없습니다. 셋 중 하나로 늘 받습니다.</p></div>' }
+  '<p class="sub" style="margin-top:8px">알림 끄기는 없습니다. 밤 10시~아침 8시는 자동으로 무음, 수업 중 알림은 수업이 끝나면 한 번에 옵니다.</p></div>' }
 function teacherGate(){
  var sl=$('#pushSlot'), tl=$('#tTiles'); if(!sl) return;
  if(!nMode()&&C.p.notify_mode) nModeSave(C.p.notify_mode,false);
