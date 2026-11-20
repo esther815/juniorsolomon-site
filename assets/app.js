@@ -492,6 +492,10 @@ function vOps(){
  h+='<div class="card'+(lr<50?' fbwarn':'')+'"><h3>앱이 닿는 학부모</h3><div class="list"><div><span>재원생 중 학부모가 앱에 연결된 학생</span><b>'+n(re.linked)+' / '+n(re.students)+'명 ('+lr+'%)</b></div>'+
   '<div><span>알림을 켠 학부모</span><span>'+n(re.push_parents)+'명</span></div><div><span>알림을 켠 강사</span><span>'+n(re.push_teachers)+' / '+n(re.teachers)+'명</span></div>'+(re.teacher_alerts||[]).map(function(x){return '<div><span>· '+esc(x.name||'')+' 선생님</span>'+(x.push&&x.mode?'<span class="tag ok">'+esc(x.mode)+'</span>':'<span class="tag warn">미설정</span>')+'</div>'}).join('')+'</div>'+
   (lr<50?'<p class="sub" style="margin-top:8px">수업 피드백·공지는 앱에 연결된 학부모에게만 닿습니다. 재원생 학부모 가입 안내를 먼저 보내 주세요.</p>':'')+'</div>';
+ var CP=d.captures||[], RL={parent:'학부모',teacher:'강사',desk:'관리자',manager:'지점장'};
+ h+='<div class="card'+(CP.length?' fbwarn':'')+'" style="cursor:default"><h3>학습지 캡처 시도 (최근 7일)</h3>'+(CP.length?'<div class="list">'+CP.map(function(x){
+   return '<div style="display:block"><b>'+esc(x.who)+'</b> <span class="sub">'+esc(RL[x.role]||'')+' · '+x.n+'회 · 마지막 '+esc(md(String(x.last).slice(0,10)))+'</span><br><span class="sub">'+esc(x.what||'')+'</span></div>' }).join('')+'</div>'
+   :'<p class="sub">캡처·인쇄·저장 시도가 없습니다.</p>')+'<p class="sub" style="margin-top:8px">컴퓨터의 캡처 키·단축키, 인쇄, 길게 누르기(오른쪽 클릭)를 기록합니다. 휴대폰 화면 캡처는 정식 앱부터 잡힙니다.</p></div>';
  return h;
 }
 function vStat(){
