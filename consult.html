@@ -93,13 +93,14 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 </sc-if>
 <div style="margin-top: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px">
 <sc-for list="{{ slots }}" as="s" hint-placeholder-count="3">
-<button type="button" onClick="{{ s.pick }}" aria-pressed="{{ s.on }}" style="all: unset; cursor:url('assets/cursor-gold.svg') 4 3, pointer; display: block; padding: 24px 22px; border-radius: 18px; background: {{ s.bg }}; border: 2px solid {{ s.bd }}">
-<span style="display: flex; flex-wrap: wrap; gap: 6px"><sc-if value="{{ s.isNew }}" hint-placeholder-val="{{ false }}"><span style="display: inline-block; margin-bottom: 10px; padding: 3px 10px; border-radius: 999px; background: #A3233A; color: #FFFFFF; font-size: 12px; font-weight: 700; letter-spacing: 0.06em">{{ s.newLabel }}</span></sc-if><sc-if value="{{ s.isDir }}" hint-placeholder-val="{{ false }}"><span style="display: inline-block; margin-bottom: 10px; padding: 3px 10px; border-radius: 999px; background: #5F3D66; color: #FFFFFF; font-size: 12px; font-weight: 700; letter-spacing: 0.06em">원장 직강</span></sc-if></span>
+<button type="button" onClick="{{ s.pick }}" aria-pressed="{{ s.on }}" style="all: unset; cursor:url('assets/cursor-gold.svg') 4 3, pointer; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; box-sizing: border-box; padding: 22px 22px 24px; border-radius: 18px; background: {{ s.bg }}; border: 2px solid {{ s.bd }}">
+<span style="display: flex; flex-wrap: wrap; gap: 6px; min-height: 34px; align-items: flex-start"><sc-if value="{{ s.isNew }}" hint-placeholder-val="{{ false }}"><span style="display: inline-block; margin-bottom: 10px; padding: 3px 10px; border-radius: 999px; background: #A3233A; color: #FFFFFF; font-size: 12px; font-weight: 700; letter-spacing: 0.06em">{{ s.newLabel }}</span></sc-if><sc-if value="{{ s.isDir }}" hint-placeholder-val="{{ false }}"><span style="display: inline-block; margin-bottom: 10px; padding: 3px 10px; border-radius: 999px; background: #5F3D66; color: #FFFFFF; font-size: 12px; font-weight: 700; letter-spacing: 0.06em">원장 직강</span></sc-if></span>
 <sc-if value="{{ s.hasCourse }}" hint-placeholder-val="{{ false }}"><p style="margin: 0 0 6px; font-size: 14px; font-weight: 700; color: #5F3D66">{{ s.course }}</p></sc-if>
 <p style="margin: 0; font-family: 'Noto Serif KR', serif; font-size: 30px; font-weight: 600; line-height: 1.2">{{ s.day }}요일</p>
 <p style="margin: 8px 0 0; font-size: 19px; font-weight: 500">{{ s.time }}</p>
 <p style="margin: 16px 0 0; display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: {{ s.stColor }}"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: {{ s.stColor }}"></span>{{ s.status }}</p>
 <sc-if value="{{ s.hasNote }}" hint-placeholder-val="{{ false }}"><p style="margin: 8px 0 0; font-size: 14px; line-height: 1.6; color: #5E5866">{{ s.note }}</p></sc-if>
+<sc-if value="{{ s.showDetail }}" hint-placeholder-val="{{ false }}"><p style="margin: 12px 0 0; padding-top: 12px; border-top: 1px solid #E4DCE8; font-size: 14px; line-height: 1.7; color: #4A4350">{{ s.detail }}</p></sc-if>
 </button>
 </sc-for>
 </div>
@@ -311,10 +312,11 @@ class Component extends DCLogic {
           var st = c.plan ? { s: '개설 예정', c: '#5F3D66' } : (c.k ? stageOf(c) : (c.n === null || c.n === undefined ? { s: '상담 시 안내', c: '#5F3D66' } : statusOf(c.n, c.cap)));
           var key = cur.id + c.d + c.t;
           var on = self.state.pick && self.state.pick.key === key;
-          var note = c.hg ? '천지인 한글 · 한글을 처음 배우는 친구 · 학년 무관 · 1시간 수업에 독서·자기주도 시간이 함께 들어 있습니다' : c.plan ? '현재 반 이동이 확정되면 엽니다' : c.open ? '학년 무관 신규팀 · 먼저 신청한 학년으로 반을 엽니다' : (c.cap ? '정원 ' + c.cap + '명 소수반' : '');
+          var note = c.hg ? '천지인 한글 · 한글을 처음 배우는 친구' : (c.open ? '학년 무관 신규팀' : '');
+          var detail = c.hg ? '학년 무관 · 1시간 수업에 독서·자기주도 시간이 함께 들어 있습니다' : c.plan ? '현재 반 이동이 확정되면 엽니다' : c.open ? '먼저 신청한 학년으로 반을 엽니다' : (c.cap ? '정원 ' + c.cap + '명 소수반' : '');
           var gLabel = function (arr) { return arr.map(function (n) { return n <= 0 ? (7 + n) + '세' : (n >= 7 ? '중1' : '초' + n); }).join('·'); };
           var course = c.gw ? '고원재 · 무학년' : (cur.id === 'dir' ? gLabel(c.g) + ' 하브루타 정규반' : '');
-          slots.push({ isNew: !!c.nw, newLabel: c.nwLabel || 'NEW 신규팀', isDir: !!c.dj, hasCourse: !!course, course: course, hasNote: !!note, note: note, day: c.d, time: c.t, status: c.plan ? '개설 예정' : (c.nw && st.s === '등록 가능' ? '신규 모집' : st.s), stColor: st.c, on: on ? 'true' : 'false',
+          slots.push({ isNew: !!c.nw, newLabel: c.nwLabel || 'NEW 신규팀', isDir: !!c.dj, hasCourse: !!course, course: course, hasNote: !!note, note: note, showDetail: !!(on && detail), detail: detail, day: c.d, time: c.t, status: c.plan ? '개설 예정' : (c.nw && st.s === '등록 가능' ? '신규 모집' : st.s), stColor: st.c, on: on ? 'true' : 'false',
             bg: on ? '#F6F1F8' : '#FFFFFF', bd: on ? '#5F3D66' : '#EEEAF0',
             pick: function () { setPick({ key: key, text: (c.gw ? '고원재(무학년)' : (cur.id === 'dir' ? gLabel(c.g) : cur.label)) + ' · ' + c.d + ' ' + c.t + (c.gw ? (c.nw ? ' 신규반' : '') : (c.hg ? ' 바른 한글 쓰기' : (c.open ? ' 신규팀(학년 무관)' : (c.nw ? ' 신규팀' : ' 하브루타 정규반')))) + (c.dj ? ' (원장 직강)' : ''), wait: st.s === '대기 접수' }); } });
         });
