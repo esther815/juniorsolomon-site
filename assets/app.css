@@ -21,7 +21,7 @@ body.app-on main.wrap{display:none}
 #app h3{font-size:16px;font-weight:700;margin:0 0 8px;letter-spacing:-.2px}
 #app p{margin:0}
 #app .sub{color:var(--mute);font-size:14px}
-#app .card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:20px;margin:0 0 14px;box-shadow:var(--shadow)}
+#app .card{text-align:left;background:#fff;border:1px solid var(--line);border-radius:22px;padding:20px;margin:0 0 14px;box-shadow:var(--shadow)}
 #app .card.hl{background:linear-gradient(135deg,#F7F1FA 0%,#FDFBF3 100%);border-color:#EFE6F2;box-shadow:none;position:relative;overflow:hidden}
 #app .card.hl::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:var(--o0);opacity:.55;filter:blur(2px)}
 #app .card.hl>*{position:relative;z-index:1}
@@ -123,3 +123,17 @@ body.app-on main.wrap{display:none}
 }
 @media (prefers-reduced-motion:reduce){#app .nb{animation:none}}
 #app .jsi p{margin:4px 0 14px}
+
+/* 큰 별 알림 */
+#app .star-bg{position:fixed;inset:0;z-index:30;background:rgba(35,26,38,.45);display:flex;align-items:center;justify-content:center;animation:sbg .25s ease}
+#app .star-box{position:relative;width:min(86vw,360px);background:#fff;border-radius:28px;padding:96px 24px 22px;text-align:center;box-shadow:0 30px 60px -20px rgba(35,26,38,.5);animation:sbox .45s cubic-bezier(.2,.9,.3,1.3)}
+#app .star-big{position:absolute;left:50%;top:-70px;transform:translateX(-50%);filter:drop-shadow(0 0 18px rgba(232,201,128,.9));animation:stw 1.1s ease-in-out infinite}
+#app .star-box b{display:block;font-family:"Noto Serif KR",serif;font-weight:600;font-size:21px;letter-spacing:-.4px;margin-bottom:6px}
+#app .star-box p{color:var(--mute);font-size:15px;margin-bottom:16px}
+#app .star-box .btn{margin-top:6px}
+#app .sp{position:absolute;width:14px;height:14px;background:#E8C980;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);animation:stw 1.4s ease-in-out infinite}
+#app .sp.s1{left:22%;top:18px}#app .sp.s2{right:20%;top:30px;width:10px;height:10px;animation-delay:.4s}#app .sp.s3{left:30%;top:58px;width:8px;height:8px;animation-delay:.8s}
+@keyframes stw{0%,100%{opacity:1;transform:translateX(var(--tx,0)) scale(1)}50%{opacity:.55;transform:translateX(var(--tx,0)) scale(.86)}}
+#app .star-big{--tx:-50%}
+@keyframes sbox{from{transform:scale(.7);opacity:0}}@keyframes sbg{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){#app .star-big,#app .sp{animation:none}}

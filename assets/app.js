@@ -78,7 +78,7 @@ function home(){
  var un=badge('notice');
  h+='<div class="row" style="align-items:flex-start"><div><p class="hello">'+LABEL[r]+'</p><div class="hello-b">'+hi+'</div></div>'+
     '<button class="bell" data-go="notice" aria-label="공지 '+un+'건">'+I.bell+nb(un,true)+'</button></div>';
- h+=summary();
+ h+='<div id="pushSlot"></div>'+summary();
  h+='<div class="tiles">'+tilesFor(r).map(function(t,i){ return '<button class="tile t'+i+'" data-go="'+t[0]+'">'+nb(badge(t[0]))+'<div class="ti">'+t[3]+'</div><div><b>'+t[1]+'</b><span class="s">'+t[2]+'</span></div></button>' }).join('')+'</div>';
  if(r!=='parent') h+='<div style="margin-top:18px">'+C.L.installBox()+'</div>';
  h+=foot(r!=='parent');
@@ -307,12 +307,65 @@ function diff(o,n){ var m=[];
  return m }
 function poll(){ if(document.hidden||!document.getElementById('app')) return; var old=S.sig||sigOf();
  load().then(function(){ var nw=sigOf(), m=diff(old,nw); S.sig=nw;
-  if(!m.length) return; var p=sndPref(); if(p.on) playSnd(p.s); toast(m[0]);
+  if(!m.length) return; starAlert(m[0], m.length>1?'새 소식 '+m.length+'건':'');
   var typing=document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName); if(!typing) render() }).catch(function(){}) }
 function sndCard(){ var p=sndPref();
  return '<div class="card"><div class="row"><div><h3 style="margin:0">알림음</h3><p class="sub">앱을 열어 두면 새 소식에 울립니다</p></div>'+
   '<button class="sm'+(p.on?' on':'')+'" data-snd-on="1">'+(p.on?'켜짐':'꺼짐')+'</button></div>'+
   '<div class="seg" style="margin:14px 0 0;flex-wrap:wrap;overflow:visible">'+Object.keys(SND).map(function(k){return '<button class="sm'+(p.s===k?' on':'')+'" data-snd="'+k+'">♪ '+SND[k]+'</button>'}).join('')+'</div></div>' }
+
+/* ── 큰 별 알림 (앱이 열려 있을 때) ── */
+var STAR='<svg viewBox="-120 -120 240 240" width="150" height="150"><defs><radialGradient id="sg" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#FFF6D6"/><stop offset=".55" stop-color="#E8C980"/><stop offset="1" stop-color="#B8975A"/></radialGradient></defs><path d="M0,-118 C11,-28 28,-11 118,0 C28,11 11,28 0,118 C-11,28 -28,11 -118,0 C-28,-11 -11,-28 0,-118 Z" fill="url(#sg)"/></svg>';
+function starAlert(title, body){
+ var old=document.getElementById('jsStar'); if(old) old.remove();
+ var el=document.createElement('div'); el.id='jsStar'; el.className='star-bg';
+ el.innerHTML='<div class="star-box"><div class="star-big">'+STAR+'</div><span class="sp s1"></span><span class="sp s2"></span><span class="sp s3"></span>'+
+  '<b>'+esc(title)+'</b>'+(body?'<p>'+esc(body)+'</p>':'')+'<button type="button" class="btn">확인</button></div>';
+ el.addEventListener('click',function(e){ if(e.target===el||e.target.tagName==='BUTTON') el.remove() });
+ (document.getElementById('app')||document.body).appendChild(el);
+ var p=sndPref(); if(p.on) playSnd(p.s);
+ try{ navigator.vibrate&&navigator.vibrate([80,60,80,60,220]) }catch(e){}
+}
+navigator.serviceWorker&&navigator.serviceWorker.addEventListener('message',function(e){
+ if(e.data&&e.data.jsPush&&!document.hidden){ starAlert(e.data.title,e.data.body); if(window.JSApp&&C) load().then(function(){ S.sig=sigOf(); render() }) }
+});
+
+/* ── 휴대폰 푸시 알림 받기 (원장) ── */
+function pushSupported(){ return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window }
+function iosNotInstalled(){ var ios=/iphone|ipad|ipod/i.test(navigator.userAgent); return ios&&!(navigator.standalone||matchMedia('(display-mode: standalone)').matches) }
+function b64(u){ var p='='.repeat((4-u.length%4)%4), s=atob((u+p).replace(/-/g,'+').replace(/_/g,'/')), a=new Uint8Array(s.length); for(var i=0;i<s.length;i++) a[i]=s.charCodeAt(i); return a }
+function pushState(){
+ if(C.role!=='admin') return Promise.resolve('none');
+ if(iosNotInstalled()) return Promise.resolve('ios');
+ if(!pushSupported()) return Promise.resolve('unsupported');
+ if(Notification.permission==='denied') return Promise.resolve('denied');
+ return navigator.serviceWorker.getRegistration('/').then(function(r){ return r?r.pushManager.getSubscription():null }).then(function(s){ return s&&Notification.permission==='granted'?'on':'off' }).catch(function(){ return 'off' });
+}
+function pushCard(st){
+ if(st==='none'||st==='on') return '';
+ var msg={off:'승인 대기·상담 신청이 오면 휴대폰 잠금 화면에 별 알림이 뜹니다.',
+  ios:'아이폰은 먼저 홈 화면에 앱을 추가한 뒤, 그 아이콘으로 열어서 켜야 합니다.',
+  denied:'이 휴대폰에서 알림이 꺼져 있습니다. 휴대폰 설정 → 알림에서 juniorsolomon.com(또는 주니어솔로몬)을 허용해 주세요.',
+  unsupported:'이 브라우저는 푸시 알림을 지원하지 않습니다. 크롬이나 사파리(홈 화면 앱)에서 열어 주세요.'}[st];
+ var btn=st==='off'?'<button class="btn" type="button" id="pushOn">휴대폰 알림 받기</button>':st==='ios'?'<button class="btn" type="button" id="pushIos">홈 화면에 추가하는 법</button>':'';
+ return '<div class="card note"><h3 style="margin:0 0 4px">✦ 휴대폰 알림이 아직 꺼져 있습니다</h3><p class="sub" style="margin-bottom:'+(btn?'14px':'0')+'">'+msg+'</p>'+btn+'</div>';
+}
+function pushOn(btn){
+ btn.disabled=true; btn.textContent='연결하는 중…';
+ Notification.requestPermission().then(function(p){
+  if(p!=='granted') throw new Error('denied');
+  return Promise.all([navigator.serviceWorker.register('/sw.js').then(function(){ return navigator.serviceWorker.ready }), C.sb.functions.invoke('kakao-alert',{body:{action:'push_key'}})]);
+ }).then(function(a){
+  var reg=a[0], key=a[1].data&&a[1].data.key; if(!key) throw new Error('key');
+  return reg.pushManager.getSubscription().then(function(s){ return s||reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64(key)}) });
+ }).then(function(sub){
+  return C.sb.functions.invoke('kakao-alert',{body:{action:'push_subscribe',sub:sub.toJSON()}});
+ }).then(function(r){
+  if(!r.data||!r.data.ok) throw new Error('save');
+  return C.sb.functions.invoke('kakao-alert',{body:{action:'push_test'}});
+ }).then(function(){ toast('연결했습니다. 시험 알림을 보냈습니다'); render() })
+ .catch(function(e){ btn.disabled=false; btn.textContent='휴대폰 알림 받기'; toast(String(e&&e.message)==='denied'?'알림을 허용해야 받을 수 있습니다':'연결하지 못했습니다. 다시 눌러 주세요') });
+}
 
 /* ── 화면 그리기 ── */
 var VIEWS={today:vToday,notice:vNotice,time:vTime,req:vReq,att:vAtt,mine:vMine,sreq:vSreq,over:vOver,set:vSet,
@@ -330,7 +383,9 @@ function render(){
 }
 function after(){
  var t=S.tab, L=C.L;
- if(!t){ if(C.role!=='parent') L.bindInstall(); bindLogout(); return }
+ if(!t){ if(C.role!=='parent') L.bindInstall(); bindLogout();
+   pushState().then(function(st){ var sl=$('#pushSlot'); if(!sl) return; sl.innerHTML=pushCard(st); var b=$('#pushOn'); if(b) b.onclick=function(){ pushOn(b) }; var i=$('#pushIos'); if(i) i.onclick=function(){ window.JSInstall&&JSInstall.open('ios') } });
+   return }
  if(t==='notice'){ var un=(S.notices||[]).filter(function(n){return !n.read}).map(function(n){return n.id}); if(un.length) rpc('mark_notices_read',{p_ids:un}).then(function(){ (S.notices||[]).forEach(function(n){n.read=true}) }).catch(function(){}) }
  if(t==='sreq'&&C.role!=='teacher') L.consults();
  if(t==='tboard') L.teacherBoard();
