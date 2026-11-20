@@ -56,6 +56,7 @@ h2{font-family:'Noto Serif KR',serif;font-weight:600;font-size:20px;margin:36px 
 .me .up input{display:block;margin:6px 0 12px;font-size:14px;max-width:100%}
 </style>
 <style>@media (hover:hover) and (pointer:fine){html,body{cursor:url("assets/cursor.svg") 3 2, auto}a,button,summary,label,[role="button"],.js-login{cursor:url("assets/cursor-gold.svg") 4 3, pointer}}</style>
+<link rel="stylesheet" href="assets/app.css?v=1">
 </head>
 <body>
 <main class="wrap">
@@ -71,6 +72,7 @@ h2{font-family:'Noto Serif KR',serif;font-weight:600;font-size:20px;margin:36px 
   <a class="home" href="index.html">← 홈페이지로</a>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/app.js?v=1"></script>
 <script>
 (function(){
   var sb = window.supabase.createClient(
@@ -120,7 +122,13 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
   function teacherCode(){ try{ return localStorage.getItem('js_teacher_code')||'' }catch(e){ return '' } }
   try{ var _d=new URLSearchParams(location.search).get('d'); if(_d){ localStorage.setItem('js_desk_code',_d) } }catch(e){}
   function deskCode(){ try{ return localStorage.getItem('js_desk_code')||'' }catch(e){ return '' } }
-  var shown=false;
+  var shown=false, curUser=null;
+  function mountApp(p,role){
+    var nick=esc(p.nickname||'회원');
+    window.JSApp.mount({sb:sb,p:p,role:role,L:{installBox:installBox,bindInstall:bindInstall,bindLogout:bindLogout,consults:consults,teacherBoard:teacherBoard,
+      admin:admin,classBoard:classBoard,meBoard:meBoard,inviteBtn:inviteBtn,kakaoSetup:kakaoSetup,betaList:betaList,usage:usage,
+      openForm:function(kids,preview){ window.JSApp.unmount(); window.scrollTo(0,0); form(p,preview?'학부모':nick,!!preview,kids||[]) }}});
+  }
   function show(user){
     if(shown) return; shown=true; myId=user.id; history.replaceState(null,'','member.html');
     sb.from('profiles').select('*').eq('id',user.id).maybeSingle().then(function(r){
@@ -129,7 +137,8 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
       var nick=esc(p.nickname||'회원');
       if(!p.phone){
         return sb.rpc('is_admin').then(function(a){
-          if(a.data===true){ out.innerHTML='<h1>'+nick+' 원장님</h1><p class="lead"><span class="badge">관리자</span></p>'+
+          if(a.data===true){ return mountApp(p,'admin');
+            out.innerHTML='<h1>'+nick+' 원장님</h1><p class="lead"><span class="badge">관리자</span></p>'+
             '<div id="cons"></div><div id="beta"></div><div id="admin"></div><div id="me"></div><div id="usage"></div>'+
             '<h2>설정</h2><button class="ghost" id="pv" type="button">학부모 가입 화면 미리보기</button>'+
             '<button class="ghost" id="tinv" type="button">강사 초대 링크 만들기</button><div id="tinvm"></div>'+
@@ -146,13 +155,14 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
       if(deskCode() && p.role!=='desk' && p.status!=='approved') return staffForm(p,nick,'desk');
       if(teacherCode() && p.role!=='teacher' && p.status!=='approved') return staffForm(p,nick,'teacher');
       var badge={pending:'승인 대기',approved:'승인 완료',rejected:'확인 필요'}[p.status];
-      if(p.role==='teacher'||p.role==='desk'){
+      if(p.role==='teacher'||p.role==='desk'||p.role==='manager'){
         var isDesk=p.role==='desk', nm=esc(p.teacher_name||nick)+(isDesk?' 님':' 선생님');
         if(p.status!=='approved'){
           out.innerHTML='<h1>'+nm+'</h1><p class="lead"><span class="badge">'+(isDesk?'데스크':'강사')+' · '+badge+'</span><br><br>'+
             (p.status==='pending'?'원장님이 확인하면 '+(isDesk?'데스크':'선생님')+' 화면이 열립니다.':'원장님께 문의해 주세요.')+'</p>'+logoutBtn();
           bindLogout(); return;
         }
+        return mountApp(p, isDesk?'desk':(p.role==='manager'?'manager':'teacher'));
         if(isDesk){
           out.innerHTML='<h1>'+nm+'</h1><p class="lead"><span class="badge">데스크</span></p><div id="cons"></div><div id="admin"></div><div id="board"></div>'+installBox()+logoutBtn();
           bindLogout(); bindInstall(); consults(); admin(false); classBoard(); return;
@@ -160,6 +170,9 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
         out.innerHTML='<h1>'+nm+'</h1><p class="lead"><span class="badge">강사</span>'+(p.teacher_subject?'<br>'+esc(p.teacher_subject):'')+'</p><div id="tboard"></div>'+
           '<p class="note" style="text-align:left">학부모 연락이 필요하면 데스크에 요청해 주세요. 학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.</p>'+installBox()+logoutBtn();
         bindLogout(); bindInstall(); teacherBoard(); return;
+      }
+      if(p.status==='approved'){
+        return sb.rpc('is_admin').then(function(a){ mountApp(p, a.data===true?'admin':'parent') });
       }
       var txt={pending:'원장님이 확인하면 우리 아이 수업 정보가 열립니다.',approved:'',rejected:'학원으로 연락 주세요. 02-794-8123'}[p.status];
       out.innerHTML='<h1>'+nick+'님</h1><p class="lead"><span class="badge">'+badge+'</span>'+(txt?'<br><br>'+txt:'')+'</p>'+
