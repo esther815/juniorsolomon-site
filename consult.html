@@ -252,17 +252,13 @@ class Component extends DCLogic {
       { d: '토', t: '11:00–13:00', g: [3], k: 'sat-1100-a', dj: 1 },
       { d: '토', t: '11:00–13:00', g: [6, 7], k: 'sat-1100-b' },
       { d: '토', t: '09:00–11:00', g: [1], k: 'sat-0900-a' },
-      // 신규 개설 예정 반
+      // 신규팀(공개 중)
       { d: '화', t: '15:00–16:00', g: [-2], n: 0, cap: 4, nw: 1 },
       { d: '월', t: '17:00–18:30', g: [0], n: 0, nw: 1 },
       { d: '수', t: '17:00–18:30', g: [0], n: 0, nw: 1 },
       { d: '월', t: '15:00–17:00', g: [1], n: 0, nw: 1 },
       { d: '목', t: '14:30–15:30', g: [0, 1, 2, 3, 4, 5, 6], n: 0, nw: 1, hg: 1, nwLabel: 'NEW 바른 한글 쓰기' },
-      // 금 17:00 초2반이 목요일로 옮기면 7세반 개설
-      { d: '금', t: '17:00–18:30', g: [0], n: 0, nw: 1, plan: 1 },
       // 고원재: 무학년 세계 명작 읽기·글쓰기
-      // 확정 후 공개: { d: '월', t: '17:00–19:00', g: [], gw: 1, dj: 1, n: null },
-      // 확정 전 비공개: { d: '월', t: '19:00–21:00', g: [], gw: 1, dj: 1, n: 0, nw: 1, nwLabel: 'NEW 신규 개설' },
       { d: '토', t: '09:00–11:00', g: [], gw: 1, k: 'sat-0900-b' }
     ];
     // 학년 기준: 2027년 2월 28일까지는 2026학년도(현재 학년), 3월 1일부터 2027학년도(진급 학년)로 자동 전환
@@ -304,6 +300,7 @@ class Component extends DCLogic {
     var slots = [];
     if (cur && (typeof cur.num === 'number' || cur.id === 'dir' || cur.id === 'gw')) {
       classes.filter(function (c) {
+        if (c.plan) return false;
         if (cur.id === 'dir') return !!c.dj;
         if (cur.id === 'gw') return !!c.gw;
         return c.g.indexOf(cur.num) >= 0;
