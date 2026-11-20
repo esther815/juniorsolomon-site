@@ -650,6 +650,12 @@ function bulkLoad(){ var sl=$('#bulkSlot'); if(!sl) return;
  }).catch(function(){ sl.innerHTML='' });
 }
 
+/* ── 앱 아이콘 위 숫자: 앱을 열면 지움 ── */
+function badgeClear(){ try{ caches.open('js-pref').then(function(c){ return c.put('/__badge', new Response('0')) }) }catch(e){}
+ try{ navigator.clearAppBadge&&navigator.clearAppBadge().catch(function(){}) }catch(e){}
+ try{ navigator.serviceWorker&&navigator.serviceWorker.getRegistration('/').then(function(r){ if(r) r.getNotifications().then(function(ns){ ns.forEach(function(n){ n.close() }) }) }) }catch(e){} }
+badgeClear(); document.addEventListener('visibilitychange',function(){ if(!document.hidden) badgeClear() });
+
 /* ── 휴대폰 푸시 알림 받기 ── */
 function pushSupported(){ return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window }
 function iosNotInstalled(){ var ios=/iphone|ipad|ipod/i.test(navigator.userAgent); return ios&&!(navigator.standalone||matchMedia('(display-mode: standalone)').matches) }

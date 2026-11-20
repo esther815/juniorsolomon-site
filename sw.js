@@ -27,6 +27,15 @@ self.addEventListener('push', function (e) {
     if (m && (h >= 22 || h < 8)) { opt.silent = true; delete opt.vibrate; }
     return Promise.all([
     self.registration.showNotification(title, opt),
+    // 앱 아이콘 위 숫자: 앱을 열 때까지 온 알림 개수
+    caches.open('js-pref').then(function (c) {
+      return c.match('/__badge').then(function (r) { return r ? r.text() : '0'; }).then(function (t) {
+        var n = (parseInt(t, 10) || 0) + 1;
+        return c.put('/__badge', new Response(String(n))).then(function () {
+          if (self.navigator && self.navigator.setAppBadge) return self.navigator.setAppBadge(n).catch(function () {});
+        });
+      });
+    }).catch(function () {}),
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (cs) {
       cs.forEach(function (c) { c.postMessage({ jsPush: true, title: d.title || '새 소식', body: d.body || '' }); });
     })
