@@ -18,12 +18,17 @@ self.addEventListener('push', function (e) {
     vibrate: [80, 60, 80, 60, 220],
     data: { url: d.url || '/member.html' }
   };
-  e.waitUntil(Promise.all([
+  e.waitUntil(caches.open('js-pref').then(function (c) { return c.match('/__nmode'); }).then(function (r) { return r ? r.text() : ''; }).catch(function () { return ''; }).then(function (m) {
+    // 알림 방식: 소리(기본) / 진동(길게) / 무음(알림만)
+    if (m === '무음') { opt.silent = true; delete opt.vibrate; }
+    else if (m === '진동') { opt.vibrate = [300, 120, 300, 120, 600]; }
+    return Promise.all([
     self.registration.showNotification(title, opt),
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (cs) {
       cs.forEach(function (c) { c.postMessage({ jsPush: true, title: d.title || '새 소식', body: d.body || '' }); });
     })
-  ]));
+  ]);
+  }));
 });
 
 self.addEventListener('notificationclick', function (e) {

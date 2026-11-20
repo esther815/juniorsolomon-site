@@ -92,7 +92,7 @@ function home(){
  h+='<div id="pushSlot"></div>'+(r==='parent'&&pAccess()!=='open'?accCard():summary());
  if(!C.pv&&C.real==='admin') h=h.replace('<div id="pushSlot"></div>','<div id="pushSlot"></div>'+pvCard());
  if(r==='teacher'||r==='admin'){ var fm=fbMissing(); if(fm.length) h+='<button class="card fbwarn" data-go="'+(r==='admin'?'fbw':'fb')+'"><b>⚠️ 피드백이 안 나간 수업 '+fm.length+'개</b><span>'+fm.slice(0,3).map(function(x){return esc(cname(x.class))+' '+md(x.day)}).join(' · ')+(fm.length>3?' 외':'')+'</span></button>' }
- h+='<div class="tiles">'+tilesFor(r).map(function(t,i){ return '<button class="tile t'+i+'" data-go="'+t[0]+'">'+nb(badge(t[0]))+'<div class="ti">'+t[3]+'</div><div><b>'+t[1]+'</b><span class="s">'+t[2]+'</span></div></button>' }).join('')+'</div>';
+ h+='<div class="tiles"'+(r==='teacher'&&!C.pv?' id="tTiles" hidden':'')+'>'+tilesFor(r).map(function(t,i){ return '<button class="tile t'+i+'" data-go="'+t[0]+'">'+nb(badge(t[0]))+'<div class="ti">'+t[3]+'</div><div><b>'+t[1]+'</b><span class="s">'+t[2]+'</span></div></button>' }).join('')+'</div>';
  if(r!=='parent') h+='<div style="margin-top:18px">'+C.L.installBox()+'</div>';
  h+=foot(r!=='parent');
  return h;
@@ -486,7 +486,7 @@ function vOps(){
  // 앱 도달
  var lr=re.students?Math.round((re.linked||0)/re.students*100):0;
  h+='<div class="card'+(lr<50?' fbwarn':'')+'"><h3>앱이 닿는 학부모</h3><div class="list"><div><span>재원생 중 학부모가 앱에 연결된 학생</span><b>'+n(re.linked)+' / '+n(re.students)+'명 ('+lr+'%)</b></div>'+
-  '<div><span>알림을 켠 학부모</span><span>'+n(re.push_parents)+'명</span></div><div><span>알림을 켠 강사</span><span>'+n(re.push_teachers)+' / '+n(re.teachers)+'명</span></div></div>'+
+  '<div><span>알림을 켠 학부모</span><span>'+n(re.push_parents)+'명</span></div><div><span>알림을 켠 강사</span><span>'+n(re.push_teachers)+' / '+n(re.teachers)+'명</span></div>'+(re.teacher_alerts||[]).map(function(x){return '<div><span>· '+esc(x.name||'')+' 선생님</span>'+(x.push&&x.mode?'<span class="tag ok">'+esc(x.mode)+'</span>':'<span class="tag warn">미설정</span>')+'</div>'}).join('')+'</div>'+
   (lr<50?'<p class="sub" style="margin-top:8px">수업 피드백·공지는 앱에 연결된 학부모에게만 닿습니다. 재원생 학부모 가입 안내를 먼저 보내 주세요.</p>':'')+'</div>';
  return h;
 }
@@ -591,19 +591,71 @@ function starAlert(title, body){
   '<b>'+esc(title)+'</b>'+(body?'<p>'+esc(body)+'</p>':'')+'<button type="button" class="btn">확인</button></div>';
  el.addEventListener('click',function(e){ if(e.target===el||e.target.tagName==='BUTTON') el.remove() });
  (document.getElementById('app')||document.body).appendChild(el);
- var p=sndPref(); if(p.on) playSnd(p.s);
- try{ navigator.vibrate&&navigator.vibrate([80,60,80,60,220]) }catch(e){}
+ var m=nMode(), p=sndPref(); if(m!=='무음'&&m!=='진동'&&p.on) playSnd(p.s);
+ try{ if(m!=='무음') navigator.vibrate&&navigator.vibrate(m==='진동'?[300,120,300,120,600]:[80,60,80,60,220]) }catch(e){}
 }
 navigator.serviceWorker&&navigator.serviceWorker.addEventListener('message',function(e){
  if(e.data&&e.data.jsPush&&!document.hidden){ starAlert(e.data.title,e.data.body); if(window.JSApp&&C) load().then(function(){ S.sig=sigOf(); render() }) }
 });
 
-/* ── 휴대폰 푸시 알림 받기 (원장) ── */
+
+/* ── 알림 방식 (강사 필수: 소리 / 진동 / 무음) ── */
+var NMODE={'소리':'휴대폰 알림음과 진동으로 알립니다','진동':'길게 진동으로 알립니다 (휴대폰을 진동 모드로 두면 소리 없이 진동만)','무음':'소리·진동 없이 잠금 화면에 알림만 띄웁니다'};
+function nMode(){ try{ return localStorage.getItem('js_nmode')||'' }catch(e){ return '' } }
+function nModeSave(m, server){ try{ localStorage.setItem('js_nmode',m) }catch(e){}
+ try{ caches.open('js-pref').then(function(c){ return c.put('/__nmode', new Response(m)) }) }catch(e){}
+ if(server!==false&&!C.pv) return rpc('set_notify_mode',{p_mode:m}).then(function(){ C.p.notify_mode=m }).catch(function(){}); return Promise.resolve() }
+function gateCard(st){
+ var m=nMode();
+ var how={ios:'<p class="sub" style="margin-top:12px">아이폰은 먼저 이 화면을 <b>홈 화면에 추가</b>한 뒤, 그 아이콘으로 다시 열어 알림을 켜야 합니다.</p><button class="btn" type="button" id="pushIos" style="margin-top:10px">홈 화면에 추가하는 법</button>',
+  denied:'<p class="sub" style="margin-top:12px">이 휴대폰에서 알림이 막혀 있습니다. 휴대폰 <b>설정 → 알림</b>에서 juniorsolomon.com(또는 주니어솔로몬)을 허용한 뒤 이 화면을 새로 열어 주세요.</p>',
+  unsupported:'<p class="sub" style="margin-top:12px">이 브라우저는 알림을 받을 수 없습니다. 크롬(안드로이드)이나 홈 화면에 추가한 앱(아이폰)으로 열어 주세요.</p>',
+  off:'<button class="btn" type="button" id="pushOn" style="margin-top:14px"'+(m?'':' disabled')+'>'+(m?'「'+m+'」으로 알림 켜기':'먼저 알림 방식을 고르세요')+'</button>'}[st]||'';
+ return '<div class="card fbwarn" style="cursor:default"><b>✦ 알림 설정이 필요합니다 (필수)</b>'+
+  '<span>학부모 상담·요청, 보강 신청이 들어오거나 미결 과제(안 나간 피드백, 보강 출석 체크)가 있을 때 바로 알려 드립니다. 셋 중 하나를 고르고 알림을 켜면 화면이 열립니다.</span>'+
+  '<div class="seg" style="margin:14px 0 0;flex-wrap:wrap;overflow:visible">'+Object.keys(NMODE).map(function(k){return '<button type="button" class="sm'+(m===k?' on':'')+'" data-nmode="'+k+'">'+(k==='소리'?'🔔 소리':k==='진동'?'📳 진동':'🔕 무음 알림')+'</button>'}).join('')+'</div>'+
+  (m?'<p class="sub" style="margin-top:8px">'+esc(NMODE[m])+'</p>':'')+how+'</div>';
+}
+function modeCard(){ var m=nMode();
+ return '<div class="card"><div class="row"><div><h3 style="margin:0">알림 방식 · '+esc(m)+'</h3><p class="sub">'+esc(NMODE[m]||'')+'</p></div></div>'+
+  '<div class="seg" style="margin:12px 0 0;flex-wrap:wrap;overflow:visible">'+Object.keys(NMODE).map(function(k){return '<button type="button" class="sm'+(m===k?' on':'')+'" data-nmode="'+k+'">'+(k==='소리'?'🔔 소리':k==='진동'?'📳 진동':'🔕 무음 알림')+'</button>'}).join('')+'</div>'+
+  '<p class="sub" style="margin-top:8px">알림 끄기는 없습니다. 셋 중 하나로 늘 받습니다.</p></div>' }
+function teacherGate(){
+ var sl=$('#pushSlot'), tl=$('#tTiles'); if(!sl) return;
+ if(!nMode()&&C.p.notify_mode) nModeSave(C.p.notify_mode,false);
+ pushState().then(function(st){
+  var ok=st==='on'&&!!nMode();
+  if(ok&&!C.p.notify_mode) nModeSave(nMode());
+  sl.innerHTML=ok?'<button type="button" class="nmline" data-nmopen="1">'+(nMode()==='소리'?'🔔':nMode()==='진동'?'📳':'🔕')+' 알림 방식 · '+esc(nMode())+' <u>바꾸기</u></button>':gateCard(st); if(tl) tl.hidden=!ok;
+  var o=sl.querySelector('[data-nmopen]'); if(o) o.onclick=function(){ sl.innerHTML=modeCard(); sl.querySelectorAll('[data-nmode]').forEach(function(b){ b.onclick=function(){ nModeSave(b.dataset.nmode); toast('알림 방식: '+b.dataset.nmode); teacherGate() } }) };
+  sl.querySelectorAll('[data-nmode]').forEach(function(b){ b.onclick=function(){ nModeSave(b.dataset.nmode); teacherGate() } });
+  var b=$('#pushOn'); if(b) b.onclick=function(){ if(!nMode()) return; nModeSave(nMode()).then(function(){ pushOn(b) }) };
+  var i=$('#pushIos'); if(i) i.onclick=function(){ window.JSInstall&&JSInstall.open('ios') };
+ });
+}
+
+/* ── 메이크에듀 원생과 맞는 학부모 한 번에 승인 ── */
+function bulkLoad(){ var sl=$('#bulkSlot'); if(!sl) return;
+ rpc('admin_bulk_candidates').then(function(L){ L=L||[]; S.bulk=L;
+  if(!L.length){ sl.innerHTML=''; return }
+  sl.innerHTML='<div class="card hl"><h3 style="margin:0 0 4px">메이크에듀 원생과 맞는 학부모 '+L.length+'명</h3><p class="sub">자녀 이름과 생년월일(또는 보호자 번호)이 메이크에듀 재원생과 하나로 맞는 분만 모았습니다. 확인 후 한 번에 승인하세요.</p>'+
+   '<div class="list" style="margin-top:10px">'+L.map(function(x){ return '<label style="display:flex;gap:10px;align-items:flex-start;padding:8px 0"><input type="checkbox" data-bk="'+x.id+'" checked style="margin-top:4px"><span><b>보호자 '+esc(x.nickname||'')+'</b><br><span class="sub">'+(x.kids||[]).map(function(k){return esc(k.child)+' → '+esc(k.name)+' '+esc(k.grade||'')+' '+esc(k.school||'')}).join('<br>')+'</span></span></label>' }).join('')+'</div>'+
+   '<button class="btn" type="button" id="bulkGo" style="margin-top:12px">선택한 '+L.length+'명 한 번에 승인</button></div>';
+  var upd=function(){ var n=sl.querySelectorAll('[data-bk]:checked').length, b=$('#bulkGo'); b.textContent='선택한 '+n+'명 한 번에 승인'; b.disabled=!n };
+  sl.querySelectorAll('[data-bk]').forEach(function(c){ c.onchange=upd });
+  $('#bulkGo').onclick=function(){ var ids=[].map.call(sl.querySelectorAll('[data-bk]:checked'),function(c){return c.dataset.bk}); if(!ids.length) return;
+   var b=this; b.disabled=true; b.textContent='승인하는 중…';
+   rpc('admin_bulk_approve',{p_ids:ids}).then(function(r){ toast((r&&r.approved||0)+'명 승인했습니다'+(r&&r.skipped?' · '+r.skipped+'명은 따로 확인해 주세요':'')); bulkLoad(); C.L.admin(C.role==='admin') })
+    .catch(function(){ b.disabled=false; upd(); toast('승인하지 못했습니다. 다시 눌러 주세요') }) };
+ }).catch(function(){ sl.innerHTML='' });
+}
+
+/* ── 휴대폰 푸시 알림 받기 ── */
 function pushSupported(){ return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window }
 function iosNotInstalled(){ var ios=/iphone|ipad|ipod/i.test(navigator.userAgent); return ios&&!(navigator.standalone||matchMedia('(display-mode: standalone)').matches) }
 function b64(u){ var p='='.repeat((4-u.length%4)%4), s=atob((u+p).replace(/-/g,'+').replace(/_/g,'/')), a=new Uint8Array(s.length); for(var i=0;i<s.length;i++) a[i]=s.charCodeAt(i); return a }
 function pushState(){
- if(C.real!=='admin'||C.pv) return Promise.resolve('none');
+ if(C.pv) return Promise.resolve('none');
  if(iosNotInstalled()) return Promise.resolve('ios');
  if(!pushSupported()) return Promise.resolve('unsupported');
  if(Notification.permission==='denied') return Promise.resolve('denied');
@@ -611,7 +663,7 @@ function pushState(){
 }
 function pushCard(st){
  if(st==='none'||st==='on') return '';
- var msg={off:'승인 대기·상담 신청이 오면 휴대폰 잠금 화면에 별 알림이 뜹니다.',
+ var msg={off:C.role==='parent'?'수업 피드백·공지·보강 소식이 오면 휴대폰 잠금 화면에 별 알림이 뜹니다.':'승인 대기·상담 신청이 오면 휴대폰 잠금 화면에 별 알림이 뜹니다.',
   ios:'아이폰은 먼저 홈 화면에 앱을 추가한 뒤, 그 아이콘으로 열어서 켜야 합니다.',
   denied:'이 휴대폰에서 알림이 꺼져 있습니다. 휴대폰 설정 → 알림에서 juniorsolomon.com(또는 주니어솔로몬)을 허용해 주세요.',
   unsupported:'이 브라우저는 푸시 알림을 지원하지 않습니다. 크롬이나 사파리(홈 화면 앱)에서 열어 주세요.'}[st];
@@ -630,7 +682,8 @@ function pushOn(btn){
   return C.sb.functions.invoke('kakao-alert',{body:{action:'push_subscribe',sub:sub.toJSON()}});
  }).then(function(r){
   if(!r.data||!r.data.ok) throw new Error('save');
-  return C.sb.functions.invoke('kakao-alert',{body:{action:'push_test'}});
+  if(C.real==='admin') return C.sb.functions.invoke('kakao-alert',{body:{action:'push_test'}});
+  return navigator.serviceWorker.ready.then(function(reg){ var m=nMode(); return reg.showNotification('✦ 알림이 연결되었습니다',{body:'새 소식이 오면 이렇게 알려 드립니다.',icon:'/assets/icon-192.png',badge:'/assets/badge-star.png',silent:m==='무음',vibrate:m==='무음'?undefined:m==='진동'?[300,120,300,120,600]:[80,60,80,60,220],tag:'js-test'}) });
  }).then(function(){ toast('연결했습니다. 시험 알림을 보냈습니다'); render() })
  .catch(function(e){ btn.disabled=false; btn.textContent='휴대폰 알림 받기'; toast(String(e&&e.message)==='denied'?'알림을 허용해야 받을 수 있습니다':'연결하지 못했습니다. 다시 눌러 주세요') });
 }
@@ -700,7 +753,7 @@ function endPv(){ C.pv=null; C.role=C.real; S.tab=null; load().then(function(){ 
 /* ── 화면 그리기 ── */
 var VIEWS={special:vSpecial,today:vToday,notice:vNotice,time:vTime,req:vReq,att:vAtt,mine:vMine,sreq:vSreq,over:vOver,set:vSet,mk:vMk,wait:vWait,stat:vStat,ops:vOps,fb:vFb,fbw:vFbw,
  tboard:function(){return '<h2>내 반 출결</h2><div class="legacy"><div id="tboard"></div></div>'+tip('학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.')},
- approve:function(){return '<h2>가입 승인</h2><div class="legacy"><div id="admin"></div></div>'},
+ approve:function(){return '<h2>가입 승인</h2><div id="bulkSlot"></div><div class="legacy"><div id="admin"></div></div>'},
  board:function(){return '<h2>반별 정원</h2><div class="legacy"><div id="board"></div></div>'},
  me:function(){return '<h2>반별·출석부</h2><div class="legacy"><div id="me"></div></div>'}};
 
@@ -715,12 +768,13 @@ function render(){
 function after(){
  var t=S.tab, L=C.L;
  if(!t){ if(C.role!=='parent') L.bindInstall(); bindLogout();
+   if(C.role==='teacher'&&!C.pv){ teacherGate(); return }
    pushState().then(function(st){ var sl=$('#pushSlot'); if(!sl) return; sl.innerHTML=pushCard(st); var b=$('#pushOn'); if(b) b.onclick=function(){ pushOn(b) }; var i=$('#pushIos'); if(i) i.onclick=function(){ window.JSInstall&&JSInstall.open('ios') } });
    return }
  if(t==='notice'){ evMarkSeen(); var un=(S.notices||[]).filter(function(n){return !n.read}).map(function(n){return n.id}); if(un.length) rpc('mark_notices_read',{p_ids:un}).then(function(){ (S.notices||[]).forEach(function(n){n.read=true}) }).catch(function(){}) }
  if(t==='sreq'&&C.role!=='teacher') L.consults();
  if(t==='tboard') L.teacherBoard(C.pv&&C.pv.kind==='teacher'?C.pv.name:undefined);
- if(t==='approve') L.admin(C.role==='admin');
+ if(t==='approve'){ L.admin(C.role==='admin'); bulkLoad() }
  if(t==='board') L.classBoard();
  if(t==='me') L.meBoard();
  if(t==='fb'&&C.role==='parent') fbSeen();
