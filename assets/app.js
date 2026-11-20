@@ -319,7 +319,8 @@ function poll(){ if(document.hidden||!document.getElementById('app')) return; va
 function sndCard(){ var p=sndPref();
  return '<div class="card"><div class="row"><div><h3 style="margin:0">알림음</h3><p class="sub">앱을 열어 두면 새 소식에 울립니다</p></div>'+
   '<button class="sm'+(p.on?' on':'')+'" data-snd-on="1">'+(p.on?'켜짐':'꺼짐')+'</button></div>'+
-  '<div class="seg" style="margin:14px 0 0;flex-wrap:wrap;overflow:visible">'+Object.keys(SND).map(function(k){return '<button class="sm'+(p.s===k?' on':'')+'" data-snd="'+k+'">♪ '+SND[k]+'</button>'}).join('')+'</div></div>' }
+  '<div class="seg" style="margin:14px 0 0;flex-wrap:wrap;overflow:visible">'+Object.keys(SND).map(function(k){return '<button class="sm'+(p.s===k?' on':'')+'" data-snd="'+k+'">♪ '+SND[k]+'</button>'}).join('')+'</div>'+
+  (/android/i.test(navigator.userAgent)?'<p class="sub" style="margin-top:14px">앱을 닫아 둘 때도 솔로몬 소리로 받으려면 <a class="link" href="/assets/solomon-signature.mp3" download="주니어솔로몬_알림음.mp3">소리 파일 받기</a> → 휴대폰 설정 → 알림 → 크롬 → juniorsolomon.com → 소리에서 이 파일을 고르세요.</p>':'')+'</div>' }
 
 /* ── 큰 별 알림 (앱이 열려 있을 때) ── */
 var STAR='<svg viewBox="-120 -120 240 240" width="150" height="150"><defs><radialGradient id="sg" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#FFF6D6"/><stop offset=".55" stop-color="#E8C980"/><stop offset="1" stop-color="#B8975A"/></radialGradient></defs><path d="M0,-118 C11,-28 28,-11 118,0 C28,11 11,28 0,118 C-11,28 -28,11 -118,0 C-28,-11 -11,-28 0,-118 Z" fill="url(#sg)"/></svg>';
