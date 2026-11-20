@@ -25,6 +25,11 @@ h1 em{font-style:normal;color:#7A3E8A}
 label{display:block;font-size:15px;font-weight:700;margin:16px 0 6px}
 label span{font-weight:400;color:#8A8290}
 input[type=text],input[type=email]{width:100%;min-height:52px;border:1px solid #D9CFE0;border-radius:12px;padding:0 14px;font-size:17px;font-family:inherit;background:#fff}
+.how{font-size:13.5px;line-height:1.6;color:#7A6A80;margin:8px 2px 0}
+.lr{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.lr .l{font-weight:700;color:inherit}
+.lr .ex{font-weight:500;font-size:13px;color:#A9802A;background:#FBF4E2;border-radius:999px;padding:3px 10px}
+.how b{color:#3E2843}
 .agree{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:#4E4356;margin:18px 0 6px;font-weight:400}
 .agree input{width:20px;height:20px;margin-top:3px;flex:none}
 button{width:100%;min-height:56px;margin-top:16px;border:0;border-radius:14px;background:#4A2753;color:#FBF6EE;font-size:18px;font-weight:700;font-family:inherit}
@@ -50,8 +55,9 @@ button:disabled{opacity:.6}
 <form id="f" autocomplete="on">
  <label for="n">학부모님 성함</label>
  <input type="text" id="n" name="name" maxlength="30" required>
- <label for="e">구글(gmail) 주소 <span>— 플레이스토어에 로그인된 주소</span></label>
- <input type="email" id="e" name="email" inputmode="email" placeholder="example@gmail.com" required>
+ <label for="e" class="lr"><span class="l">gmail 주소</span><span class="ex">예) junior.solomon@gmail.com</span></label>
+ <input type="email" id="e" name="email" inputmode="email" autocomplete="email" placeholder="Play 스토어에 로그인된 gmail 주소" required>
+ <div class="how">Play 스토어 앱 → 오른쪽 위 <b>동그란 프로필</b>을 누르면 맨 위에 보이는 주소입니다. 이 주소로만 앱이 열립니다.</div>
  <label for="c">자녀 이름 <span>(선택)</span></label>
  <input type="text" id="c" name="child" maxlength="30">
  <label class="agree"><input type="checkbox" id="ag"> 앱 시험 사용 안내를 위해 성함·gmail·자녀 이름을 받습니다. 시험 사용이 끝나면 6개월 안에 지웁니다.</label>
