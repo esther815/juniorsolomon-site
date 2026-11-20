@@ -283,7 +283,7 @@ function vSet(){
 
 /* ── 알림음 (앱이 열려 있을 때) ── */
 var SND={solomon:'솔로몬',crown:'왕관 팡파르',xylo:'실로폰 계단',orgel:'오르골 별',kalimba:'칼림바',bubble:'물방울',ding:'띵동'}, AC=null;
-function sndPref(){ try{ var v=JSON.parse(localStorage.getItem('js_snd')||'null'); if(v){ if(!SND[v.s]) v.s='solomon'; return v } }catch(e){} return {on:true,s:'solomon'} }
+function sndPref(){ try{ var v=JSON.parse(localStorage.getItem('js_snd')||'null'); if(v){ if(!SND[v.s]||!v.v2){ v.s='solomon'; v.v2=1; localStorage.setItem('js_snd',JSON.stringify(v)) } return v } }catch(e){} return {on:true,s:'solomon'} }
 function sndSave(v){ try{ localStorage.setItem('js_snd',JSON.stringify(v)) }catch(e){} }
 function ac(){ try{ if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==='suspended') AC.resume(); }catch(e){ AC=null } return AC }
 function tone(c,f,t0,dur,vol,type,f2){ var o=c.createOscillator(), g=c.createGain(); o.type=type||'sine'; o.frequency.setValueAtTime(f,t0); if(f2) o.frequency.exponentialRampToValueAtTime(f2,t0+dur*0.6);
@@ -424,7 +424,7 @@ function onClick(e){
  if(el.id==='aBack'){ history.back(); return }
  var d=el.dataset;
  if(d.go){ go(d.go); return }
- if(d.snd){ var p=sndPref(); p.s=d.snd; p.on=true; sndSave(p); playSnd(p.s); render(); return }
+ if(d.snd){ var p=sndPref(); p.s=d.snd; p.on=true; p.v2=1; sndSave(p); playSnd(p.s); render(); return }
  if(d.sndOn){ var q=sndPref(); q.on=!q.on; sndSave(q); if(q.on) playSnd(q.s); render(); toast(q.on?'알림음을 켰습니다':'알림음을 껐습니다'); return }
  if(d.kid!=null){ S.kid=+d.kid; S.mon=null; render(); return }
  if(d.br){ S.branch=d.br; render(); return }
