@@ -8,10 +8,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping Supabase
+        # seat_status: 홈페이지 상담 페이지가 로그인 없이 쓰는 읽기 전용 함수(anon 실행 권한 명시).
+        # 실제 DB 표를 읽으므로 깨우기 효과가 확실하고, 실패하면 상담 페이지 자리 표시도 고장 난 것.
+        # 일시 오류는 1분 간격으로 3번까지 다시 시도하고, 실패하면 응답 본문을 기록에 남긴다.
         run: |
-          code=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
-            "https://gyuuimwalbxsocnamtqk.supabase.co/rest/v1/rpc/is_admin" \
-            -H "apikey: sb_publishable_Kj2bX4fe9CRSkhvGzBbaJw_y1ZqkjOz" \
-            -H "Content-Type: application/json" -d '{}')
-          echo "status $code"
-          test "$code" = "200"
+          URL="https://gyuuimwalbxsocnamtqk.supabase.co/rest/v1/rpc/seat_status"
+          KEY="sb_publishable_Kj2bX4fe9CRSkhvGzBbaJw_y1ZqkjOz"
+          for i in 1 2 3; do
+            code=$(curl -sS -o body.txt -w "%{http_code}" --max-time 30 -X POST "$URL" \
+              -H "apikey: $KEY" -H "Authorization: Bearer $KEY" \
+              -H "Content-Type: application/json" -d '{}' || echo 000)
+            echo "try $i: status $code"
+            if [ "$code" = "200" ]; then echo "OK"; exit 0; fi
+            echo "response: $(head -c 500 body.txt 2>/dev/null)"
+            [ "$i" -lt 3 ] && sleep 60
+          done
+          echo "::error::Supabase 깨우기 실패 (status $code)"
+          exit 1
