@@ -188,3 +188,10 @@ body.app-on main.wrap{display:none}
 #app details.more summary{cursor:pointer;font-size:14.5px;font-weight:500;color:var(--purple);padding:6px 0}
 #app .wb{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 #app .wb .sm{min-height:34px;padding:6px 11px;font-size:13px}
+#app .stt{overflow-x:auto;margin:6px -4px 0}
+#app .stt table{width:100%;border-collapse:collapse;font-size:12.5px;white-space:nowrap}
+#app .stt th,#app .stt td{padding:7px 6px;text-align:right;border-bottom:1px solid var(--line)}
+#app .stt th:first-child,#app .stt td:first-child{text-align:left}
+#app .stt th{font-weight:600;color:var(--mute);font-size:11.5px;line-height:1.3}
+#app .stt th small{font-weight:400;font-size:10px}
+#app .stt tbody tr:first-child td{font-weight:700;color:var(--plum)}

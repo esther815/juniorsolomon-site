@@ -129,8 +129,20 @@ function floatBack(){
 }
 function boot(){
   try{ if(new URLSearchParams(location.search).get('app')==='1') sessionStorage.setItem('js_inapp','1') }catch(e){}
-  mount(); entryBar(); setTimeout(function(){ floatRefresh(); floatBack() },1500);
+  visit(); mount(); entryBar(); setTimeout(function(){ floatRefresh(); floatBack() },1500);
   try{ var a=new URLSearchParams(location.search).get('add'); if(a&&!inApp()) setTimeout(function(){ go(a==='android'?'android':'ios') },400) }catch(e){}
+}
+function visit(){
+  try{
+    if(/bot|crawl|spider|slurp|preview|lighthouse|headless/i.test(ua)) return;
+    var pg=(location.pathname.split('/').pop()||'index').replace(/\.html$/,'').toLowerCase()||'index';
+    var d=new Date(Date.now()+9*3600000).toISOString().slice(0,10), first=false;
+    try{ if(localStorage.getItem('js_vday')!==d){ localStorage.setItem('js_vday',d); first=true } }catch(e){}
+    var K='sb_publishable_Kj2bX4fe9CRSkhvGzBbaJw_y1ZqkjOz';
+    fetch('https://gyuuimwalbxsocnamtqk.supabase.co/rest/v1/rpc/site_ping',{method:'POST',keepalive:true,
+      headers:{'Content-Type':'application/json',apikey:K,Authorization:'Bearer '+K},
+      body:JSON.stringify({p_page:pg,p_new:first,p_app:inApp()})}).catch(function(){});
+  }catch(e){}
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
 })();

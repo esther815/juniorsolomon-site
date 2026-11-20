@@ -57,7 +57,7 @@ function tilesFor0(role){
         ['board','반별 정원','마감·모집',I.users],['notice','공지','올리기·보기',I.send]],
   manager:[['over','한눈에 현황','우리 지점',I.chart],['approve','가입 승인','학부모 가입 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],
            ['mk','보강','보강권·보강 달력',I.cal],['wait','대기 명단','반별 대기',I.note],['board','반별 정원','마감·모집',I.users],['notice','공지','올리기·보기',I.send]],
-  admin:[['over','한눈에 현황','지점별 비교',I.chart],['approve','가입 승인','학부모·직원 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],
+  admin:[['over','한눈에 현황','지점별 비교',I.chart],['stat','숫자 기록','방문·가입·탈퇴',I.chart],['approve','가입 승인','학부모·직원 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],
          ['mk','보강','보강권·보강 달력',I.cal],['wait','대기 명단','반별 대기',I.note],
          ['me','반별·출석부','정원·자료 올리기',I.users],['notice','공지','올리기·보기',I.send],['set','직원·설정','초대·알림·테스터',I.gear]]
  };
@@ -66,7 +66,7 @@ function tilesFor0(role){
 }
 var LABEL={parent:'For Parents',teacher:'Teacher',desk:'Office',manager:'Branch',admin:'Director'};
 var TITLE={special:'방학 특강',today:'오늘 우리 아이',notice:'공지',time:'시간표',req:'보강·상담',att:'출결 기록',mine:'내 정보',tboard:'내 반 출결',sreq:'상담·요청',
-           approve:'가입 승인',board:'반별 정원',over:'한눈에 현황',me:'반별·출석부',set:'직원·설정',mk:'보강',wait:'대기 명단'};
+           approve:'가입 승인',board:'반별 정원',over:'한눈에 현황',me:'반별·출석부',set:'직원·설정',mk:'보강',wait:'대기 명단',stat:'숫자 기록'};
 function pAccess(){ var k=S.kids||[]; if(!k.length) return 'open'; if(k.some(function(x){return !x.access||x.access==='open'})) return 'open'; if(k.some(function(x){return x.access==='paused'})) return 'paused'; return 'closed' }
 
 function badge(k){
@@ -385,6 +385,48 @@ function vOver(){
    (GOAL[b.id]?'<div class="bar"><i style="width:'+Math.min(100,Math.round(b.students/GOAL[b.id]*100))+'%"></i></div><p class="sub" style="margin-top:6px">2027년 10월 목표 '+GOAL[b.id]+'명 대비 '+Math.round(b.students/GOAL[b.id]*100)+'%</p>':'')+'</div>' }).join('');
  return h+tip(C.role==='admin'?'지점이 늘어나면 지점마다 한 장씩 나오고, 첫 화면에서 지점을 골라 볼 수 있습니다. 지점장 계정은 자기 지점만 봅니다.':'우리 지점 자료만 보입니다.');
 }
+function vStat(){
+ var h='<h2>숫자 기록</h2>', d=S.st;
+ if(!d) return h+'<div class="card"><p class="sub">불러오는 중입니다.</p></div>';
+ var D=d.days||[], t=d.totals||{}, z=D[0]||{};
+ function n(v){ return (v||0).toLocaleString('ko-KR') }
+ function sum(k,m){ return D.slice(0,m).reduce(function(a,x){return a+(x[k]||0)},0) }
+ function wk(k){ return n(sum(k,7)) }
+ h+='<p class="sub" style="margin:-6px 0 12px">오늘 '+esc(String(z.day||'').slice(5).replace('-','/'))+' 기준 · 매일 자정에 새 줄이 생깁니다</p>';
+ h+='<div class="grid2 k4">'+
+  '<div class="kpi"><b>'+n(z.visitors)+'명</b><span>오늘 홈페이지 방문</span></div>'+
+  '<div class="kpi"><b>'+n((z.join_parent||0)+(z.join_staff||0))+'명</b><span>오늘 가입</span></div>'+
+  '<div class="kpi"><b>'+n((z.out_enrolled||0)+(z.out_other||0))+'명</b><span>오늘 탈퇴</span></div>'+
+  '<div class="kpi"><b>'+n((z.consult||0)+(z.wait||0))+'건</b><span>오늘 상담·대기 신청</span></div></div>';
+ var rate=t.students?Math.round((t.students_linked||0)/t.students*100):0;
+ h+='<div class="card hl"><p class="sub">재원생 학부모 앱 가입</p><div class="row" style="margin-top:4px"><b class="big" style="font-size:30px">'+n(t.students_linked)+'명</b><span class="sub">재원생 '+n(t.students)+'명 중 '+rate+'%</span></div>'+
+  '<div class="bar"><i style="width:'+Math.min(100,rate)+'%"></i></div></div>';
+ h+='<div class="card"><h3>지금 회원</h3><div class="list">'+
+  '<div><span>승인된 학부모</span><b>'+n(t.parents)+'명</b></div>'+
+  '<div><span>· 재원생 학부모</span><span>'+n(t.parents_enrolled)+'명</span></div>'+
+  '<div><span>· 비재원 학부모</span><span>'+n((t.parents||0)-(t.parents_enrolled||0))+'명</span></div>'+
+  '<div><span>강사</span><span>'+n(t.teachers)+'명</span></div>'+
+  '<div><span>승인 대기</span><span>'+n(t.pending)+'명</span></div>'+
+  '<div><span>지금까지 탈퇴</span><span>'+n(t.out_total)+'명</span></div></div></div>';
+ h+='<div class="card"><h3>최근 7일 합계</h3><div class="list">'+
+  '<div><span>홈페이지 방문(하루 첫 방문 기준)</span><b>'+wk('visitors')+'명</b></div>'+
+  '<div><span>홈페이지 페이지 열람</span><span>'+wk('views')+'회</span></div>'+
+  '<div><span>앱 연 기기 (날마다 센 합)</span><span>'+wk('app')+'대</span></div>'+
+  '<div><span>학부모 가입</span><span>'+wk('join_parent')+'명</span></div>'+
+  '<div><span>승인 · 재원 / 비재원</span><span>'+wk('ok_enrolled')+' / '+wk('ok_other')+'명</span></div>'+
+  '<div><span>탈퇴 · 재원 / 비재원</span><span>'+wk('out_enrolled')+' / '+wk('out_other')+'명</span></div>'+
+  '<div><span>홈페이지 상담 / 대기 신청</span><span>'+wk('consult')+' / '+wk('wait')+'건</span></div>'+
+  '<div><span>베타 테스터 신청</span><span>'+wk('beta')+'명</span></div></div></div>';
+ var W=['일','월','화','수','목','금','토'];
+ h+='<div class="card"><h3>날짜별 (최근 14일)</h3><div class="stt"><table><thead><tr><th>날짜</th><th>방문</th><th>열람</th><th>앱</th><th>가입</th><th>승인<br><small>재원/비재원</small></th><th>탈퇴<br><small>재원/비재원</small></th><th>상담</th><th>대기</th></tr></thead><tbody>'+
+  D.map(function(x){
+   return '<tr><td>'+esc(x.day.slice(5).replace('-','/'))+' '+W[new Date(x.day+'T12:00:00Z').getUTCDay()]+'</td><td>'+n(x.visitors)+'</td><td>'+n(x.views)+'</td><td>'+n(x.app)+'</td><td>'+n((x.join_parent||0)+(x.join_staff||0))+'</td><td>'+n(x.ok_enrolled)+'/'+n(x.ok_other)+'</td><td>'+n(x.out_enrolled)+'/'+n(x.out_other)+'</td><td>'+n(x.consult)+'</td><td>'+n(x.wait)+'</td></tr>' }).join('')+
+  '</tbody></table></div></div>';
+ var P=t.pages||[], NM={index:'첫 화면',consult:'반·상담',fees:'교습비',programs:'프로그램',special:'방학 특강',member:'앱·회원',beta:'베타 신청',privacy:'개인정보',
+   'account-delete':'회원 탈퇴'};
+ if(P.length) h+='<div class="card"><h3>많이 본 페이지 (14일)</h3><div class="list">'+P.map(function(x){return '<div><span>'+esc(NM[x.page]||x.page)+'</span><span>'+n(x.views)+'회</span></div>'}).join('')+'</div></div>';
+ return h+tip('홈페이지 방문은 기기 정보 없이 하루 합계만 셉니다. 같은 기기는 하루 한 번만 방문자로 셉니다. 홈페이지 방문 기록은 2026년 11월 20일부터 쌓입니다.');
+}
 function vSet(){
  return '<h2>직원·설정</h2><div class="card"><h3>초대 링크</h3><p class="sub" style="margin-bottom:12px">링크를 받은 사람이 카카오로 가입하면 원장님 승인 뒤 화면이 열립니다.</p>'+
   '<button class="btn ghost" id="tinv" type="button">강사 초대 링크 만들기</button><div id="tinvm"></div>'+
@@ -551,7 +593,7 @@ function startPv(pv){ C.pv=pv; C.role=pv.kind; S.tab=null; S.kid=0; S.kids=[]; S
 function endPv(){ C.pv=null; C.role=C.real; S.tab=null; load().then(function(){ S.sig=sigOf(); render(); window.scrollTo(0,0) }) }
 
 /* ── 화면 그리기 ── */
-var VIEWS={special:vSpecial,today:vToday,notice:vNotice,time:vTime,req:vReq,att:vAtt,mine:vMine,sreq:vSreq,over:vOver,set:vSet,mk:vMk,wait:vWait,
+var VIEWS={special:vSpecial,today:vToday,notice:vNotice,time:vTime,req:vReq,att:vAtt,mine:vMine,sreq:vSreq,over:vOver,set:vSet,mk:vMk,wait:vWait,stat:vStat,
  tboard:function(){return '<h2>내 반 출결</h2><div class="legacy"><div id="tboard"></div></div>'+tip('학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.')},
  approve:function(){return '<h2>가입 승인</h2><div class="legacy"><div id="admin"></div></div>'},
  board:function(){return '<h2>반별 정원</h2><div class="legacy"><div id="board"></div></div>'},
@@ -577,6 +619,7 @@ function after(){
  if(t==='board') L.classBoard();
  if(t==='me') L.meBoard();
  if(t==='mk'&&!S.mbFresh){ S.mbFresh=1; loadMb().then(function(){ if(S.tab==='mk') render() }) }
+ if(t==='stat'&&!S.stFresh){ S.stFresh=1; rpc('admin_daily_stats',{p_days:14}).then(function(d){ S.st=d; if(S.tab==='stat') render() }).catch(function(){ toast('숫자를 불러오지 못했습니다') }) }
  if(t==='wait'&&!S.wlFresh){ S.wlFresh=1; rpc('waitlist_board').then(function(d){ S.wl=d; if(S.tab==='wait') render() }).catch(function(){ toast('대기 명단을 불러오지 못했습니다') }) }
  if(t==='set'){ L.inviteBtn('tinv','tinvm','new_teacher_invite','t','강사'); L.inviteBtn('dinv','dinvm','new_desk_invite','d','관리자'); L.kakaoSetup(); L.betaList(); L.usage();
    $('#pv').onclick=function(){ L.openForm(null,true) } }
@@ -587,7 +630,7 @@ function after(){
 }
 function bindLogout(){ C.L.bindLogout() }
 function loadMb(){ if(C.pv) { S.mb={staff:C.role!=='teacher',slots:[],tickets:[],students:[],classes:[]}; return Promise.resolve() } return rpc('makeup_board').then(function(d){ S.mb=d }).catch(function(){ S.mb=S.mb||null }) }
-function go(t){ S.mbFresh=0; S.wlFresh=0; S.tab=t; history.pushState({jsTab:t},'',''); render(); window.scrollTo(0,0) }
+function go(t){ S.mbFresh=0; S.wlFresh=0; S.stFresh=0; S.tab=t; history.pushState({jsTab:t},'',''); render(); window.scrollTo(0,0) }
 
 function load(){
  var r=C.role, pv=C.pv, jobs=[rpc('my_notices').then(function(d){ d=d||[];
