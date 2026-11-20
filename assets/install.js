@@ -118,7 +118,9 @@ function floatRefresh(){
   document.body.appendChild(b);
 }
 function floatBack(){
-  if(!inApp()||document.getElementById('app')||document.getElementById('jsBk')||history.length<2) return;
+  var fromSite=false; try{ fromSite=!!document.referrer&&new URL(document.referrer).host===location.host }catch(e){}
+  if(document.getElementById('app')||document.getElementById('jsBk')||history.length<2) return;
+  if(!(inApp()||fromSite)) return;
   var b=document.createElement('button'); b.id='jsBk'; b.type='button'; b.setAttribute('aria-label','이전 화면');
   b.innerHTML='<svg viewBox="0 0 24 24" width="24" height="24"><path d="M15 5l-7 7 7 7" fill="none" stroke="#5F3D66" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   var eb=document.getElementById('jsEntry')||document.getElementById('jsBottom'); b.style.cssText='position:fixed;left:16px;bottom:'+(eb?(eb.offsetHeight+14)+'px':'calc(18px + env(safe-area-inset-bottom))')+';z-index:50;width:48px;height:48px;border-radius:50%;border:1px solid #EFEAF1;background:#fff;box-shadow:0 8px 20px rgba(62,40,67,.18);display:grid;place-items:center;cursor:pointer;padding:0';
