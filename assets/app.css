@@ -213,3 +213,22 @@ body.app-on main.wrap{display:none}
 #app .nbstar.w b{font-size:11px}
 @keyframes nbtw{0%,100%{transform:scale(1)}50%{transform:scale(1.08) rotate(6deg)}}
 @media (prefers-reduced-motion:reduce){#app .nbstar{animation:none}}
+
+#app .asgc{display:block;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
+#app .asgc .sub{display:block;margin-top:4px}
+#app .asgstu .chk{display:inline-flex;align-items:center;gap:6px;margin:4px 12px 4px 0;font-size:15px}
+#app .asgbar{display:flex;align-items:center;gap:10px;margin:0 0 10px}
+#app .asgbar b{font-size:17px}
+#app .asgwarn{background:#FDF1EC;border:1px solid #F2CDBE;color:#A3402A;border-radius:12px;padding:9px 12px;font-size:13px;font-weight:700;margin-bottom:10px}
+#app .asgtools{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:6px;background:rgba(255,255,255,.96);padding:8px 0;margin-bottom:8px}
+#app .asgpg{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+#app .asgimg{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff center/100% auto no-repeat}
+#app .asgimg img{display:block;width:100%;height:auto;pointer-events:none;-webkit-user-drag:none;opacity:0}
+#app .asgimg img.lay{position:absolute;inset:0;opacity:1;height:100%}
+#app .asgimg canvas{position:absolute;inset:0;width:100%;height:100%}
+#app .asgimg .wm{position:absolute;inset:-20%;display:flex;flex-wrap:wrap;gap:40px 60px;align-content:space-around;justify-content:space-around;transform:rotate(-24deg);pointer-events:none;opacity:.10;font:700 15px/1 "Noto Sans KR",sans-serif;color:#3B2240;white-space:nowrap}
+#app .asgcr{margin-top:6px;text-align:center;font-size:10.5px;line-height:1.55;color:#7A6F80}
+#app .asgcr span{display:block}
+@media print{#app .asgpg{display:none!important}}
+#app .filebtn{display:block;border:1.5px dashed var(--line);border-radius:14px;padding:16px;text-align:center;font-weight:700;color:var(--plum);cursor:pointer;background:#FBF8FC}
+#app .filebtn input{display:none!important}
