@@ -56,7 +56,7 @@ h2{font-family:'Noto Serif KR',serif;font-weight:600;font-size:20px;margin:36px 
 .me .up input{display:block;margin:6px 0 12px;font-size:14px;max-width:100%}
 </style>
 <style>@media (hover:hover) and (pointer:fine){html,body{cursor:url("assets/cursor.svg") 3 2, auto}a,button,summary,label,[role="button"],.js-login{cursor:url("assets/cursor-gold.svg") 4 3, pointer}}</style>
-<link rel="stylesheet" href="assets/app.css?v=2">
+<link rel="stylesheet" href="assets/app.css?v=3">
 </head>
 <body>
 <main class="wrap">
@@ -67,12 +67,14 @@ h2{font-family:'Noto Serif KR',serif;font-weight:600;font-size:20px;margin:36px 
     <p class="lead">재원생 학부모님은 카카오로 한 번에 가입하고<br>로그인합니다.</p>
     <button class="kakao" id="login" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#191919" d="M12 3C6.48 3 2 6.58 2 11c0 2.85 1.86 5.35 4.66 6.77l-.95 3.48c-.08.31.27.56.54.38l4.16-2.76c.52.06 1.05.1 1.59.1 5.52 0 10-3.58 10-8S17.52 3 12 3z"/></svg>카카오로 시작하기</button>
     <p class="note">가입하면 원장님 확인 후 재원생 정보가 열립니다.<br><a href="member.html?demo=1">가입 전에 예시 화면 둘러보기</a> · <a href="privacy.html">개인정보처리방침</a></p>
+    <div class="js-install"></div>
   </div>
   <div id="msg"></div>
   <a class="home" href="index.html">← 홈페이지로</a>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="assets/app.js?v=2"></script>
+<script src="assets/app.js?v=3"></script>
+<script src="assets/install.js?v=1"></script>
 <script>
 (function(){
   var sb = window.supabase.createClient(
@@ -382,14 +384,8 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
   var deferredInstall=null;
   window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); deferredInstall=e; var b=document.getElementById('instb'); if(b) b.style.display='block' });
   function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone }
-  function installBox(){
-    if(isStandalone()) return '';
-    var ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
-    return '<div class="card" style="margin-top:16px"><div style="font-weight:700;font-size:15px">휴대폰에 앱처럼 두기</div>'+
-      (ios?'<p style="margin:8px 0 0;font-size:14px;line-height:1.7;color:#5E5866">사파리 아래쪽 <b>공유</b> 버튼(네모에 위쪽 화살표) → <b>홈 화면에 추가</b>를 누르면 왕관 아이콘이 생깁니다.</p>'
-          :'<p style="margin:8px 0 0;font-size:14px;line-height:1.7;color:#5E5866">버튼을 누르면 홈 화면에 왕관 아이콘이 생깁니다. 버튼이 없으면 브라우저 메뉴(⋮) → <b>홈 화면에 추가</b>를 누르세요.</p><button class="primary" id="instb" type="button" style="margin-top:10px;display:none">홈 화면에 추가</button>')+'</div>';
-  }
-  function bindInstall(){ var b=document.getElementById('instb'); if(!b) return; if(deferredInstall) b.style.display='block'; b.onclick=function(){ if(!deferredInstall) return; deferredInstall.prompt(); deferredInstall.userChoice.then(function(){ deferredInstall=null; b.style.display='none' }) } }
+  function installBox(){ return '<div class="js-install"></div>' }
+  function bindInstall(){ if(window.JSInstall) window.JSInstall.mount() }
 
   function kakaoSetup(){
     var btn=document.getElementById('kak'), m=document.getElementById('kakm'); if(!btn) return;

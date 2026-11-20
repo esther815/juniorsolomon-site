@@ -122,3 +122,4 @@ body.app-on main.wrap{display:none}
  #app .home-top{display:flex;gap:16px;align-items:stretch}
 }
 @media (prefers-reduced-motion:reduce){#app .nb{animation:none}}
+#app .jsi p{margin:4px 0 14px}
