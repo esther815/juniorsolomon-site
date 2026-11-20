@@ -102,8 +102,8 @@ function home(){
  return h;
 }
 function accCard(){
- if(pAccess()==='closed') return '<div class="card hl"><p class="sub">학부모 화면</p><h3 style="font-size:19px;margin:6px 0 4px">퇴원 처리되어 화면을 닫았습니다</h3><p class="sub">다시 등록하시면 이 화면이 바로 다시 열립니다.<br>문의 <a class="link" href="tel:027948123">02-794-8123</a></p></div>';
- return '<div class="card hl"><p class="sub">학부모 화면</p><h3 style="font-size:19px;margin:6px 0 4px">휴원 중입니다</h3><p class="sub">휴원 중에는 학원 공지만 볼 수 있습니다. 복귀하시면 출결·보강 화면이 다시 열립니다.<br>문의 <a class="link" href="tel:027948123">02-794-8123</a></p></div>';
+ if(pAccess()==='closed') return '<div class="card hl"><p class="sub">학부모 화면</p><h3 style="font-size:19px;margin:6px 0 4px">퇴원 처리되어 화면을 닫았습니다</h3><p class="sub">다시 등록하시면 이 화면이 바로 다시 열립니다.<br>문의 학원 대표번호 <a class="link" href="tel:01032128123">010-3212-8123</a></p></div>';
+ return '<div class="card hl"><p class="sub">학부모 화면</p><h3 style="font-size:19px;margin:6px 0 4px">휴원 중입니다</h3><p class="sub">휴원 중에는 학원 공지만 볼 수 있습니다. 복귀하시면 출결·보강 화면이 다시 열립니다.<br>문의 학원 대표번호 <a class="link" href="tel:01032128123">010-3212-8123</a></p></div>';
 }
 function foot(withOut){
  return '<div class="foot">주니어솔로몬®(상표등록 제40-1582862호)<br>중부교육지원청 제3336호 · 서울 용산구 이촌로 200, LG프라자 4층'+
@@ -916,7 +916,7 @@ function asgSend(f){
  .catch(function(x){ bb.disabled=false; prog(''); toast((x&&x.message)||'보내지 못했습니다') });
 }
 /* 학습지 화면: 원본 + 학생 층 + 선생님 층, 이름 워터마크·저작권 바닥글·캡처 경고 */
-function asgOpen(o){ if(!C.pv&&C.real!=='admin'){ return rpc('capture_status').then(function(r){ if(r&&r.blocked){ S.capBlocked=true; toast('학습지가 잠겨 있습니다. 학원(02-794-8123)으로 연락해 주세요'); return } asgOpen0(o) }).catch(function(){ asgOpen0(o) }) } asgOpen0(o) }
+function asgOpen(o){ if(!C.pv&&C.real!=='admin'){ return rpc('capture_status').then(function(r){ if(r&&r.blocked){ S.capBlocked=true; toast('학습지가 잠겨 있습니다. 학원 대표번호(010-3212-8123)로 연락해 주세요'); return } asgOpen0(o) }).catch(function(){ asgOpen0(o) }) } asgOpen0(o) }
 function asgOpen0(o){ S.asgOpen=o; S.tab='asg'; render(); window.scrollTo(0,0);
  var x, sub, name, pages, paths=[];
  if(o.mode==='do'){ x=(S.asg||[]).filter(function(a){return a.id==o.id&&a.student===o.student})[0]; if(!x) return asgClose(); sub=x.sub; name=x.child; pages=x.pages }
@@ -984,7 +984,7 @@ function asgCanvas(v, o, sub, U, canDraw){
 function capWarn(what){ if(!S||!S.asgOpen) return; var o=S.asgOpen;
  function show(r){ var old=document.getElementById('capWarn'); if(old) old.remove();
   var el=document.createElement('div'), bl=!!(r&&r.blocked); el.id='capWarn'; el.className='star-bg';
-  el.innerHTML=bl?'<div class="star-box"><b>🔒 학습지가 잠겼습니다</b><p>캡처·저장 시도가 여러 번 기록되어 학습지를 열 수 없습니다. 다시 열려면 학원(02-794-8123)으로 연락해 주세요.</p><button type="button" class="btn">확인</button></div>'
+  el.innerHTML=bl?'<div class="star-box"><b>🔒 학습지가 잠겼습니다</b><p>캡처·저장 시도가 여러 번 기록되어 학습지를 열 수 없습니다. 다시 열려면 학원 대표번호(010-3212-8123)로 연락해 주세요.</p><button type="button" class="btn">확인</button></div>'
    :'<div class="star-box"><b>⚠️ 캡처·저장은 금지되어 있습니다</b><p>이 학습지는 주니어솔로몬의 저작물입니다. 화면에 학생 이름이 새겨져 있어 밖으로 퍼지면 누가 찍었는지 알 수 있습니다. 이 시도는 학원에 기록됩니다.'+(r&&r.left>0?'<span style="display:block;margin-top:10px;color:#A3402A;font-weight:800;font-size:15px">'+r.left+'번 더 시도하면 학습지가 잠깁니다.</span>':'')+'</p><button type="button" class="btn">확인</button></div>';
   el.addEventListener('click',function(e){ if(e.target.tagName==='BUTTON'){ el.remove(); if(bl) asgClose() } });
   (document.getElementById('app')||document.body).appendChild(el); if(bl) S.capBlocked=true }
