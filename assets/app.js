@@ -37,7 +37,10 @@ function phone(t){ return esc(String(t||'').replace(/(\d{3})(\d{3,4})(\d{4})/,'$
 function toast(t){ var e=$('#aToast'); e.textContent=t; e.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(function(){e.classList.remove('show')},2200) }
 function rpc(n,a){ return C.sb.rpc(n,a||{}).then(function(r){ if(r.error) throw r.error; return r.data }) }
 function tip(t){ return '<div class="tip">'+I.info+'<span>'+t+'</span></div>' }
-function nb(n,big){ return n>0?'<span class="nb'+(big?' big':'')+'">'+(n>99?'99+':n)+'</span>':'' }
+function nb(n,big){ if(!(n>0)) return ''; var t=n>99?'99+':String(n);
+ if(big){ var P='M50 9 L61 36.4 L90.4 38.6 L67.8 57.6 L75 86.6 L50 71 L25 86.6 L32.2 57.6 L9.6 38.6 L39 36.4 Z';
+  return '<span class="nbstar'+(t.length>2?' w':t.length>1?' d':'')+'" aria-hidden="true"><svg viewBox="0 0 100 100"><defs><radialGradient id="nbsg" cx="40%" cy="32%" r="75%"><stop offset="0" stop-color="#FFF6D6"/><stop offset=".55" stop-color="#EBCB7E"/><stop offset="1" stop-color="#B8975A"/></radialGradient></defs><path d="'+P+'" fill="#fff" stroke="#fff" stroke-width="12" stroke-linejoin="round"/><path d="'+P+'" fill="url(#nbsg)" stroke="url(#nbsg)" stroke-width="5" stroke-linejoin="round"/></svg><b>'+t+'</b></span>' }
+ return '<span class="nb">'+t+'</span>' }
 
 /* 반 이름 다듬기: 「3학년 하브루타 독서토론_장화연원장 (화4:30)」 → 「3학년 하브루타 독서토론」 */
 function cname(n){ var s=String(n||'').replace(/\s*\([^)]*\)\s*$/,''); if(s.indexOf('_')>0) s=s.replace(/_[^_]*$/,''); s=s.trim(); if(/^(\d학년|\d세|[1-6]학년)$/.test(s)) s+=' 반'; return s||String(n||'') }
