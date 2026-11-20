@@ -56,7 +56,7 @@ h2{font-family:'Noto Serif KR',serif;font-weight:600;font-size:20px;margin:36px 
 .me .up input{display:block;margin:6px 0 12px;font-size:14px;max-width:100%}
 </style>
 <style>@media (hover:hover) and (pointer:fine){html,body{cursor:url("assets/cursor.svg") 3 2, auto}a,button,summary,label,[role="button"],.js-login{cursor:url("assets/cursor-gold.svg") 4 3, pointer}}</style>
-<link rel="stylesheet" href="assets/app.css?v=6">
+<link rel="stylesheet" href="assets/app.css?v=7">
 </head>
 <body>
 <main class="wrap">
@@ -73,7 +73,7 @@ h2{font-family:'Noto Serif KR',serif;font-weight:600;font-size:20px;margin:36px 
   <a class="home" href="index.html">← 홈페이지로</a>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="assets/app.js?v=9"></script>
+<script src="assets/app.js?v=10"></script>
 <script src="assets/install.js?v=2"></script>
 <script>
 (function(){
@@ -453,9 +453,9 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
     });
   }
   var AT={'출석':'#2E7D52','지각':'#8A5A12','기타':'#8A5A12','결석':'#B9573A'};
-  function teacherBoard(){
+  function teacherBoard(pv){
     var box=document.getElementById('tboard'); if(!box) return; box.className='me';
-    sb.rpc('my_teacher_board').then(function(r){
+    (pv?sb.rpc('admin_teacher_board',{p_name:pv}):sb.rpc('my_teacher_board')).then(function(r){
       var list=r.data||[];
       if(r.error||!list.length){ box.innerHTML='<div class="card" style="font-size:14px;line-height:1.7;color:#5E5866">담당 반이 아직 연결되지 않았습니다. 학원 원생 명부의 담임 이름과 등록하신 이름이 같아야 반이 보입니다. 다르면 원장님께 알려 주세요.</div>'; return }
       box.innerHTML='<h2>내 반 '+list.length+'개</h2>'+list.map(function(c){
@@ -528,8 +528,12 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
     out.querySelectorAll('[data-tab]').forEach(function(b){ b.onclick=function(){ demo(b.getAttribute('data-tab')); scrollTo(0,0) } });
   }
   if(new URLSearchParams(location.search).get('demo')==='1'){ demo(new URLSearchParams(location.search).get('tab')||'p'); return }
+  var guest=new URLSearchParams(location.search).get('guest')==='1';
+  if(guest){ out.insertAdjacentHTML('afterbegin','<div class="err" style="background:#FBF4E2;color:#7A5A12;margin:0 0 18px">미리보기 · 가입하지 않은 사람이 보는 화면입니다. <a href="member.html" style="color:#5F3D66;font-weight:700">원장 화면으로 돌아가기</a></div>') }
+  else {
   sb.auth.getSession().then(function(r){ var s=r.data&&r.data.session; if(s) show(s.user) });
   sb.auth.onAuthStateChange(function(ev,s){ if(s&&s.user) show(s.user) });
+  }
 })();
 </script>
 <script>if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(function(){}) }</script>

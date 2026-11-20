@@ -80,6 +80,7 @@ function home(){
  h+='<div class="row" style="align-items:flex-start"><div><p class="hello">'+LABEL[r]+'</p><div class="hello-b">'+hi+'</div></div>'+
     '<button class="bell" data-go="notice" aria-label="공지 '+un+'건">'+I.bell+nb(un,true)+'</button></div>';
  h+='<div id="pushSlot"></div>'+summary();
+ if(!C.pv&&C.real==='admin') h=h.replace('<div id="pushSlot"></div>','<div id="pushSlot"></div>'+pvCard());
  h+='<div class="tiles">'+tilesFor(r).map(function(t,i){ return '<button class="tile t'+i+'" data-go="'+t[0]+'">'+nb(badge(t[0]))+'<div class="ti">'+t[3]+'</div><div><b>'+t[1]+'</b><span class="s">'+t[2]+'</span></div></button>' }).join('')+'</div>';
  if(r!=='parent') h+='<div style="margin-top:18px">'+C.L.installBox()+'</div>';
  h+=foot(r!=='parent');
@@ -344,7 +345,7 @@ function pushSupported(){ return 'serviceWorker' in navigator && 'PushManager' i
 function iosNotInstalled(){ var ios=/iphone|ipad|ipod/i.test(navigator.userAgent); return ios&&!(navigator.standalone||matchMedia('(display-mode: standalone)').matches) }
 function b64(u){ var p='='.repeat((4-u.length%4)%4), s=atob((u+p).replace(/-/g,'+').replace(/_/g,'/')), a=new Uint8Array(s.length); for(var i=0;i<s.length;i++) a[i]=s.charCodeAt(i); return a }
 function pushState(){
- if(C.role!=='admin') return Promise.resolve('none');
+ if(C.real!=='admin'||C.pv) return Promise.resolve('none');
  if(iosNotInstalled()) return Promise.resolve('ios');
  if(!pushSupported()) return Promise.resolve('unsupported');
  if(Notification.permission==='denied') return Promise.resolve('denied');
@@ -378,7 +379,7 @@ function pushOn(btn){
 
 /* ── 승인 축하: 별이 쏟아짐 (처음 한 번) ── */
 function welcome(){
- if(C.role==='admin') return;
+ if(C.real==='admin'||C.pv) return;
  var k='js_welcome_'+C.p.id; try{ if(localStorage.getItem(k)) return; localStorage.setItem(k,'1') }catch(e){ return }
  var who=C.role==='parent'?'학부모님':C.role==='teacher'?((C.p.teacher_name||'')+' 선생님').trim():'선생님';
  var el=document.createElement('div'); el.className='shower';
@@ -391,6 +392,35 @@ function welcome(){
  setTimeout(function(){ el.classList.add('done') },6000);
 }
 
+/* ── 원장 미리보기: 관리자·강사·학부모·승인 대기·비회원 화면 ── */
+function pvCard(){
+ if(C.real!=='admin'||C.pv) return '';
+ return '<div class="card"><h3 style="margin:0 0 4px">다른 화면 미리보기</h3><p class="sub" style="margin-bottom:12px">그 사람이 보는 화면을 실제 자료로 봅니다. 고칠 곳을 찾을 때 쓰세요.</p>'+
+  '<div class="seg" style="margin:0;flex-wrap:wrap;overflow:visible">'+[['desk','관리자'],['teacher','강사'],['parent','학부모'],['pending','승인 대기'],['guest','비회원']].map(function(x){return '<button class="sm" data-pv="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div></div>';
+}
+function pvBanner(){
+ if(!C.pv) return '';
+ return '<div class="pvbar"><span>미리보기 · '+esc(C.pv.label)+'</span><button type="button" data-pvexit="1">원장 화면으로</button></div>';
+}
+function pvPick(kind){
+ if(kind==='guest'){ location.href='/member.html?guest=1'; return }
+ if(kind==='pending'){ C.L.openForm(null,true); return }
+ if(kind==='desk'){ startPv({kind:'desk',label:'관리자 화면'}); return }
+ rpc('admin_preview_people').then(function(pp){
+  var list=kind==='teacher'?(pp.teachers||[]).map(function(t){return {v:t,l:t+' 선생님'}}):(pp.parents||[]).map(function(x){return {v:x.id,l:(x.kids||'')+' 학부모'}});
+  if(!list.length) return toast(kind==='teacher'?'연결된 강사가 없습니다':'승인된 학부모가 없습니다');
+  var el=document.createElement('div'); el.className='star-bg';
+  el.innerHTML='<div class="star-box" style="padding:24px 20px 18px;max-height:80vh;overflow:auto"><b>'+(kind==='teacher'?'어느 선생님 화면을 볼까요?':'어느 학부모 화면을 볼까요?')+'</b>'+
+   '<div class="list" style="text-align:left;margin:10px 0 6px">'+list.map(function(x,i){return '<div><span>'+esc(x.l)+'</span><button class="sm" data-pick="'+i+'">보기</button></div>'}).join('')+'</div>'+
+   '<button type="button" class="btn ghost" data-close="1">닫기</button></div>';
+  el.addEventListener('click',function(e){ var b=e.target.closest('[data-pick]'); if(b){ var x=list[+b.dataset.pick]; el.remove(); startPv(kind==='teacher'?{kind:'teacher',name:x.v,label:x.l+' 화면'}:{kind:'parent',id:x.v,label:x.l+' 화면'}); return }
+   if(e.target===el||e.target.hasAttribute('data-close')) el.remove() });
+  document.getElementById('app').appendChild(el);
+ }).catch(function(){ toast('목록을 불러오지 못했습니다') });
+}
+function startPv(pv){ C.pv=pv; C.role=pv.kind; S.tab=null; S.kid=0; S.kids=[]; S.myreq=[]; S.sreq=[]; load().then(function(){ S.sig=sigOf(); render(); window.scrollTo(0,0) }) }
+function endPv(){ C.pv=null; C.role=C.real; S.tab=null; load().then(function(){ S.sig=sigOf(); render(); window.scrollTo(0,0) }) }
+
 /* ── 화면 그리기 ── */
 var VIEWS={today:vToday,notice:vNotice,time:vTime,req:vReq,att:vAtt,mine:vMine,sreq:vSreq,over:vOver,set:vSet,
  tboard:function(){return '<h2>내 반 출결</h2><div class="legacy"><div id="tboard"></div></div>'+tip('학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.')},
@@ -402,7 +432,7 @@ function render(){
  var v=$('#aView'), back=$('#aBack');
  $('#aRole').textContent=S.tab?TITLE[S.tab]:LABEL[C.role]; $('#aRole').className=S.tab?'ko':'';
  back.hidden=!S.tab;
- v.innerHTML=S.tab?(VIEWS[S.tab]||home)():home();
+ v.innerHTML=pvBanner()+(S.tab?(VIEWS[S.tab]||home)():home());
  after();
 }
 function after(){
@@ -412,7 +442,7 @@ function after(){
    return }
  if(t==='notice'){ var un=(S.notices||[]).filter(function(n){return !n.read}).map(function(n){return n.id}); if(un.length) rpc('mark_notices_read',{p_ids:un}).then(function(){ (S.notices||[]).forEach(function(n){n.read=true}) }).catch(function(){}) }
  if(t==='sreq'&&C.role!=='teacher') L.consults();
- if(t==='tboard') L.teacherBoard();
+ if(t==='tboard') L.teacherBoard(C.pv&&C.pv.kind==='teacher'?C.pv.name:undefined);
  if(t==='approve') L.admin(C.role==='admin');
  if(t==='board') L.classBoard();
  if(t==='me') L.meBoard();
@@ -427,21 +457,27 @@ function bindLogout(){ C.L.bindLogout() }
 function go(t){ S.tab=t; history.pushState({jsTab:t},'',''); render(); window.scrollTo(0,0) }
 
 function load(){
- var r=C.role, jobs=[rpc('my_notices').then(function(d){S.notices=d||[]}).catch(function(){S.notices=[]})];
- if(r==='parent'){ jobs.push(rpc('my_children').then(function(d){S.kids=d||[]}).catch(function(){S.kids=[]}));
-                   jobs.push(rpc('my_requests').then(function(d){S.myreq=d||[]}).catch(function(){S.myreq=[]})) }
- else { jobs.push(rpc('staff_requests').then(function(d){S.sreq=d||[]}).catch(function(){S.sreq=[]})) }
+ var r=C.role, pv=C.pv, jobs=[rpc('my_notices').then(function(d){ d=d||[];
+   if(pv&&r==='parent') d=d.filter(function(n){return n.audience!=='staff'}); if(pv&&r==='teacher') d=d.filter(function(n){return n.audience!=='parents'});
+   S.notices=d }).catch(function(){S.notices=[]})];
+ if(r==='parent'){ jobs.push(rpc(pv?'admin_preview_children':'my_children',pv?{p_parent:pv.id}:{}).then(function(d){S.kids=d||[]}).catch(function(){S.kids=[]}));
+                   jobs.push(rpc(pv?'admin_preview_requests':'my_requests',pv?{p_parent:pv.id}:{}).then(function(d){S.myreq=d||[]}).catch(function(){S.myreq=[]})) }
+ else { jobs.push(rpc('staff_requests').then(function(d){ d=d||[];
+   if(pv&&r==='teacher') d=d.filter(function(x){return x.to==='담임'&&String(x.teacher||'').replace(/\s/g,'')===pv.name}).map(function(x){ return Object.assign({},x,{parent:null,phone:null}) });
+   S.sreq=d }).catch(function(){S.sreq=[]})) }
  if(r==='admin'||r==='manager'||r==='desk') jobs.push(rpc('branch_overview').then(function(d){S.over=d||[]}).catch(function(){S.over=[]}));
  return Promise.all(jobs);
 }
 
 function onClick(e){
  ac();
- var el=e.target.closest('[data-go],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],#aBack,#aRefresh'); if(!el) return;
+ var el=e.target.closest('[data-go],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],[data-pv],[data-pvexit],#aBack,#aRefresh'); if(!el) return;
  if(el.id==='aBack'){ history.back(); return }
  if(el.id==='aRefresh'){ el.classList.add('spin'); try{ sessionStorage.setItem('js_tab',S.tab||'') }catch(x){} setTimeout(function(){ location.replace('/member.html?r='+Date.now()) },350); return }
  var d=el.dataset;
  if(d.go){ go(d.go); return }
+ if(d.pv){ pvPick(d.pv); return }
+ if(d.pvexit){ endPv(); return }
  if(d.snd){ var p=sndPref(); p.s=d.snd; p.on=true; p.v2=1; sndSave(p); playSnd(p.s); render(); return }
  if(d.sndOn){ var q=sndPref(); q.on=!q.on; sndSave(q); if(q.on) playSnd(q.s); render(); toast(q.on?'알림음을 켰습니다':'알림음을 껐습니다'); return }
  if(d.kid!=null){ S.kid=+d.kid; S.mon=null; render(); return }
@@ -459,6 +495,7 @@ function onClick(e){
 function onSubmit(e){
  var f=e.target; if(f.id!=='fReq'&&f.id!=='fNotice') return; e.preventDefault();
  var b=f.querySelector('button.btn');
+ if(f.id==='fReq'&&C.pv){ toast('미리보기에서는 보내지 않습니다'); return }
  if(f.id==='fReq'){
   var k=S.rkind||'결석 알림', day=f.day.value||null, memo=f.memo.value.trim();
   if(k==='결석 알림'){ if(!day) return toast('결석하는 날을 골라 주세요.'); memo='[사유: '+f.why.value+'] '+memo }
@@ -477,7 +514,7 @@ function onSubmit(e){
 }
 
 window.JSApp={mount:function(ctx){
- C=ctx; S={tab:null,kid:0,branch:'all',rf:'open'};
+ C=ctx; C.real=ctx.role; C.pv=null; S={tab:null,kid:0,branch:'all',rf:'open'};
  var old=document.getElementById('app'); if(old) old.remove(); var rf=document.getElementById('jsRf'); if(rf) rf.remove();
  var root=document.createElement('div'); root.id='app';
  root.innerHTML='<div class="app"><header class="top"><button class="back" id="aBack" hidden>'+I.back+'<span>뒤로</span></button>'+

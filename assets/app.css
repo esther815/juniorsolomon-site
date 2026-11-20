@@ -150,3 +150,6 @@ body.app-on main.wrap{display:none}
 #app .star-box.wel{z-index:2}
 #app .shower.done i{display:none}
 @media (prefers-reduced-motion:reduce){#app .shower i{display:none}}
+
+#app .pvbar{position:sticky;top:64px;z-index:4;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#FBF4E2;border:1px solid #EBD476;color:#7A5A12;border-radius:16px;padding:10px 12px 10px 16px;margin:0 0 16px;font-size:14px;font-weight:500}
+#app .pvbar button{border:0;background:#3E2843;color:#fff;border-radius:999px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer;flex:none}
