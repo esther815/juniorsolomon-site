@@ -50,29 +50,31 @@ function stTag(s){ return '<span class="tag '+({'출석':'ok','지각':'y','결�
 function tilesFor(role){ var T0=tilesFor0(role); if(specials().length&&role!=='teacher') T0=T0.concat([['special','방학 특강','지금 모집 중',I.star||I.cal]]); return T0 }
 function tilesFor0(role){
  var T={
-  parent:[['today','오늘 우리 아이','출결·다음 수업',I.home],['notice','공지','학원 소식',I.bell],['time','시간표','수업 요일·예약',I.cal],
+  parent:[['today','오늘 우리 아이','출결·다음 수업',I.home],['fb','수업 피드백','선생님이 보낸 수업 이야기',I.note],['notice','공지','학원 소식',I.bell],['time','시간표','수업 요일·예약',I.cal],
           ['req','보강·상담','결석 알림·상담 신청',I.chat],['att','출결 기록','달력으로 한눈에',I.check],['mine','내 정보','자녀 추가·로그아웃',I.me]],
-  teacher:[['tboard','내 반 출결','반별 학생·최근 출결',I.users],['mk','보강','보강 시간·출석 체크',I.cal],['sreq','받은 상담','학부모가 보낸 신청',I.chat],['notice','공지','학원 소식',I.bell]],
+  teacher:[['fb','수업 피드백','오늘 수업 보내기',I.send],['tboard','내 반 출결','반별 학생·최근 출결',I.users],['mk','보강','보강 시간·출석 체크',I.cal],['sreq','받은 상담','학부모가 보낸 신청',I.chat],['notice','공지','학원 소식',I.bell]],
   desk:[['approve','가입 승인','학부모 가입 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],['mk','보강','보강권·보강 달력',I.cal],['wait','대기 명단','반별 대기',I.note],
         ['board','반별 정원','마감·모집',I.users],['notice','공지','올리기·보기',I.send]],
   manager:[['over','한눈에 현황','우리 지점',I.chart],['approve','가입 승인','학부모 가입 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],
            ['mk','보강','보강권·보강 달력',I.cal],['wait','대기 명단','반별 대기',I.note],['board','반별 정원','마감·모집',I.users],['notice','공지','올리기·보기',I.send]],
-  admin:[['over','한눈에 현황','지점별 비교',I.chart],['stat','숫자 기록','방문·가입·탈퇴',I.chart],['approve','가입 승인','학부모·직원 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],
+  admin:[['fbw','피드백 현황','이번 주 안 나간 반',I.check],['fb','수업 피드백','올리기·기록',I.send],['over','한눈에 현황','지점별 비교',I.chart],['stat','숫자 기록','방문·가입·탈퇴',I.chart],['approve','가입 승인','학부모·직원 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],
          ['mk','보강','보강권·보강 달력',I.cal],['wait','대기 명단','반별 대기',I.note],
          ['me','반별·출석부','정원·자료 올리기',I.users],['notice','공지','올리기·보기',I.send],['set','직원·설정','초대·알림·테스터',I.gear]]
  };
- if(role==='parent'){ var acc=pAccess(); if(acc==='paused') return [T.parent[1],T.parent[5]]; if(acc==='closed') return [T.parent[5]] }
+ if(role==='parent'){ var acc=pAccess(); if(acc==='paused') return [T.parent[2],T.parent[6]]; if(acc==='closed') return [T.parent[6]] }
  return T[role]||[];
 }
 var LABEL={parent:'For Parents',teacher:'Teacher',desk:'Office',manager:'Branch',admin:'Director'};
 var TITLE={special:'방학 특강',today:'오늘 우리 아이',notice:'공지',time:'시간표',req:'보강·상담',att:'출결 기록',mine:'내 정보',tboard:'내 반 출결',sreq:'상담·요청',
-           approve:'가입 승인',board:'반별 정원',over:'한눈에 현황',me:'반별·출석부',set:'직원·설정',mk:'보강',wait:'대기 명단',stat:'숫자 기록'};
+           approve:'가입 승인',board:'반별 정원',over:'한눈에 현황',me:'반별·출석부',set:'직원·설정',mk:'보강',wait:'대기 명단',stat:'숫자 기록',fb:'수업 피드백',fbw:'피드백 현황'};
 function pAccess(){ var k=S.kids||[]; if(!k.length) return 'open'; if(k.some(function(x){return !x.access||x.access==='open'})) return 'open'; if(k.some(function(x){return x.access==='paused'})) return 'paused'; return 'closed' }
 
 function badge(k){
  if(k==='notice') return (S.notices||[]).filter(function(n){return !n.read}).length+evUnseen();
  if(k==='sreq') return (S.sreq||[]).filter(function(r){return r.status==='접수'}).length+(C.role==='teacher'?0:sum('consults'));
  if(k==='approve') return sum('pending');
+ if(k==='fb'&&C.role==='parent') return fbUnseen();
+ if((k==='fb'&&C.role==='teacher')||k==='fbw') return fbMissing().length;
  if(k==='req') return (S.mk||[]).reduce(function(a,c){ return a+(c.tickets||[]).filter(function(t){return t.state==='발급'&&(t.slots||[]).length}).length },0);
  if(k==='mk'&&S.mb){ var td=kst().day; return (S.mb.slots||[]).reduce(function(a,z){ return a+(S.mb.staff&&z.status==='대기'?1:0)+((z.day<=td&&(S.mb.staff||z.mine))?(z.bookings||[]).filter(function(b){return b.status==='신청'}).length:0) },0) }
  return 0;
@@ -89,6 +91,7 @@ function home(){
     (r==='parent'&&pAccess()==='closed'?'':'<button class="bell" data-go="notice" aria-label="공지 '+un+'건">'+I.bell+nb(un,true)+'</button>')+'</div>';
  h+='<div id="pushSlot"></div>'+(r==='parent'&&pAccess()!=='open'?accCard():summary());
  if(!C.pv&&C.real==='admin') h=h.replace('<div id="pushSlot"></div>','<div id="pushSlot"></div>'+pvCard());
+ if(r==='teacher'||r==='admin'){ var fm=fbMissing(); if(fm.length) h+='<button class="card fbwarn" data-go="'+(r==='admin'?'fbw':'fb')+'"><b>⚠️ 피드백이 안 나간 수업 '+fm.length+'개</b><span>'+fm.slice(0,3).map(function(x){return esc(cname(x.class))+' '+md(x.day)}).join(' · ')+(fm.length>3?' 외':'')+'</span></button>' }
  h+='<div class="tiles">'+tilesFor(r).map(function(t,i){ return '<button class="tile t'+i+'" data-go="'+t[0]+'">'+nb(badge(t[0]))+'<div class="ti">'+t[3]+'</div><div><b>'+t[1]+'</b><span class="s">'+t[2]+'</span></div></button>' }).join('')+'</div>';
  if(r!=='parent') h+='<div style="margin-top:18px">'+C.L.installBox()+'</div>';
  h+=foot(r!=='parent');
@@ -385,6 +388,57 @@ function vOver(){
    (GOAL[b.id]?'<div class="bar"><i style="width:'+Math.min(100,Math.round(b.students/GOAL[b.id]*100))+'%"></i></div><p class="sub" style="margin-top:6px">2027년 10월 목표 '+GOAL[b.id]+'명 대비 '+Math.round(b.students/GOAL[b.id]*100)+'%</p>':'')+'</div>' }).join('');
  return h+tip(C.role==='admin'?'지점이 늘어나면 지점마다 한 장씩 나오고, 첫 화면에서 지점을 골라 볼 수 있습니다. 지점장 계정은 자기 지점만 봅니다.':'우리 지점 자료만 보입니다.');
 }
+function fbMissing(){ return ((S.fbw||{}).rows||[]).filter(function(x){return x.state==='안 나감'}) }
+function loadFbw(off){ var m=new Date(Date.now()+9*3600e3); m.setUTCDate(m.getUTCDate()+7*(off||0)); var day=m.toISOString().slice(0,10);
+ return rpc('feedback_week',{p_monday:day}).then(function(d){ if(!off) S.fbw=d||{rows:[]}; S.fbw2=d||{rows:[]} }).catch(function(){ if(!off) S.fbw=S.fbw||{rows:[]}; S.fbw2=S.fbw2||{rows:[]} }) }
+function fbSeenAt(){ try{ return localStorage.getItem('js_fb_seen_'+C.p.id)||'' }catch(x){ return '' } }
+function fbUnseen(){ var t=fbSeenAt(); return (S.myfb||[]).filter(function(x){return String(x.at)>t}).length }
+function fbSeen(){ var L=S.myfb||[]; if(!L.length) return; var mx=L.reduce(function(a,x){return String(x.at)>a?String(x.at):a},''); try{ localStorage.setItem('js_fb_seen_'+C.p.id,mx) }catch(x){} }
+function confirmSoft(el){ if(el.dataset.ok) return true; el.dataset.ok='1'; el.textContent='한 번 더 누르면 휴강으로 표시'; setTimeout(function(){ if(el){ delete el.dataset.ok; el.textContent='이 날 휴강으로 표시' } },4000); return false }
+var WD=['일','월','화','수','목','금','토'];
+function fbState(st){ var c={'완료':'ok','안 나감':'warn','휴강':'g','예정':'','도입 전':'g'}[st]; return '<span class="tag '+(c||'')+'">'+(st==='완료'?'보냄':st)+'</span>' }
+function fbBody(t){ return esc(t||'').replace(/\n/g,'<br>') }
+function vFb(){
+ var h='<h2>수업 피드백</h2>';
+ if(C.role==='parent'){
+  var L=S.myfb||[], seen=fbSeenAt();
+  if(!L.length) return h+'<div class="card"><p class="sub">아직 도착한 피드백이 없습니다. 선생님이 수업을 마치고 그날의 이야기를 보내 드리면 여기에 쌓입니다.</p></div>';
+  return h+L.map(function(x){ return '<div class="card fb'+(String(x.at)>seen?' new':'')+'"><div class="row"><p class="sub" style="margin:0">'+md(x.day)+' · '+esc(x.child)+'</p>'+(String(x.at)>seen?'<span class="tag y">새 피드백</span>':'')+'</div>'+
+    '<h3 style="margin:6px 0 10px">'+esc(cname(x['class']))+'</h3><p class="fbt">'+fbBody(x.body)+'</p><p class="sub" style="margin:12px 0 0">'+esc(x.teacher||'')+' 선생님'+(x.edited?' · 고쳐 씀':'')+'</p></div>' }).join('')+
+   tip('피드백은 수업이 끝난 뒤 담임 선생님이 반 전체에 보내 드립니다. 지난 피드백도 여기에 계속 남아 있습니다.');
+ }
+ var W=S.fbw||{rows:[]}, R=W.rows||[];
+ if(!S.fbw) return h+'<div class="card"><p class="sub">불러오는 중…</p></div>';
+ var miss=R.filter(function(x){return x.state==='안 나감'}), td=kst().day;
+ var pick=miss[0]||R.filter(function(x){return x.day===td})[0]||R.filter(function(x){return x.state==='예정'})[0]||R[0];
+ if(miss.length) h+='<div class="card fbwarn" style="cursor:default"><b>⚠️ 아직 안 나간 피드백 '+miss.length+'개</b><span>'+miss.map(function(x){return esc(cname(x['class']))+' '+md(x.day)}).join(' · ')+'</span></div>';
+ h+='<div class="card"><h3>오늘 수업 피드백 보내기</h3>'+(R.length?'<form id="fFb">'+
+  '<label class="l">반</label><select name="cls" id="fbClass">'+R.map(function(x){ return '<option value="'+esc(x.class_id)+'" data-day="'+esc(x.day)+'"'+(pick&&x.class_id===pick.class_id?' selected':'')+'>'+WD[x.weekday]+' '+esc(String(x.starts||'').slice(0,5))+' · '+esc(cname(x['class']))+(C.role==='admin'&&x.teacher?' ('+esc(x.teacher)+')':'')+' — '+(x.state==='완료'?'보냄':x.state)+'</option>' }).join('')+'</select>'+
+  '<label class="l">수업 날짜</label><input type="date" name="day" id="fbDay" value="'+esc(pick?pick.day:td)+'" max="'+td+'">'+
+  '<label class="l">오늘 수업 이야기</label><textarea name="body" rows="7" placeholder="오늘 읽은 책, 함께 나눈 질문, 아이들이 쓴 글, 가정에서 이어 물어보면 좋을 질문을 적어 주세요."></textarea>'+
+  '<p class="sub" style="margin:8px 0 0">보내면 이 반 학부모님께 한 번에 알림이 갑니다. 원장님 기록에도 함께 쌓입니다.</p>'+
+  '<div class="two" style="margin-top:14px"><button class="btn">피드백 보내기</button><button type="button" class="btn ghost" data-fbskip="1">이 날 휴강으로 표시</button></div></form>':'<p class="sub">이번 주 맡은 정규반이 없습니다.</p>')+'</div>';
+ if(R.length) h+='<div class="card"><h3>이번 주 '+(C.role==='admin'?'전체 반':'내 반')+'</h3><div class="list">'+R.map(function(x){ return '<div><span>'+WD[x.weekday]+' '+md(x.day)+' · '+esc(cname(x['class']))+'</span>'+fbState(x.state)+'</div>' }).join('')+'</div></div>';
+ var G=S.fblog||[];
+ h+='<div class="card"><h3>보낸 피드백</h3>'+(G.length?G.filter(function(x){return x.kind==='피드백'}).slice(0,30).map(function(x){ return '<div class="fbi"><p class="sub" style="margin:0">'+md(x.day)+' · '+esc(cname(x['class']))+' · '+esc(x.author||'')+' · 학부모 '+(x.sent||0)+'분</p><p class="fbt">'+fbBody(x.body)+'</p></div>' }).join(''):'<p class="sub">아직 보낸 피드백이 없습니다.</p>')+'</div>';
+ return h;
+}
+function vFbw(){
+ var W=S.fbw2||S.fbw, off=S.fbwk||0, h='<h2>피드백 현황</h2>';
+ if(!W) return h+'<div class="card"><p class="sub">불러오는 중…</p></div>';
+ var R=W.rows||[], c={'완료':0,'안 나감':0,'예정':0,'휴강':0}; R.forEach(function(x){ c[x.state]=(c[x.state]||0)+1 });
+ var mon=W.monday, sun=new Date(mon+'T00:00:00Z'); sun.setUTCDate(sun.getUTCDate()+6);
+ h+='<div class="seg" style="margin:0 0 12px"><button class="sm" data-fbwk="-1">‹ 지난주</button><button class="sm'+(off===0?' on':'')+'" data-fbwk="0">이번 주</button><button class="sm" data-fbwk="1">다음 주 ›</button></div>';
+ h+='<p class="sub" style="margin:-4px 0 12px">'+md(mon)+'(월) – '+md(sun.toISOString().slice(0,10))+'(일) · 정규반 '+R.length+'개</p>';
+ h+='<div class="grid2 k4"><div class="kpi"><b style="color:var(--warn)">'+c['안 나감']+'</b><span>안 나감</span></div><div class="kpi"><b>'+c['완료']+'</b><span>보냄</span></div><div class="kpi"><b>'+c['예정']+'</b><span>수업 전</span></div><div class="kpi"><b>'+c['휴강']+'</b><span>휴강</span></div></div>';
+ var miss=R.filter(function(x){return x.state==='안 나감'});
+ if(miss.length){ var T={}; miss.forEach(function(x){ var k=x.teacher||'담당 미정'; (T[k]=T[k]||[]).push(x) });
+  h+='<div class="card fbwarn" style="cursor:default"><b>⚠️ 피드백이 안 나간 반 '+miss.length+'개</b><div class="list" style="margin-top:8px">'+Object.keys(T).map(function(k){ return '<div><span><b>'+esc(k)+' 선생님</b><br><span class="sub">'+T[k].map(function(x){return WD[x.weekday]+' '+md(x.day)+' '+esc(cname(x['class']))}).join('<br>')+'</span></span><span class="tag warn">'+T[k].length+'</span></div>' }).join('')+'</div></div>' }
+ else if(R.length&&c['예정']<R.length) h+='<div class="card hl"><p class="sub">이번 주</p><h3 style="margin:4px 0 0">빠진 피드백이 없습니다</h3></div>';
+ [1,2,3,4,5,6,0].forEach(function(wd){ var D=R.filter(function(x){return x.weekday===wd}); if(!D.length) return;
+  h+='<div class="card"><h3>'+WD[wd]+'요일 · '+md(D[0].day)+'</h3><div class="list">'+D.map(function(x){ return '<div><span>'+esc(String(x.starts||'').slice(0,5))+' '+esc(cname(x['class']))+'<br><span class="sub">'+esc(x.teacher||'')+' · 재원 '+x.n+'명'+(x.at?' · '+ago(x.at)+' 보냄 · 학부모 '+(x.sent||0)+'분':'')+'</span></span>'+fbState(x.state)+'</div>' }).join('')+'</div></div>' });
+ return h+tip('수업이 끝나고 2시간이 지나도 피드백이 없으면 「안 나감」으로 바뀝니다. 매일 밤 안 나간 반의 담당 선생님께 경고 알림이 갑니다. 1:1 수업처럼 요일이 정해지지 않은 반은 이 표에 나오지 않습니다.');
+}
 function vStat(){
  var h='<h2>숫자 기록</h2>', d=S.st;
  if(!d) return h+'<div class="card"><p class="sub">불러오는 중입니다.</p></div>';
@@ -593,7 +647,7 @@ function startPv(pv){ C.pv=pv; C.role=pv.kind; S.tab=null; S.kid=0; S.kids=[]; S
 function endPv(){ C.pv=null; C.role=C.real; S.tab=null; load().then(function(){ S.sig=sigOf(); render(); window.scrollTo(0,0) }) }
 
 /* ── 화면 그리기 ── */
-var VIEWS={special:vSpecial,today:vToday,notice:vNotice,time:vTime,req:vReq,att:vAtt,mine:vMine,sreq:vSreq,over:vOver,set:vSet,mk:vMk,wait:vWait,stat:vStat,
+var VIEWS={special:vSpecial,today:vToday,notice:vNotice,time:vTime,req:vReq,att:vAtt,mine:vMine,sreq:vSreq,over:vOver,set:vSet,mk:vMk,wait:vWait,stat:vStat,fb:vFb,fbw:vFbw,
  tboard:function(){return '<h2>내 반 출결</h2><div class="legacy"><div id="tboard"></div></div>'+tip('학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.')},
  approve:function(){return '<h2>가입 승인</h2><div class="legacy"><div id="admin"></div></div>'},
  board:function(){return '<h2>반별 정원</h2><div class="legacy"><div id="board"></div></div>'},
@@ -618,6 +672,10 @@ function after(){
  if(t==='approve') L.admin(C.role==='admin');
  if(t==='board') L.classBoard();
  if(t==='me') L.meBoard();
+ if(t==='fb'&&C.role==='parent') fbSeen();
+ if(t==='fb'&&C.role!=='parent'&&!S.fbFresh){ S.fbFresh=1; Promise.all([loadFbw(0),rpc('feedback_log',{p_days:35}).then(function(d){S.fblog=d||[]}).catch(function(){S.fblog=S.fblog||[]})]).then(function(){ if(S.tab==='fb') render() }) }
+ if(t==='fbw'&&!S.fbwFresh){ S.fbwFresh=1; loadFbw(S.fbwk||0).then(function(){ if(S.tab==='fbw') render() }) }
+ if(t==='fb'&&C.role!=='parent'){ var sel=$('#fbClass'); if(sel) sel.onchange=function(){ var o=sel.options[sel.selectedIndex]; if(o&&o.dataset.day) $('#fbDay').value=o.dataset.day } }
  if(t==='mk'&&!S.mbFresh){ S.mbFresh=1; loadMb().then(function(){ if(S.tab==='mk') render() }) }
  if(t==='stat'&&!S.stFresh){ S.stFresh=1; rpc('admin_daily_stats',{p_days:14}).then(function(d){ S.st=d; if(S.tab==='stat') render() }).catch(function(){ toast('숫자를 불러오지 못했습니다') }) }
  if(t==='wait'&&!S.wlFresh){ S.wlFresh=1; rpc('waitlist_board').then(function(d){ S.wl=d; if(S.tab==='wait') render() }).catch(function(){ toast('대기 명단을 불러오지 못했습니다') }) }
@@ -630,7 +688,7 @@ function after(){
 }
 function bindLogout(){ C.L.bindLogout() }
 function loadMb(){ if(C.pv) { S.mb={staff:C.role!=='teacher',slots:[],tickets:[],students:[],classes:[]}; return Promise.resolve() } return rpc('makeup_board').then(function(d){ S.mb=d }).catch(function(){ S.mb=S.mb||null }) }
-function go(t){ S.mbFresh=0; S.wlFresh=0; S.stFresh=0; S.tab=t; history.pushState({jsTab:t},'',''); render(); window.scrollTo(0,0) }
+function go(t){ S.mbFresh=0; S.wlFresh=0; S.stFresh=0; S.fbFresh=0; S.fbwFresh=0; S.tab=t; history.pushState({jsTab:t},'',''); render(); window.scrollTo(0,0) }
 
 function load(){
  var r=C.role, pv=C.pv, jobs=[rpc('my_notices').then(function(d){ d=d||[];
@@ -642,6 +700,9 @@ function load(){
  else { jobs.push(rpc('staff_requests').then(function(d){ d=d||[];
    if(pv&&r==='teacher') d=d.filter(function(x){return x.to==='담임'&&String(x.teacher||'').replace(/\s/g,'')===pv.name}).map(function(x){ return Object.assign({},x,{parent:null,phone:null}) });
    S.sreq=d }).catch(function(){S.sreq=[]})) }
+ if(r==='parent'&&!pv) jobs.push(rpc('my_feedback',{p_limit:40}).then(function(d){S.myfb=d||[]}).catch(function(){S.myfb=[]}));
+ if(r==='parent'&&pv) S.myfb=[];
+ if((r==='teacher'||r==='admin')&&!pv) jobs.push(loadFbw(0));
  if(r!=='parent') jobs.push(loadMb());
  if(r==='admin'||r==='manager'||r==='desk') jobs.push(rpc('branch_overview').then(function(d){S.over=d||[]}).catch(function(){S.over=[]}));
  return Promise.all(jobs);
@@ -649,11 +710,13 @@ function load(){
 
 function onClick(e){
  ac();
- var el=e.target.closest('[data-go],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],[data-pv],[data-pvexit],[data-mkb],[data-mkc],[data-mkm],[data-mks],[data-mkt],[data-mki],[data-wls],#aBack,#aRefresh'); if(!el) return;
+ var el=e.target.closest('[data-go],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],[data-pv],[data-pvexit],[data-mkb],[data-mkc],[data-mkm],[data-mks],[data-mkt],[data-mki],[data-wls],[data-fbwk],[data-fbskip],#aBack,#aRefresh'); if(!el) return;
  if(el.id==='aBack'){ history.back(); return }
  if(el.id==='aRefresh'){ el.classList.add('spin'); try{ sessionStorage.setItem('js_tab',S.tab||'') }catch(x){} setTimeout(function(){ location.replace('/member.html?r='+Date.now()) },350); return }
  var d=el.dataset;
  if(d.go){ go(d.go); return }
+ if(d.fbwk!=null){ S.fbwk=(+d.fbwk===0)?0:(S.fbwk||0)+(+d.fbwk); S.fbw2=null; loadFbw(S.fbwk).then(render); return }
+ if(d.fbskip){ var ff=$('#fFb'); if(!ff) return; if(C.pv){ toast('미리보기에서는 저장하지 않습니다'); return } if(!confirmSoft(el)) return; rpc('feedback_post',{p_class:ff.cls.value,p_day:ff.day.value,p_body:ff.body.value||'',p_kind:'휴강'}).then(function(){ toast('휴강으로 표시했습니다'); S.fbFresh=0; render() }).catch(function(x){ toast(x.message||'저장하지 못했습니다') }); return }
  if(d.pv){ pvPick(d.pv); return }
  if(d.pvexit){ endPv(); return }
  if(d.snd){ var p=sndPref(); p.s=d.snd; p.on=true; p.v2=1; sndSave(p); playSnd(p.s); render(); return }
@@ -688,6 +751,8 @@ function act(el,d){
 function onSubmit(e){
  var f=e.target;
  if(f.id==='fSlot'||f.id==='fTicket'||f.id==='fClassOff'||f.id==='fWait'){ e.preventDefault(); if(C.pv){ toast('미리보기에서는 저장하지 않습니다'); return } return sub2(f) }
+ if(f.id==='fFb'){ e.preventDefault(); if(C.pv){ toast('미리보기에서는 보내지 않습니다'); return } var bb=f.querySelector('button.btn'); bb.disabled=true;
+   rpc('feedback_post',{p_class:f.cls.value,p_day:f.day.value,p_body:f.body.value,p_kind:'피드백'}).then(function(r){ toast(r&&r.new?(r.sent?'학부모 '+r.sent+'분께 보냈습니다':'저장했습니다 (앱에 가입한 학부모가 아직 없습니다)'):'고쳐 썼습니다'); S.fbFresh=0; render() }).catch(function(x){ bb.disabled=false; toast(x.message||'보내지 못했습니다') }); return }
  if(f.id!=='fReq'&&f.id!=='fNotice') return; e.preventDefault();
  var b=f.querySelector('button.btn');
  if(f.id==='fReq'&&C.pv){ toast('미리보기에서는 보내지 않습니다'); return }
