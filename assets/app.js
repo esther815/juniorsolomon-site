@@ -217,7 +217,7 @@ function vMine(){
  h+='<div class="card"><div class="list"><div><span>보호자</span><span>'+esc(p.nickname||'')+'</span></div><div><span>연락처</span><span>'+phone(p.phone)+'</span></div></div></div>';
  h+='<div class="card"><h3>자녀</h3><div class="list" id="kidsList"><div><span class="sub">불러오는 중…</span></div></div>'+
     '<div style="margin-top:14px"><button class="btn ghost" type="button" id="editKids">자녀 추가 · 정보 고치기</button></div></div>';
- h+=C.L.installBox();
+ h+=sndCard()+C.L.installBox();
  h+='<div style="margin-top:14px"><button class="btn ghost" type="button" id="logout">로그아웃</button></div>'+
     '<p style="text-align:center;margin-top:14px"><button type="button" id="delacct" style="border:0;background:none;color:#8A7F8E;font-size:13px;text-decoration:underline;cursor:pointer;font-family:inherit">회원 탈퇴</button></p>';
  return h+tip('개인정보는 학원 수업 안내와 연락에만 씁니다. <a class="link" href="privacy.html">개인정보 처리방침</a>');
@@ -237,12 +237,12 @@ function vNotice(){
    '<div style="margin-top:16px"><button class="btn">올리기</button></div></form></div>';
  }
  var L=S.notices||[];
- if(!L.length) return h+'<div class="card"><p class="sub">아직 공지가 없습니다.</p></div>';
+ if(!L.length) return h+'<div class="card"><p class="sub">아직 공지가 없습니다.</p></div>'+sndCard();
  var AUD={parents:'학부모',staff:'강사·직원',all:'모두'};
  h+=L.map(function(n){ return '<div class="ncard'+(n.read?'':' new')+'"><div class="nt"><b>'+(n.read?'':'<span class="ndot"></span>')+(n.pinned?'📌 ':'')+esc(n.title)+'</b><span class="sub" style="flex:none">'+ago(n.created_at)+'</span></div>'+
    (n.body?'<div class="nb2">'+esc(n.body)+'</div>':'')+
    (staff?'<div class="row" style="margin-top:12px"><span class="sub">'+esc(AUD[n.audience]||'')+' · '+esc(n.branch)+' · '+esc(n.author||'')+'</span><button class="sm" data-delnotice="'+n.id+'">지우기</button></div>':'')+'</div>' }).join('');
- return h;
+ return h+sndCard();
 }
 
 /* ── 받은 상담·요청 (원장·지점장·관리자·강사) ── */
@@ -280,6 +280,39 @@ function vSet(){
   '<div class="card"><h3>미리보기</h3><button class="btn ghost" id="pv" type="button">학부모 가입 화면 미리보기</button></div>'+
   '<div class="legacy"><div id="beta"></div><div id="usage"></div></div>';
 }
+
+/* ── 알림음 (앱이 열려 있을 때) ── */
+var SND={ding:'띵동',twinkle:'반짝',bell:'종소리',pop:'톡'}, AC=null;
+function sndPref(){ try{ var v=JSON.parse(localStorage.getItem('js_snd')||'null'); if(v&&SND[v.s]) return v }catch(e){} return {on:true,s:'ding'} }
+function sndSave(v){ try{ localStorage.setItem('js_snd',JSON.stringify(v)) }catch(e){} }
+function ac(){ try{ if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==='suspended') AC.resume(); }catch(e){ AC=null } return AC }
+function tone(c,f,t0,dur,vol,type){ var o=c.createOscillator(), g=c.createGain(); o.type=type||'sine'; o.frequency.value=f;
+ g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(vol,t0+0.015); g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+ o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0+dur+0.05) }
+function playSnd(name){ var c=ac(); if(!c) return; var t=c.currentTime+0.02;
+ if(name==='ding'){ tone(c,1318.5,t,0.9,0.28); tone(c,2637,t,0.5,0.05); tone(c,1046.5,t+0.32,1.3,0.26); tone(c,2093,t+0.32,0.7,0.05) }
+ else if(name==='twinkle'){ [1568,1976,2349,3136].forEach(function(f,i){ tone(c,f,t+i*0.09,0.6,0.16,'triangle') }) }
+ else if(name==='bell'){ [[880,1.6,.22],[1760,1.1,.08],[2640,.8,.05],[1318.5,1.4,.07]].forEach(function(x){ tone(c,x[0],t,x[1],x[2]) }) }
+ else { tone(c,660,t,0.18,0.3); tone(c,990,t+0.07,0.22,0.18) } }
+function sigOf(){ var g={n:{},r:{},a:{}};
+ (S.notices||[]).forEach(function(n){ if(!n.read) g.n[n.id]=1 });
+ (S.sreq||[]).forEach(function(r){ if(r.status==='접수') g.r[r.id]=1 });
+ (S.myreq||[]).forEach(function(r){ g.r[r.id]=r.status });
+ (S.kids||[]).forEach(function(k){ var a=(k.attendance||[])[0]; if(a) g.a[k.id]=a.day+a.status });
+ return g }
+function diff(o,n){ var m=[];
+ Object.keys(n.n).forEach(function(k){ if(!o.n[k]) m.push('새 공지가 왔습니다') });
+ Object.keys(n.r).forEach(function(k){ if(o.r[k]!==n.r[k]) m.push(C.role==='parent'?'보낸 신청의 답이 왔습니다':'새 상담·요청이 왔습니다') });
+ Object.keys(n.a).forEach(function(k){ if(o.a[k]!==n.a[k]) m.push('출결이 기록되었습니다') });
+ return m }
+function poll(){ if(document.hidden||!document.getElementById('app')) return; var old=S.sig||sigOf();
+ load().then(function(){ var nw=sigOf(), m=diff(old,nw); S.sig=nw;
+  if(!m.length) return; var p=sndPref(); if(p.on) playSnd(p.s); toast(m[0]);
+  var typing=document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName); if(!typing) render() }).catch(function(){}) }
+function sndCard(){ var p=sndPref();
+ return '<div class="card"><div class="row"><div><h3 style="margin:0">알림음</h3><p class="sub">앱을 열어 두면 새 소식에 울립니다</p></div>'+
+  '<button class="sm'+(p.on?' on':'')+'" data-snd-on="1">'+(p.on?'켜짐':'꺼짐')+'</button></div>'+
+  '<div class="seg" style="margin:14px 0 0;flex-wrap:wrap;overflow:visible">'+Object.keys(SND).map(function(k){return '<button class="sm'+(p.s===k?' on':'')+'" data-snd="'+k+'">♪ '+SND[k]+'</button>'}).join('')+'</div></div>' }
 
 /* ── 화면 그리기 ── */
 var VIEWS={today:vToday,notice:vNotice,time:vTime,req:vReq,att:vAtt,mine:vMine,sreq:vSreq,over:vOver,set:vSet,
@@ -324,10 +357,13 @@ function load(){
 }
 
 function onClick(e){
- var el=e.target.closest('[data-go],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],#aBack'); if(!el) return;
+ ac();
+ var el=e.target.closest('[data-go],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],#aBack'); if(!el) return;
  if(el.id==='aBack'){ history.back(); return }
  var d=el.dataset;
  if(d.go){ go(d.go); return }
+ if(d.snd){ var p=sndPref(); p.s=d.snd; p.on=true; sndSave(p); playSnd(p.s); render(); return }
+ if(d.sndOn){ var q=sndPref(); q.on=!q.on; sndSave(q); if(q.on) playSnd(q.s); render(); toast(q.on?'알림음을 켰습니다':'알림음을 껐습니다'); return }
  if(d.kid!=null){ S.kid=+d.kid; S.mon=null; render(); return }
  if(d.br){ S.branch=d.br; render(); return }
  if(d.mon){ S.mon=d.mon; render(); return }
@@ -370,8 +406,10 @@ window.JSApp={mount:function(ctx){
  root.addEventListener('click',onClick); root.addEventListener('submit',onSubmit);
  history.replaceState({jsTab:null},'','');
  window.onpopstate=function(e){ if(!document.getElementById('app')) return; S.tab=(e.state&&e.state.jsTab)||null; render() };
- return load().then(render);
+ clearInterval(window.__jsPoll); window.__jsPoll=setInterval(poll,60000);
+ if(!window.__jsVis){ window.__jsVis=1; document.addEventListener('visibilitychange',function(){ if(!document.hidden) poll() }) }
+ return load().then(function(){ S.sig=sigOf(); render() });
 },
- unmount:function(){ var a=document.getElementById('app'); if(a) a.remove(); document.body.classList.remove('app-on') }
+ unmount:function(){ clearInterval(window.__jsPoll); var a=document.getElementById('app'); if(a) a.remove(); document.body.classList.remove('app-on') }
 };
 })();
