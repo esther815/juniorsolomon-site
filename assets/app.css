@@ -137,3 +137,12 @@ body.app-on main.wrap{display:none}
 #app .star-big{--tx:-50%}
 @keyframes sbox{from{transform:scale(.7);opacity:0}}@keyframes sbg{from{opacity:0}}
 @media (prefers-reduced-motion:reduce){#app .star-big,#app .sp{animation:none}}
+
+/* 승인 축하 별 소나기 */
+#app .shower{position:fixed;inset:0;z-index:31;background:rgba(35,26,38,.5);display:flex;align-items:center;justify-content:center;overflow:hidden;animation:sbg .3s ease}
+#app .shower i{position:absolute;top:-40px;background:radial-gradient(circle at 40% 35%,#FFF6D6,#E8C980 55%,#B8975A);clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%);animation-name:sfall,stw2;animation-timing-function:linear,ease-in-out;animation-iteration-count:1,infinite;animation-fill-mode:forwards;opacity:0}
+@keyframes sfall{0%{transform:translateY(0) rotate(var(--r));opacity:0}8%{opacity:1}100%{transform:translateY(110vh) rotate(calc(var(--r) + 300deg));opacity:.9}}
+@keyframes stw2{0%,100%{filter:brightness(1)}50%{filter:brightness(1.5)}}
+#app .star-box.wel{z-index:2}
+#app .shower.done i{display:none}
+@media (prefers-reduced-motion:reduce){#app .shower i{display:none}}

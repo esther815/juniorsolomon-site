@@ -374,6 +374,21 @@ function pushOn(btn){
  .catch(function(e){ btn.disabled=false; btn.textContent='휴대폰 알림 받기'; toast(String(e&&e.message)==='denied'?'알림을 허용해야 받을 수 있습니다':'연결하지 못했습니다. 다시 눌러 주세요') });
 }
 
+/* ── 승인 축하: 별이 쏟아짐 (처음 한 번) ── */
+function welcome(){
+ if(C.role==='admin') return;
+ var k='js_welcome_'+C.p.id; try{ if(localStorage.getItem(k)) return; localStorage.setItem(k,'1') }catch(e){ return }
+ var who=C.role==='parent'?'학부모님':C.role==='teacher'?((C.p.teacher_name||'')+' 선생님').trim():'선생님';
+ var el=document.createElement('div'); el.className='shower';
+ var h=''; for(var i=0;i<46;i++){ var sz=8+Math.random()*22, l=Math.random()*100, d=2.4+Math.random()*2.6, dl=Math.random()*1.8, r=Math.random()*360;
+  h+='<i style="left:'+l.toFixed(1)+'%;width:'+sz.toFixed(0)+'px;height:'+sz.toFixed(0)+'px;animation-duration:'+d.toFixed(2)+'s,1.1s;animation-delay:'+dl.toFixed(2)+'s,'+dl.toFixed(2)+'s;--r:'+r.toFixed(0)+'deg"></i>' }
+ el.innerHTML=h+'<div class="star-box wel"><div class="star-big">'+STAR+'</div><b>환영합니다</b><p>'+esc(who)+', 가입이 승인되었습니다.<br>이제 주니어솔로몬 화면을 쓸 수 있습니다.</p><button type="button" class="btn">시작하기</button></div>';
+ el.addEventListener('click',function(e){ if(e.target.tagName==='BUTTON'){ el.remove() } });
+ document.getElementById('app').appendChild(el);
+ var p=sndPref(); if(p.on){ playSnd('solomon'); }
+ setTimeout(function(){ el.classList.add('done') },6000);
+}
+
 /* ── 화면 그리기 ── */
 var VIEWS={today:vToday,notice:vNotice,time:vTime,req:vReq,att:vAtt,mine:vMine,sreq:vSreq,over:vOver,set:vSet,
  tboard:function(){return '<h2>내 반 출결</h2><div class="legacy"><div id="tboard"></div></div>'+tip('학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.')},
@@ -470,7 +485,7 @@ window.JSApp={mount:function(ctx){
  window.onpopstate=function(e){ if(!document.getElementById('app')) return; S.tab=(e.state&&e.state.jsTab)||null; render() };
  clearInterval(window.__jsPoll); window.__jsPoll=setInterval(poll,60000);
  if(!window.__jsVis){ window.__jsVis=1; document.addEventListener('visibilitychange',function(){ if(!document.hidden) poll() }) }
- return load().then(function(){ S.sig=sigOf(); render() });
+ return load().then(function(){ S.sig=sigOf(); render(); setTimeout(welcome,400) });
 },
  unmount:function(){ clearInterval(window.__jsPoll); var a=document.getElementById('app'); if(a) a.remove(); document.body.classList.remove('app-on') }
 };
