@@ -424,6 +424,20 @@ function fbLen(){ var f=document.getElementById('fFb'); if(!f) return 0; return 
 function fbCountHtml(n){ var ok=n>=150&&n<=500; return '전체 <b style="color:'+(ok?'#2B8A3E':'var(--warn)')+'">'+n+'</b>자 / 150~500자 · '+(n<150?'조금 더 써 주세요':(n>500?'조금 줄여 주세요':'좋아요')) }
 function fbCountUpd(){ var el=document.getElementById('fbCount'); if(el) el.innerHTML=fbCountHtml(fbLen()) }
 function fbReIntro(){ var f=document.getElementById('fFb'); if(!f) return; var o=f.cls.options[f.cls.selectedIndex]; if(o&&o.getAttribute('data-day')) f.day.value=o.getAttribute('data-day'); f.intro.value=fbIntro(f.cls.value,f.day.value); fbCountUpd() }
+function fbCheck(btn){ var f=document.getElementById('fFb'), out=document.getElementById('fbChkOut'); if(!f||!out) return;
+ var txt=(f.mid.value||'').trim(); if(txt.length<10){ out.innerHTML='<p class="sub">「오늘 수업」을 먼저 적어 주세요.</p>'; return }
+ btn.disabled=true; out.innerHTML='<p class="sub">맞춤법 확인 중…</p>';
+ C.sb.functions.invoke('spellcheck',{body:{text:txt}}).then(function(r){ btn.disabled=false;
+  var d=(r&&r.data)||{}; if((r&&r.error)||d.error){ out.innerHTML='<p class="sub">검사를 못 했습니다. 잠시 후 다시 눌러 주세요.</p>'; return }
+  var is=(d.issues||[]).filter(function(x){ return x&&x.span&&f.mid.value.indexOf(x.span)>=0 }); window.__fbIssues=is;
+  if(!is.length){ out.innerHTML='<p class="sub" style="color:#2B8A3E">고칠 곳이 없어요. 깔끔합니다.</p>'; return }
+  out.innerHTML='<p class="sub" style="margin:10px 0 4px">'+is.length+'곳이 눈에 띕니다. 눌러서 고치거나 그냥 두셔도 됩니다.</p><div class="list">'+is.map(function(x,i){
+   return '<div id="fbci'+i+'" style="display:block;padding:9px 0;border-top:1px solid #eee"><span style="color:var(--warn);text-decoration:underline">'+esc(x.span)+'</span> → <b>'+esc(x.suggest||'')+'</b> <span class="sub">'+esc(x.type||'')+'</span><br><button type="button" class="sm" style="margin-top:5px" onclick="fbFix('+i+')">고치기</button></div>' }).join('')+'</div>';
+ }).catch(function(){ btn.disabled=false; out.innerHTML='<p class="sub">검사를 못 했습니다. 잠시 후 다시 눌러 주세요.</p>' }) }
+function fbFix(i){ var f=document.getElementById('fFb'), x=(window.__fbIssues||[])[i]; if(!f||!x) return;
+ if(f.mid.value.indexOf(x.span)<0){ var el0=document.getElementById('fbci'+i); if(el0) el0.innerHTML='<span class="sub">이미 고쳐졌습니다</span>'; return }
+ f.mid.value=f.mid.value.replace(x.span,x.suggest||x.span); fbCountUpd();
+ var el=document.getElementById('fbci'+i); if(el) el.innerHTML='<span class="sub" style="color:#2B8A3E">고쳤습니다 ✓</span>' }
 function vFb(){
  var h='<h2>수업 피드백</h2>';
  if(C.role==='parent'){
@@ -445,6 +459,7 @@ function vFb(){
   '<label class="l">인사 <span class="sub">자동 · 고칠 수 있어요</span></label><textarea name="intro" rows="2" oninput="fbCountUpd()">'+esc(iv)+'</textarea>'+
   '<label class="l">오늘 수업 <span class="sub">여기만 쓰면 됩니다</span></label><textarea name="mid" rows="6" oninput="fbCountUpd()" placeholder="오늘 읽은 책, 함께 나눈 질문, 아이들이 쓴 글, 집에서 이어 물어보면 좋을 점을 적어 주세요."></textarea>'+
   '<label class="l">마무리 <span class="sub">자동 · 고칠 수 있어요</span></label><textarea name="outro" rows="3" oninput="fbCountUpd()">'+esc(ov)+'</textarea>'+
+  '<button type="button" class="btn ghost" id="fbChkBtn" style="margin-top:10px" onclick="fbCheck(this)">맞춤법 확인</button><div id="fbChkOut"></div>'+
   '<p class="sub" id="fbCount" style="margin:8px 0 0">'+fbCountHtml(n0)+'</p>'+
   '<p class="sub" style="margin:4px 0 0">보내면 이 반 학부모님께 한 번에 알림이 갑니다. 원장님 기록에도 함께 쌓입니다.</p>'+
   '<div class="two" style="margin-top:14px"><button class="btn">피드백 보내기</button><button type="button" class="btn ghost" data-fbskip="1">이 날 휴강으로 표시</button></div></form>':'<p class="sub">이번 주 맡은 정규반이 없습니다.</p>')+'</div>';
