@@ -489,7 +489,7 @@ function monthlyCard(){
  if(m.err) return '<div class="card"><h3>월간 비교</h3><p class="sub">'+esc(m.err)+'</p></div>';
  var t=m.this_month, p=m.prev_month;
  function cmp(tv,pv){ var d=(tv||0)-(pv||0); return d>0?' <b style="color:#2e7d32">▲'+d+'</b>':d<0?' <b style="color:#b3261e">▼'+Math.abs(d)+'</b>':'' }
- return '<div class="card"><h3>월간 비교 <span class="sub">지난달 대비</span></h3><div class="list">'+
+ return '<div class="card"><h3>월간 비교 <span class="sub">정규반 수업 기준 · 지난달 대비</span></h3><div class="list">'+
    '<div><span>출석·지각·결석·보강</span><span>'+t.present+'·'+t.late+'·'+t.absent+'·'+t.makeup+'회</span></div>'+
    '<div><span>수업 시간</span><span>'+t.hours+'시간'+cmp(t.hours,p.hours)+' <span class="sub">(지난달 '+p.hours+'시간)</span></span></div>'+
    '<div><span>반 진행 · 휴강</span><span>'+t.held+'회 · '+t.off+'회 <span class="sub">(지난달 '+p.held+'·'+p.off+')</span></span></div>'+
