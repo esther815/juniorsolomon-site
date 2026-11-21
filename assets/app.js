@@ -93,7 +93,7 @@ function home(){
  var un=badge('notice');
  h+='<div class="row" style="align-items:flex-start"><div><p class="hello">'+LABEL[r]+'</p><div class="hello-b">'+hi+'</div></div>'+
     (r==='parent'&&pAccess()==='closed'?'':'<button class="bell" data-go="notice" aria-label="공지 '+un+'건">'+I.bell+nb(un,true)+'</button>')+'</div>';
- h+='<div id="pushSlot"></div>'+(r==='parent'&&pAccess()!=='open'?accCard():summary());
+ h+='<div id="pushSlot"></div><div id="ckSlot"></div>'+(r==='parent'&&pAccess()!=='open'?accCard():summary());
  if(!C.pv&&C.real==='admin') h=h.replace('<div id="pushSlot"></div>','<div id="pushSlot"></div>'+pvCard());
  if(r==='teacher'||r==='admin'){ var fm=fbMissing(); if(fm.length) h+='<button class="card fbwarn" data-go="'+(r==='admin'?'fbw':'fb')+'"><b>⚠️ 피드백이 안 나간 수업 '+fm.length+'개</b><span>'+fm.slice(0,3).map(function(x){return esc(cname(x.class))+' '+md(x.day)}).join(' · ')+(fm.length>3?' 외':'')+'</span></button>' }
  h+='<div class="tiles"'+(r==='teacher'&&!C.pv?' id="tTiles" hidden':'')+'>'+tilesFor(r).map(function(t,i){ return '<button class="tile t'+i+'" data-go="'+t[0]+'">'+nb(badge(t[0]))+'<div class="ti">'+t[3]+'</div><div><b>'+t[1]+'</b><span class="s">'+t[2]+'</span></div></button>' }).join('')+'</div>';
@@ -597,7 +597,7 @@ function vOps(){
  // 앱 도달
  var lr=re.students?Math.round((re.linked||0)/re.students*100):0;
  h+='<div class="card'+(lr<50?' fbwarn':'')+'"><h3>앱이 닿는 학부모</h3><div class="list"><div><span>재원생 중 학부모가 앱에 연결된 학생</span><b>'+n(re.linked)+' / '+n(re.students)+'명 ('+lr+'%)</b></div>'+
-  '<div><span>알림을 켠 학부모</span><span>'+n(re.push_parents)+'명</span></div><div><span>알림을 켠 강사</span><span>'+n(re.push_teachers)+' / '+n(re.teachers)+'명</span></div>'+(re.teacher_alerts||[]).map(function(x){return '<div><span>· '+esc(x.name||'')+' 선생님</span>'+(x.push&&x.mode?'<span class="tag ok">'+esc(x.mode)+'</span>':'<span class="tag warn">미설정</span>')+'</div>'}).join('')+'</div>'+
+  '<div><span>알림을 켠 학부모</span><span>'+n(re.push_parents)+'명</span></div><div><span>알림을 켠 강사</span><span>'+n(re.push_teachers)+' / '+n(re.teachers)+'명</span></div>'+(re.teacher_alerts||[]).map(function(x){return '<div><span>· '+esc(x.name||'')+' 선생님</span><span>'+(x.push&&x.mode?'<span class="tag ok">'+esc(x.mode)+'</span>':'<span class="tag warn">미설정</span>')+(x.classes_checked?' <span class="tag ok">반확인✓</span>':'')+(x.makeup_tried?' <span class="tag ok">보강✓</span>':'')+'</span></div>'}).join('')+'</div>'+
   (lr<50?'<p class="sub" style="margin-top:8px">수업 피드백·공지는 앱에 연결된 학부모에게만 닿습니다. 재원생 학부모 가입 안내를 먼저 보내 주세요.</p>':'')+'</div>';
  var CP=d.captures||[], RL={parent:'학부모',teacher:'강사',desk:'관리자',manager:'지점장'};
  h+='<div class="card'+(CP.length?' fbwarn':'')+'" style="cursor:default"><h3>학습지 캡처 시도 (최근 7일)</h3>'+(CP.length?'<div class="list">'+CP.map(function(x){
@@ -736,7 +736,7 @@ function modeCard(){ var m=nMode();
   '<div class="seg" style="margin:12px 0 0;flex-wrap:wrap;overflow:visible">'+Object.keys(NMODE).map(function(k){return '<button type="button" class="sm'+(m===k?' on':'')+'" data-nmode="'+k+'">'+(k==='소리'?'🔔 소리':k==='진동'?'📳 진동':'🔕 무음 알림')+'</button>'}).join('')+'</div>'+
   '<p class="sub" style="margin-top:8px">알림 끄기는 없습니다. 밤 10시~아침 8시는 자동으로 무음, 수업 중 알림은 수업이 끝나면 한 번에 옵니다.</p></div>' }
 function teacherGate(){
- var sl=$('#pushSlot'), tl=$('#tTiles'); if(!sl) return;
+ var sl=$('#pushSlot'), tl=$('#tTiles'), ck=$('#ckSlot'); if(!sl) return;
  if(!nMode()&&C.p.notify_mode) nModeSave(C.p.notify_mode,false);
  pushState().then(function(st){
   var ok=st==='on'&&!!nMode();
@@ -746,7 +746,16 @@ function teacherGate(){
   sl.querySelectorAll('[data-nmode]').forEach(function(b){ b.onclick=function(){ nModeSave(b.dataset.nmode); teacherGate() } });
   var b=$('#pushOn'); if(b) b.onclick=function(){ if(!nMode()) return; nModeSave(nMode()).then(function(){ pushOn(b) }) };
   var i=$('#pushIos'); if(i) i.onclick=function(){ window.JSInstall&&JSInstall.open('ios') };
+  if(ck) ck.innerHTML=ok?checklistCard():'';
  });
+}
+function ckMark(item){ var f=item==='classes'?'classes_checked_at':'makeup_tried_at'; if(C.p[f]) return; C.p[f]=new Date().toISOString();
+ rpc('teacher_checklist_mark',{p_item:item}).catch(function(){ C.p[f]=null }) }
+function checklistCard(){
+ var items=[['classes','반과 학생이 맞게 들어갔는지 확인하기','tboard',!!C.p.classes_checked_at],['makeup','보강 만들어보기','mk',!!C.p.makeup_tried_at]].filter(function(x){return !x[3]});
+ if(!items.length) return '';
+ return '<div class="card hl"><h3 style="margin:0 0 4px">✅ 새 기능 체크리스트</h3><p class="sub">업데이트된 기능을 하나씩 확인해 주세요.</p>'+
+  '<div class="list" style="margin-top:10px">'+items.map(function(x){ return '<button type="button" class="row" style="width:100%;align-items:center;padding:10px 0;border-top:1px solid #eee;background:none;border-left:none;border-right:none;text-align:left" data-go="'+x[2]+'"><span>⬜️ '+esc(x[1])+'</span><span class="sub">해보기 ›</span></button>' }).join('')+'</div></div>'
 }
 
 /* ── 메이크에듀 원생과 맞는 학부모 한 번에 승인 ── */
@@ -1082,7 +1091,9 @@ function after(){
 }
 function bindLogout(){ C.L.bindLogout() }
 function loadMb(){ if(C.pv) { S.mb={staff:C.role!=='teacher',slots:[],tickets:[],students:[],classes:[]}; return Promise.resolve() } return rpc('makeup_board').then(function(d){ S.mb=d }).catch(function(){ S.mb=S.mb||null }) }
-function go(t){ S.asgOpen=null; S.asgNew=0; S.mbFresh=0; S.wlFresh=0; S.stFresh=0; S.fbFresh=0; S.fbwFresh=0; S.tab=t; history.pushState({jsTab:t},'',''); render(); window.scrollTo(0,0) }
+function go(t){ S.asgOpen=null; S.asgNew=0; S.mbFresh=0; S.wlFresh=0; S.stFresh=0; S.fbFresh=0; S.fbwFresh=0; S.tab=t;
+ if(C.role==='teacher'&&!C.pv){ if(t==='tboard') ckMark('classes'); if(t==='mk') ckMark('makeup') }
+ history.pushState({jsTab:t},'',''); render(); window.scrollTo(0,0) }
 
 function load(){
  var r=C.role, pv=C.pv, jobs=[rpc('my_notices').then(function(d){ d=d||[];
