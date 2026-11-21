@@ -1160,4 +1160,5 @@ window.JSApp={mount:function(ctx){
 },
  unmount:function(){ clearInterval(window.__jsPoll); var a=document.getElementById('app'); if(a) a.remove(); document.body.classList.remove('app-on') }
 };
+window.gradeRank=gradeRank;
 })();

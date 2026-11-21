@@ -75,7 +75,7 @@ h2{font-family:'Noto Serif KR',serif;font-weight:600;font-size:20px;margin:36px 
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/site-data.js?v=1"></script>
-<script src="assets/app.js?v=27"></script>
+<script src="assets/app.js?v=28"></script>
 <script src="assets/install.js?v=7"></script>
 <script>
 (function(){
@@ -126,7 +126,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
   function teacherCode(){ try{ return localStorage.getItem('js_teacher_code')||'' }catch(e){ return '' } }
   try{ var _d=new URLSearchParams(location.search).get('d'); if(_d){ localStorage.setItem('js_desk_code',_d) } }catch(e){}
   function deskCode(){ try{ return localStorage.getItem('js_desk_code')||'' }catch(e){ return '' } }
-  var shown=false, curUser=null;
+  var shown=false, curUser=null, meSort='grade';
   function mountApp(p,role){
     var nick=esc(p.nickname||'회원');
     window.JSApp.mount({sb:sb,p:p,role:role,L:{installBox:installBox,bindInstall:bindInstall,bindLogout:bindLogout,consults:consults,teacherBoard:teacherBoard,
@@ -271,7 +271,10 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
       if(nob.length) h+='<div class="alert">생년월일이 비어 있는 재원·휴원생 '+nob.length+'명 — 메이크에듀 「생일」 칸에 8자리로 넣어 주세요.<br><span style="font-size:13px">'+nob.slice(0,30).map(function(x){return esc(x.name)}).join(', ')+(nob.length>30?' 외':'')+'</span></div>';
       if(un.length) h+='<div class="alert">홈페이지와 연결이 끊긴 반 '+un.length+'개 — 메이크에듀에서 반 이름이 바뀌었으면 알려 주세요.<br><span style="font-size:13px">'+un.map(esc).join('<br>')+'</span></div>';
       var shown=cls.filter(function(c){return c.site_key});
-      if(shown.length){ h+='<h3 style="margin:22px 0 4px;font-size:16px">홈페이지에 보이는 반</h3>'+shown.map(function(c){return '<div class="row2"><span><b>'+esc(c.display_name||c.name)+'</b><br><span style="color:#8A8290;font-size:13px">'+esc(c.teacher||'')+' · '+c.n+'/'+(c.cap||'?')+'명</span></span><span class="stg '+(c.stage||'')+'">'+(STG[c.stage]||'정원 미정')+'</span></div>'}).join('') }
+      if(meSort==='grade') shown=shown.slice().sort(function(a,b){ var nA=a.display_name||a.name, nB=b.display_name||b.name, ga=gradeRank(nA), gb=gradeRank(nB); return ga-gb||String(nA).localeCompare(String(nB)) });
+      if(shown.length){ h+='<h3 style="margin:22px 0 4px;font-size:16px">홈페이지에 보이는 반</h3>'+
+        '<div class="seg">'+[['grade','학년순'],['me','메이크에듀 순서']].map(function(t){return '<button type="button" class="sm'+(meSort===t[0]?' on':'')+'" data-mesort="'+t[0]+'">'+t[1]+'</button>'}).join('')+'</div>'+
+        shown.map(function(c){return '<div class="row2"><span><b>'+esc(c.display_name||c.name)+'</b><br><span style="color:#8A8290;font-size:13px">'+esc(c.teacher||'')+' · '+c.n+'/'+(c.cap||'?')+'명</span></span><span class="stg '+(c.stage||'')+'">'+(STG[c.stage]||'정원 미정')+'</span></div>'}).join('') }
       if(log.length){ h+='<h3 style="margin:22px 0 4px;font-size:16px">최근 변동</h3>'+log.map(function(l){
           var who=l.student_id?(names[l.student_id]||('원생 '+l.student_id)):(l.class_id||'');
           var what=l.kind==='상태'?(l.before+' → '+l.after):(l.kind==='자리 단계'?((STG[l.before]||l.before||'')+' → '+(STG[l.after]||l.after||'')):(l.class_id&&l.student_id?l.class_id:(l.after||l.before||'')));
@@ -286,6 +289,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
       box.innerHTML=h;
       document.getElementById('upb').onclick=uploadExcel; document.getElementById('fA').onchange=function(){ var fs=Array.from(this.files||[]); this.value=''; if(fs.length) uploadAttendance(fs) };
       box.querySelectorAll('[data-hold]').forEach(function(b){ b.onclick=function(){ var id=b.getAttribute('data-hold'), v=b.getAttribute('data-v')!=='1'; b.disabled=true; sb.from('me_students').update({seat_hold:v}).eq('me_id',id).then(function(r){ if(r.error){ b.disabled=false; alert('바꾸지 못했습니다. 다시 눌러 주세요.'); return } meBoard() }) } });
+      box.querySelectorAll('[data-mesort]').forEach(function(b){ b.onclick=function(){ meSort=b.getAttribute('data-mesort'); meBoard() } });
     });
   }
   function loadXLSX(){ return window.XLSX?Promise.resolve():new Promise(function(ok,no){ var s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'; s.onload=ok; s.onerror=no; document.head.appendChild(s) }) }
