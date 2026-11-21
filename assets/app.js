@@ -414,6 +414,16 @@ function confirmSoft(el){ if(el.dataset.ok) return true; el.dataset.ok='1'; el.t
 var WD=['일','월','화','수','목','금','토'];
 function fbState(st){ var c={'완료':'ok','안 나감':'warn','휴강':'g','예정':'','도입 전':'g'}[st]; return '<span class="tag '+(c||'')+'">'+(st==='완료'?'보냄':st)+'</span>' }
 function fbBody(t){ return esc(t||'').replace(/\n/g,'<br>') }
+/* ── 수업 피드백 틀: 인사·마무리는 준비된 문장이 돌아가며 자동, 가운데만 강사가 메모 ── */
+var FB_IN=['{반} {날짜} 수업 이야기를 전해 드립니다.','오늘 {반} 수업에서 아이들과 나눈 이야기입니다.','{날짜} {반} 수업, 이렇게 함께했습니다.','{반}의 {날짜} 수업을 정리해 보내 드립니다.'];
+var FB_OUT=['다음 시간에는 오늘의 흐름을 이어 가겠습니다. 집에서 "오늘 어떤 질문이 재미있었어?" 하고 물어봐 주세요.','아이가 오늘 꺼낸 생각을 집에서도 한 번 더 들어 주시면 훨씬 단단해집니다.','다음 수업도 오늘처럼 이어 가겠습니다. 읽은 책 이야기를 가볍게 물어봐 주세요.','오늘 나눈 이야기를 저녁 식탁에서 한 번 더 꺼내 보셔도 좋겠습니다.'];
+function fbHash(s){ var h=0,i; s=String(s||''); for(i=0;i<s.length;i++){ h=(h*31+s.charCodeAt(i))>>>0 } return h }
+function fbIntro(cls,day){ var nm=cname(cls)||'오늘', d=day?md(day):''; return FB_IN[fbHash((cls||'')+(day||''))%FB_IN.length].replace('{반}',nm).replace('{날짜}',d).replace(/\s+/g,' ').trim() }
+function fbOutro(cls,day){ return FB_OUT[fbHash((day||'')+(cls||'')+'o')%FB_OUT.length] }
+function fbLen(){ var f=document.getElementById('fFb'); if(!f) return 0; return [f.intro.value,f.mid.value,f.outro.value].map(function(s){return (s||'').trim()}).filter(Boolean).join('\n\n').length }
+function fbCountHtml(n){ var ok=n>=150&&n<=500; return '전체 <b style="color:'+(ok?'#2B8A3E':'var(--warn)')+'">'+n+'</b>자 / 150~500자 · '+(n<150?'조금 더 써 주세요':(n>500?'조금 줄여 주세요':'좋아요')) }
+function fbCountUpd(){ var el=document.getElementById('fbCount'); if(el) el.innerHTML=fbCountHtml(fbLen()) }
+function fbReIntro(){ var f=document.getElementById('fFb'); if(!f) return; var o=f.cls.options[f.cls.selectedIndex]; if(o&&o.getAttribute('data-day')) f.day.value=o.getAttribute('data-day'); f.intro.value=fbIntro(f.cls.value,f.day.value); fbCountUpd() }
 function vFb(){
  var h='<h2>수업 피드백</h2>';
  if(C.role==='parent'){
@@ -428,11 +438,15 @@ function vFb(){
  var miss=R.filter(function(x){return x.state==='안 나감'}), td=kst().day;
  var pick=miss[0]||R.filter(function(x){return x.day===td})[0]||R.filter(function(x){return x.state==='예정'})[0]||R[0];
  if(miss.length) h+='<div class="card fbwarn" style="cursor:default"><b>⚠️ 아직 안 나간 피드백 '+miss.length+'개</b><span>'+miss.map(function(x){return esc(cname(x['class']))+' '+md(x.day)}).join(' · ')+'</span></div>';
- h+='<div class="card"><h3>오늘 수업 피드백 보내기</h3>'+(R.length?'<form id="fFb">'+
-  '<label class="l">반</label><select name="cls" id="fbClass">'+R.map(function(x){ return '<option value="'+esc(x.class_id)+'" data-day="'+esc(x.day)+'"'+(pick&&x.class_id===pick.class_id?' selected':'')+'>'+WD[x.weekday]+' '+esc(String(x.starts||'').slice(0,5))+' · '+esc(cname(x['class']))+(C.role==='admin'&&x.teacher?' ('+esc(x.teacher)+')':'')+' — '+(x.state==='완료'?'보냄':x.state)+'</option>' }).join('')+'</select>'+
-  '<label class="l">수업 날짜</label><input type="date" name="day" id="fbDay" value="'+esc(pick?pick.day:td)+'" max="'+td+'">'+
-  '<label class="l">오늘 수업 이야기</label><textarea name="body" rows="7" placeholder="오늘 읽은 책, 함께 나눈 질문, 아이들이 쓴 글, 가정에서 이어 물어보면 좋을 질문을 적어 주세요."></textarea>'+
-  '<p class="sub" style="margin:8px 0 0">보내면 이 반 학부모님께 한 번에 알림이 갑니다. 원장님 기록에도 함께 쌓입니다.</p>'+
+ var pc=pick?pick.class_id:'', pdd=pick?pick.day:td, iv=fbIntro(pc,pdd), ov=fbOutro(pc,pdd), n0=[iv,ov].filter(Boolean).join('\n\n').length;
+ h+='<div class="card"><h3>오늘 수업 피드백 보내기</h3><p class="sub" style="margin:2px 0 10px">가운데 「오늘 수업」만 적으면 인사와 마무리는 자동으로 채워집니다. 고치고 싶은 곳만 다듬어 주세요.</p>'+(R.length?'<form id="fFb">'+
+  '<label class="l">반</label><select name="cls" id="fbClass" onchange="fbReIntro()">'+R.map(function(x){ return '<option value="'+esc(x.class_id)+'" data-day="'+esc(x.day)+'"'+(pick&&x.class_id===pick.class_id?' selected':'')+'>'+WD[x.weekday]+' '+esc(String(x.starts||'').slice(0,5))+' · '+esc(cname(x['class']))+(C.role==='admin'&&x.teacher?' ('+esc(x.teacher)+')':'')+' — '+(x.state==='완료'?'보냄':x.state)+'</option>' }).join('')+'</select>'+
+  '<label class="l">수업 날짜</label><input type="date" name="day" id="fbDay" value="'+esc(pdd)+'" max="'+td+'" onchange="fbReIntro()">'+
+  '<label class="l">인사 <span class="sub">자동 · 고칠 수 있어요</span></label><textarea name="intro" rows="2" oninput="fbCountUpd()">'+esc(iv)+'</textarea>'+
+  '<label class="l">오늘 수업 <span class="sub">여기만 쓰면 됩니다</span></label><textarea name="mid" rows="6" oninput="fbCountUpd()" placeholder="오늘 읽은 책, 함께 나눈 질문, 아이들이 쓴 글, 집에서 이어 물어보면 좋을 점을 적어 주세요."></textarea>'+
+  '<label class="l">마무리 <span class="sub">자동 · 고칠 수 있어요</span></label><textarea name="outro" rows="3" oninput="fbCountUpd()">'+esc(ov)+'</textarea>'+
+  '<p class="sub" id="fbCount" style="margin:8px 0 0">'+fbCountHtml(n0)+'</p>'+
+  '<p class="sub" style="margin:4px 0 0">보내면 이 반 학부모님께 한 번에 알림이 갑니다. 원장님 기록에도 함께 쌓입니다.</p>'+
   '<div class="two" style="margin-top:14px"><button class="btn">피드백 보내기</button><button type="button" class="btn ghost" data-fbskip="1">이 날 휴강으로 표시</button></div></form>':'<p class="sub">이번 주 맡은 정규반이 없습니다.</p>')+'</div>';
  if(R.length) h+='<div class="card"><h3>이번 주 '+(C.role==='admin'?'전체 반':'내 반')+'</h3><div class="list">'+R.map(function(x){ return '<div><span>'+WD[x.weekday]+' '+md(x.day)+' · '+esc(cname(x['class']))+'</span>'+fbState(x.state)+'</div>' }).join('')+'</div></div>';
  var G=S.fblog||[];
@@ -1138,7 +1152,7 @@ function onClick(e){
   rpc('student_note_add',{p_id:S.stuId,p_kind:d.snote,p_memo:mv}).then(function(){ S.stuC=null; S.opsFresh=0; toast(d.snote==='메모'?'메모를 남겼습니다':'「'+d.snote+'」 기록했습니다'); render() }).catch(function(er){ el.disabled=false; toast(er&&er.message?er.message.replace(/^.*?: /,''):'저장하지 못했습니다') }); return }
  if(d.cunb){ if(C.pv){ toast('미리보기에서는 바꾸지 않습니다'); return } el.disabled=true; rpc('capture_unblock',{p_user:d.cunb}).then(function(){ toast('잠금을 풀었습니다'); S.opsFresh=0; render() }).catch(function(x){ el.disabled=false; toast(x.message||'풀지 못했습니다') }); return }
  if(d.fbwk!=null){ S.fbwk=(+d.fbwk===0)?0:(S.fbwk||0)+(+d.fbwk); S.fbw2=null; loadFbw(S.fbwk).then(render); return }
- if(d.fbskip){ var ff=$('#fFb'); if(!ff) return; if(C.pv){ toast('미리보기에서는 저장하지 않습니다'); return } if(!confirmSoft(el)) return; rpc('feedback_post',{p_class:ff.cls.value,p_day:ff.day.value,p_body:ff.body.value||'',p_kind:'휴강'}).then(function(){ toast('휴강으로 표시했습니다'); S.fbFresh=0; render() }).catch(function(x){ toast(x.message||'저장하지 못했습니다') }); return }
+ if(d.fbskip){ var ff=$('#fFb'); if(!ff) return; if(C.pv){ toast('미리보기에서는 저장하지 않습니다'); return } if(!confirmSoft(el)) return; rpc('feedback_post',{p_class:ff.cls.value,p_day:ff.day.value,p_body:'',p_kind:'휴강'}).then(function(){ toast('휴강으로 표시했습니다'); S.fbFresh=0; render() }).catch(function(x){ toast(x.message||'저장하지 못했습니다') }); return }
  if(d.pv){ pvPick(d.pv); return }
  if(d.pvexit){ endPv(); return }
  if(d.snd){ var p=sndPref(); p.s=d.snd; p.on=true; p.v2=1; sndSave(p); playSnd(p.s); render(); return }
@@ -1180,8 +1194,13 @@ function onSubmit(e){
    return }
  if(f.id==='fStuQ'){ e.preventDefault(); var qv=(f.q.value||'').trim(); if(!qv){ toast('이름을 적어 주세요'); return } rpc('student_search',{p_q:qv}).then(function(x){ S.stuQ={q:qv,rows:x||[]}; render() }).catch(function(){ toast('찾지 못했습니다') }); return }
  if(f.id==='fAsg'){ e.preventDefault(); if(C.pv){ toast('미리보기에서는 보내지 않습니다'); return } asgSend(f); return }
- if(f.id==='fFb'){ e.preventDefault(); if(C.pv){ toast('미리보기에서는 보내지 않습니다'); return } var bb=f.querySelector('button.btn'); bb.disabled=true;
-   rpc('feedback_post',{p_class:f.cls.value,p_day:f.day.value,p_body:f.body.value,p_kind:'피드백'}).then(function(r){ toast(r&&r.new?(r.sent?'학부모 '+r.sent+'분께 보냈습니다':'저장했습니다 (앱에 가입한 학부모가 아직 없습니다)'):'고쳐 썼습니다'); S.fbFresh=0; render() }).catch(function(x){ bb.disabled=false; toast(x.message||'보내지 못했습니다') }); return }
+ if(f.id==='fFb'){ e.preventDefault(); if(C.pv){ toast('미리보기에서는 보내지 않습니다'); return }
+   var mid=(f.mid.value||'').trim(); if(mid.length<40){ toast('「오늘 수업」을 40자 이상 적어 주세요.'); f.mid.focus(); return }
+   var body=[f.intro.value,f.mid.value,f.outro.value].map(function(s){return (s||'').trim()}).filter(Boolean).join('\n\n');
+   if(body.length<150){ toast('전체가 150자 이상이 되도록 조금 더 써 주세요.'); return }
+   if(body.length>500){ toast('전체 500자까지입니다. 조금 줄여 주세요.'); return }
+   var bb=f.querySelector('button.btn'); bb.disabled=true;
+   rpc('feedback_post',{p_class:f.cls.value,p_day:f.day.value,p_body:body,p_kind:'피드백'}).then(function(r){ toast(r&&r.new?(r.sent?'학부모 '+r.sent+'분께 보냈습니다':'저장했습니다 (앱에 가입한 학부모가 아직 없습니다)'):'고쳐 썼습니다'); S.fbFresh=0; render() }).catch(function(x){ bb.disabled=false; toast(x.message||'보내지 못했습니다') }); return }
  if(f.id!=='fReq'&&f.id!=='fNotice') return; e.preventDefault();
  var b=f.querySelector('button.btn');
  if(f.id==='fReq'&&C.pv){ toast('미리보기에서는 보내지 않습니다'); return }
