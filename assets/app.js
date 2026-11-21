@@ -439,6 +439,30 @@ function fbFix(i){ var f=document.getElementById('fFb'), x=(window.__fbIssues||[
  if(f.mid.value.indexOf(x.span)<0){ var el0=document.getElementById('fbci'+i); if(el0) el0.innerHTML='<span class="sub">이미 고쳐졌습니다</span>'; return }
  f.mid.value=f.mid.value.replace(x.span,x.suggest||x.span); fbCountUpd();
  var el=document.getElementById('fbci'+i); if(el) el.innerHTML='<span class="sub" style="color:#2B8A3E">고쳤습니다 ✓</span>' }
+/* ── 피드백 보내기: 미리보기 확인 팝업 + 1분 되돌리기(그 안엔 실제로 안 나감) ── */
+function fbModal(p){ fbCloseModal();
+ var ov=document.createElement('div'); ov.id='fbOv';
+ ov.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(20,10,25,.5);display:flex;align-items:center;justify-content:center;padding:18px';
+ ov.innerHTML='<div style="background:#fff;border-radius:16px;max-width:460px;width:100%;max-height:85vh;overflow:auto;padding:22px"><h3 style="margin:0 0 4px">이대로 보낼까요?</h3><p class="sub" style="margin:0 0 12px">보내면 이 반 학부모님께 알림이 갑니다. 보내기 전에 다시 한 번 읽어 주세요.</p><div style="background:#f6f7f9;border-radius:12px;padding:14px;white-space:pre-wrap;line-height:1.65">'+esc(p.p_body)+'</div><div class="two" style="margin-top:18px"><button type="button" class="btn ghost" id="fbCancelBtn">다시 볼게요</button><button type="button" class="btn" id="fbGoBtn">네, 보낼게요</button></div></div>';
+ document.body.appendChild(ov);
+ ov.addEventListener('click',function(e){ if(e.target===ov) fbCloseModal() });
+ document.getElementById('fbCancelBtn').onclick=fbCloseModal;
+ document.getElementById('fbGoBtn').onclick=function(){ fbCloseModal(); fbQueueSend(p) } }
+function fbCloseModal(){ var o=document.getElementById('fbOv'); if(o) o.remove() }
+function fbQueueSend(p){ if(window.__fbPending) fbFlush(true);
+ var bar=document.createElement('div'); bar.id='fbUndoBar';
+ bar.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:9997;background:#2E1B35;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:15px';
+ bar.innerHTML='<span>피드백을 보냈어요 · <b id="fbCd">60</b>초 안에 되돌릴 수 있어요</span><button type="button" id="fbUndoBtn" style="background:#fff;color:#2E1B35;border:none;border-radius:9px;padding:9px 15px;font-weight:700;flex:none">되돌리기</button>';
+ document.body.appendChild(bar);
+ document.getElementById('fbUndoBtn').onclick=fbUndo;
+ var n=60, iv=setInterval(function(){ n--; var c=document.getElementById('fbCd'); if(c)c.textContent=n; if(n<=0)clearInterval(iv) },1000);
+ window.__fbPending={p:p,t:setTimeout(function(){ fbFlush() },60000),iv:iv};
+ if(!window.__fbUnloadSet){ window.__fbUnloadSet=1;
+  window.addEventListener('pagehide',function(){ fbFlush(true) });
+  document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='hidden') fbFlush(true) }); } }
+function fbUndo(){ var q=window.__fbPending; if(!q) return; clearTimeout(q.t); clearInterval(q.iv); window.__fbPending=null; var b=document.getElementById('fbUndoBar'); if(b)b.remove(); toast('되돌렸어요. 학부모에게 보내지 않았습니다.') }
+function fbFlush(silent){ var q=window.__fbPending; if(!q) return; clearTimeout(q.t); clearInterval(q.iv); window.__fbPending=null; var b=document.getElementById('fbUndoBar'); if(b)b.remove();
+ rpc('feedback_post',{p_class:q.p.p_class,p_day:q.p.p_day,p_body:q.p.p_body,p_kind:'피드백'}).then(function(r){ if(!silent){ toast(r&&r.new?(r.sent?'학부모 '+r.sent+'분께 전송됐어요':'전송했어요 (가입한 학부모가 아직 없어요)'):'전송했어요'); S.fbFresh=0; render() } }).catch(function(x){ toast('전송 실패: '+((x&&x.message)||'다시 시도해 주세요')) }) }
 function vFb(){
  var h='<h2>수업 피드백</h2>';
  if(C.role==='parent'){
@@ -1215,8 +1239,7 @@ function onSubmit(e){
    var body=[f.intro.value,f.mid.value,f.outro.value].map(function(s){return (s||'').trim()}).filter(Boolean).join('\n\n');
    if(body.length<150){ toast('전체가 150자 이상이 되도록 조금 더 써 주세요.'); return }
    if(body.length>500){ toast('전체 500자까지입니다. 조금 줄여 주세요.'); return }
-   var bb=f.querySelector('button.btn'); bb.disabled=true;
-   rpc('feedback_post',{p_class:f.cls.value,p_day:f.day.value,p_body:body,p_kind:'피드백'}).then(function(r){ toast(r&&r.new?(r.sent?'학부모 '+r.sent+'분께 보냈습니다':'저장했습니다 (앱에 가입한 학부모가 아직 없습니다)'):'고쳐 썼습니다'); S.fbFresh=0; render() }).catch(function(x){ bb.disabled=false; toast(x.message||'보내지 못했습니다') }); return }
+   fbModal({p_class:f.cls.value,p_day:f.day.value,p_body:body}); return }
  if(f.id!=='fReq'&&f.id!=='fNotice') return; e.preventDefault();
  var b=f.querySelector('button.btn');
  if(f.id==='fReq'&&C.pv){ toast('미리보기에서는 보내지 않습니다'); return }
