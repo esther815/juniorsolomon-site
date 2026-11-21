@@ -50,7 +50,8 @@ function stCls(s){ return s==='출석'?'ok':s==='지각'?'late':s==='결석'?'ab
 function stTag(s){ return '<span class="tag '+({'출석':'ok','지각':'y','결석':'warn'}[s]||'g')+'">'+esc(s)+'</span>' }
 
 /* ── 역할별 첫 화면 버튼 ── */
-function tilesFor(role){ var T0=tilesFor0(role); if(specials().length&&role!=='teacher') T0=T0.concat([['special','방학 특강','지금 모집 중',I.star||I.cal]]); return T0 }
+var SHOW_SPECIAL=false; // 방학 특강 타일: 지금은 숨김(원장 지시 2026-11-22). 켤 때 true로.
+function tilesFor(role){ var T0=tilesFor0(role); if(SHOW_SPECIAL&&specials().length&&role!=='teacher') T0=T0.concat([['special','방학 특강','지금 모집 중',I.star||I.cal]]); return T0 }
 function tilesFor0(role){
  var T={
   parent:[['today','오늘 우리 아이','출결·다음 수업',I.home],['fb','수업 피드백','선생님이 보낸 수업 이야기',I.note],['asg','과제','선생님이 보낸 학습지',I.book],['notice','공지','학원 소식',I.bell],['time','시간표','수업 요일·예약',I.cal],
@@ -450,7 +451,7 @@ function vFb(){
  var W=S.fbw||{rows:[]}, R=W.rows||[];
  if(!S.fbw) return h+'<div class="card"><p class="sub">불러오는 중…</p></div>';
  var miss=R.filter(function(x){return x.state==='안 나감'}), td=kst().day;
- var pick=miss[0]||R.filter(function(x){return x.day===td})[0]||R.filter(function(x){return x.state==='예정'})[0]||R[0];
+ var pick=miss[0]||R.filter(function(x){return x.day===td&&x.state!=='휴강'})[0]||R.filter(function(x){return x.state==='예정'})[0]||R.filter(function(x){return x.state!=='도입 전'&&x.state!=='휴강'})[0]||R[0];
  if(miss.length) h+='<div class="card fbwarn" style="cursor:default"><b>⚠️ 아직 안 나간 피드백 '+miss.length+'개</b><span>'+miss.map(function(x){return esc(cname(x['class']))+' '+md(x.day)}).join(' · ')+'</span></div>';
  var pc=pick?pick.class_id:'', pdd=pick?pick.day:td, iv=fbIntro(pc,pdd), ov=fbOutro(pc,pdd), n0=[iv,ov].filter(Boolean).join('\n\n').length;
  h+='<div class="card"><h3>오늘 수업 피드백 보내기</h3><p class="sub" style="margin:2px 0 10px">가운데 「오늘 수업」만 적으면 인사와 마무리는 자동으로 채워집니다. 고치고 싶은 곳만 다듬어 주세요.</p>'+(R.length?'<form id="fFb">'+
