@@ -285,7 +285,8 @@ async function load(){
   if(pre)notes[2]=['월·수 17:00 반은 2027년 3월부터 담임이 새 강사로 바뀝니다(미정). 신규생에게 안내할지 판단하세요.'];
   const n=kst;const asof=`${n.getUTCFullYear()}년 ${n.getUTCMonth()+1}월 ${n.getUTCDate()}일`;
   DATA={year:ay,asof,label:`${ay}학년도 기준`,classes,spots,notes};
-  document.getElementById('data').textContent='반 현황: 메이크에듀 실시간 ('+asof+' '+String(n.getUTCHours()).padStart(2,'0')+':'+String(n.getUTCMinutes()).padStart(2,'0')+' 불러옴)';
+  let last='';try{const u=await SB.from('me_students').select('updated_at').order('updated_at',{ascending:false}).limit(1);if(u.data&&u.data[0]){const t=new Date(new Date(u.data[0].updated_at).getTime()+9*3600e3);last=` · 메이크에듀 마지막 변경 ${t.getUTCMonth()+1}/${t.getUTCDate()} ${String(t.getUTCHours()).padStart(2,'0')}:${String(t.getUTCMinutes()).padStart(2,'0')}`;}}catch(e){}
+  document.getElementById('data').textContent='반 현황: 열 때마다 새로 불러옴 ('+asof+' '+String(n.getUTCHours()).padStart(2,'0')+':'+String(n.getUTCMinutes()).padStart(2,'0')+')'+last;
 }
 const pad=x=>String(x).padStart(2,'0');
 function fileName(){
