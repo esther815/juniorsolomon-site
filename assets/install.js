@@ -129,8 +129,21 @@ function floatBack(){
 }
 function boot(){
   try{ if(new URLSearchParams(location.search).get('app')==='1') sessionStorage.setItem('js_inapp','1') }catch(e){}
-  visit(); mount(); entryBar(); setTimeout(function(){ floatRefresh(); floatBack() },1500);
+  visit(); ga(); mount(); entryBar(); setTimeout(function(){ floatRefresh(); floatBack() },1500);
   try{ var a=new URLSearchParams(location.search).get('add'); if(a&&!inApp()) setTimeout(function(){ go(a==='android'?'android':'ios') },400) }catch(e){}
+}
+/* 방문 분석(구글 애널리틱스 GA4): 국내·해외, 지역, 검색엔진, 연령·성별(구글 추정 비율). 측정 ID를 넣으면 켜짐.
+   회원 화면(member)·탈퇴 안내에서는 쓰지 않음 — 처음 오는 방문자만 봄. 이름·연락처 등 개인정보는 보내지 않음. */
+var GA_ID='';
+function ga(){
+  try{
+    if(!GA_ID||/bot|crawl|spider|slurp|preview|lighthouse|headless/i.test(ua)) return;
+    var pg=(location.pathname.split('/').pop()||'index').toLowerCase();
+    if(/^(member|account-delete)/.test(pg)) return;
+    var s=document.createElement('script'); s.async=true; s.src='https://www.googletagmanager.com/gtag/js?id='+GA_ID; document.head.appendChild(s);
+    window.dataLayer=window.dataLayer||[]; window.gtag=function(){ dataLayer.push(arguments) };
+    gtag('js',new Date()); gtag('config',GA_ID,{page_path:location.pathname,app_mode:inApp()?'app':'web'});
+  }catch(e){}
 }
 function visit(){
   try{
