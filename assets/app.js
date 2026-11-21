@@ -483,6 +483,19 @@ function stuSearch(){
  return '<form id="fStuQ" class="sq"><input name="q" placeholder="학생 이름으로 찾기" value="'+esc(q?q.q:'')+'" autocomplete="off"><button class="sm on">찾기</button></form>'+
   (q?'<div class="card"><div class="list">'+(q.rows.length?q.rows.map(function(x){ return '<div class="tapr" data-stu="'+esc(x.id)+'"><span><b>'+esc(x.name)+'</b> <span class="sub">'+esc(x.grade||'')+'</span>'+(x.status!=='재원'?' <span class="tag g">'+esc(x.status)+'</span>':'')+'</span><i class="chev">›</i></div>' }).join(''):'<p class="sub">「'+esc(q.q)+'」 학생이 없습니다.</p>')+'</div></div>':'');
 }
+function monthlyCard(){
+ var m=S.stuMonthly;
+ if(!m) return '<div class="card"><h3>월간 비교 <span class="sub">지난달 대비</span></h3><p class="sub">불러오는 중…</p></div>';
+ if(m.err) return '<div class="card"><h3>월간 비교</h3><p class="sub">'+esc(m.err)+'</p></div>';
+ var t=m.this_month, p=m.prev_month;
+ function cmp(tv,pv){ var d=(tv||0)-(pv||0); return d>0?' <b style="color:#2e7d32">▲'+d+'</b>':d<0?' <b style="color:#b3261e">▼'+Math.abs(d)+'</b>':'' }
+ return '<div class="card"><h3>월간 비교 <span class="sub">지난달 대비</span></h3><div class="list">'+
+   '<div><span>출석·지각·결석·보강</span><span>'+t.present+'·'+t.late+'·'+t.absent+'·'+t.makeup+'회</span></div>'+
+   '<div><span>수업 시간</span><span>'+t.hours+'시간'+cmp(t.hours,p.hours)+' <span class="sub">(지난달 '+p.hours+'시간)</span></span></div>'+
+   '<div><span>반 진행 · 휴강</span><span>'+t.held+'회 · '+t.off+'회 <span class="sub">(지난달 '+p.held+'·'+p.off+')</span></span></div>'+
+   '<div><span>과제 제출</span><span>'+t.assignments_done+'/'+t.assignments+'건'+cmp(t.assignments_done,p.assignments_done)+(p.assignments?' <span class="sub">(지난달 '+p.assignments_done+'/'+p.assignments+')</span>':'')+'</span></div>'+
+   '</div><p class="sub" style="margin-top:8px">반: '+esc((m.student&&m.student.classes||[]).join(', ')||'-')+'</p></div>'
+}
 function vStu(){
  var h=''; function n(v){ return (+v||0).toLocaleString('ko-KR') }
  if(!S.stuId) return '<h2>학생 정보</h2>'+stuSearch()+(S.stuQ?'':'<div class="card"><p class="sub">이름 일부만 적어도 찾습니다. '+(C.role==='teacher'?'내 반 학생만 보입니다.':'')+'</p></div>');
@@ -504,6 +517,7 @@ function vStu(){
  // 출결
  var at=c.att||[];
  h+='<div class="card"><h3>출결 <span class="sub">최근 '+at.length+'회 · 30일 결석 '+n(c.abs30)+'회</span></h3>'+(at.length?'<div class="atts">'+at.slice().reverse().map(function(x){ return '<span title="'+esc(x.status)+'"><i class="'+(x.status==='결석'?'ab':x.status==='출석'?'ok':'')+'">'+(A[x.status]||'◇')+'</i><small>'+esc(String(x.day).slice(5).replace('-','/'))+'</small></span>' }).join('')+'</div><p class="sub">● 출석 ○ 결석 ◑ 지각 ◐ 보강</p>':'<p class="sub">메이크에듀 출석 기록이 없습니다.</p>')+'</div>';
+ if(c.staff) h+=monthlyCard();
  // 보강권
  var tk=c.tickets||[], open=tk.filter(function(t){ return t.status==='발급'&&!t.booked });
  h+='<div class="card"><h3>보강권 <span class="sub">안 쓴 것 '+open.length+'장</span></h3>'+(tk.length?'<div class="list">'+tk.map(function(t){ return '<div><span>'+esc(String(t.absent_day).slice(5).replace('-','/'))+' 결석분 <span class="sub">'+ago(t.issued_at)+' 발급 · '+esc(String(t.expires).slice(5).replace('-','/'))+'까지</span></span><span class="tag '+(t.status==='완료'?'ok':t.booked?'':'warn')+'">'+(t.status==='발급'?(t.booked?'신청함':'안 씀'):esc(t.status))+'</span></div>' }).join('')+'</div>':'<p class="sub">최근 4개월 보강권이 없습니다.</p>')+'</div>';
@@ -517,6 +531,16 @@ function vStu(){
   ((c.requests||[]).length?c.requests.map(function(r){ return '<div><span>'+esc(r.kind)+' <span class="sub">'+ago(r.at)+'</span></span><span class="tag '+(r.status==='완료'?'ok':'warn')+'">'+esc(r.status)+'</span></div>' }).join(''):'<div><span>학부모 신청</span><span class="sub">없음</span></div>')+'</div></div>';
  return h+tip(c.staff?'학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.':'학부모 연락처와 수납은 원장님만 봅니다. 학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.');
 }
+var GRPL={join_month:'이번 달 신규 등록',left_month:'이번 달 퇴원',paused:'휴원'};
+function grpBtn(kind,label){ return '<button type="button" class="tapr" data-grp="'+kind+'" style="all:unset;cursor:pointer;text-decoration:underline;'+(S.grpOpen===kind?'font-weight:600':'')+'">'+label+'</button>' }
+function grpPanel(kind){
+ var rows=(S.grpData||{})[kind];
+ var head='<h3 style="margin-top:14px">'+esc(GRPL[kind]||'')+' 명단</h3>';
+ if(!rows) return head+'<div class="list"><p class="sub">불러오는 중…</p></div>';
+ if(!rows.length) return head+'<div class="list"><p class="sub">해당하는 학생이 없습니다.</p></div>';
+ return head+'<div class="list">'+rows.map(function(x){
+   return '<div class="tapr" data-stu="'+esc(x.id||'')+'"><span><b>'+esc(x.name)+'</b>'+(x.grade?' <span class="sub">('+esc(x.grade)+')</span>':'')+'<br><span class="sub">'+esc(x.class||'')+(x.teacher?' · '+esc(x.teacher):'')+'</span></span>'+(x.date?'<span class="sub" style="white-space:nowrap">'+esc(md(String(x.date).slice(0,10)))+'</span>':'<i class="chev">›</i>')+'</div>' }).join('')+'</div>'
+}
 function vOps(){
  var h='<h2>운영 숫자</h2>', d=S.ops;
  if(!d) return h+'<div class="card"><p class="sub">불러오는 중입니다.</p></div>';
@@ -529,10 +553,12 @@ function vOps(){
  h+=stuSearch();
  h+='<p class="sub" style="margin:-6px 0 12px">'+esc(String(d.today||'').slice(5).replace('-','/'))+' 기준 · 메이크에듀 자료가 들어오는 대로 바뀝니다</p>';
  // 1 재원 순증
- h+='<div class="card hl"><p class="sub">재원생 · 목표 '+n(g.target)+'명</p><div class="row" style="margin-top:4px"><b class="big" style="font-size:30px">'+n(g.students)+'명</b><span class="sub">'+(gap?n(gap)+'명 남음':'목표 달성')+' · 휴원 '+n(g.paused)+'명</span></div>'+
+ var gOpen=S.grpOpen;
+ h+='<div class="card hl"><p class="sub">재원생 · 목표 '+n(g.target)+'명</p><div class="row" style="margin-top:4px"><b class="big" style="font-size:30px">'+n(g.students)+'명</b><span class="sub">'+(gap?n(gap)+'명 남음':'목표 달성')+' · '+grpBtn('paused',n(g.paused)+'명')+'</span></div>'+
   '<div class="bar"><i style="width:'+pct+'%"></i></div>'+
-  '<div class="list" style="margin-top:10px"><div><span>이번 주 신규 등록</span><b>'+n(g.join_week)+'명</b></div><div><span>이번 달 신규 등록 / 퇴원</span><span>'+n(g.join_month)+' / '+n(g.left_month)+'명</span></div>'+
+  '<div class="list" style="margin-top:10px"><div><span>이번 주 신규 등록</span><b>'+n(g.join_week)+'명</b></div><div><span>이번 달 신규 등록 / 퇴원</span><span>'+grpBtn('join_month',n(g.join_month))+' / '+grpBtn('left_month',n(g.left_month))+'명</span></div>'+
   '<div><span>이번 달 순증</span><b>'+((g.join_month||0)-(g.left_month||0)>=0?'+':'')+n((g.join_month||0)-(g.left_month||0))+'명</b></div></div>'+
+  (gOpen==='join_month'||gOpen==='left_month'||gOpen==='paused'?grpPanel(gOpen):'')+
   (g.last_left_on&&g.last_left_on<String(d.today).slice(0,8)+'01'?'<p class="sub" style="margin-top:8px">메이크에듀에 기록된 마지막 퇴원일이 '+esc(String(g.last_left_on).slice(5).replace('-','/'))+'입니다. 그 뒤 퇴원생을 메이크에듀에서 퇴원 처리해야 이 숫자가 맞습니다.</p>':'')+'</div>';
  // 2 퇴원 위험
  h+='<div class="card'+(r.length?' fbwarn':'')+'"><h3>퇴원 위험 '+n(r.length)+'명</h3>'+(r.length?'<div class="list">'+r.map(function(x){
@@ -1045,6 +1071,7 @@ function after(){
  if(t==='ops'&&!S.opsFresh){ S.opsFresh=1; rpc('waitlist_board').then(function(x){ S.wl=x; if(S.tab==='ops') render() }).catch(function(){}); rpc('admin_ops_stats').then(function(d){ S.ops=d; if(S.tab==='ops') render() }).catch(function(){ toast('숫자를 불러오지 못했습니다') }) }
  if(t==='stat'&&!S.stFresh){ S.stFresh=1; rpc('admin_daily_stats',{p_days:14}).then(function(d){ S.st=d; if(S.tab==='stat') render() }).catch(function(){ toast('숫자를 불러오지 못했습니다') }) }
  if(t==='stu'&&S.stuId&&(!S.stuC||S.stuC.id!==S.stuId)&&S.stuLoad!==S.stuId){ S.stuLoad=S.stuId; rpc('student_card',{p_id:S.stuId}).then(function(x){ S.stuC=x; S.stuLoad=null; if(S.tab==='stu') render() }).catch(function(er){ S.stuLoad=null; S.stuC={id:S.stuId,err:(er&&er.message||'').replace(/^.*?: /,'')||'불러오지 못했습니다'}; if(S.tab==='stu') render() }) }
+ if(t==='stu'&&S.stuId&&C.role!=='parent'&&S.stuMonthlyId!==S.stuId){ S.stuMonthlyId=S.stuId; S.stuMonthly=null; rpc('admin_student_monthly_report',{p_student_id:S.stuId}).then(function(x){ S.stuMonthly=x; if(S.tab==='stu') render() }).catch(function(er){ S.stuMonthly={err:(er&&er.message||'').replace(/^.*?: /,'')||'불러오지 못했습니다'}; if(S.tab==='stu') render() }) }
  if(t==='wait'&&!S.wlFresh){ S.wlFresh=1; rpc('waitlist_board').then(function(d){ S.wl=d; if(S.tab==='wait') render() }).catch(function(){ toast('대기 명단을 불러오지 못했습니다') }) }
  if(t==='set'){ L.inviteBtn('tinv','tinvm','new_teacher_invite','t','강사'); L.inviteBtn('dinv','dinvm','new_desk_invite','d','관리자'); L.kakaoSetup(); L.betaList(); L.usage();
    $('#pv').onclick=function(){ L.openForm(null,true) } }
@@ -1078,7 +1105,7 @@ function load(){
 
 function onClick(e){
  ac();
- var el=e.target.closest('[data-go],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],[data-pv],[data-pvexit],[data-mkb],[data-mkc],[data-mkm],[data-mks],[data-mkt],[data-mki],[data-wls],[data-fbwk],[data-fbskip],[data-asgo],[data-asgr],[data-asgnew],[data-cunb],[data-seatsort],[data-stu],[data-wq],[data-wlmv],[data-abso],[data-snote],#aBack,#aRefresh'); if(!el) return;
+ var el=e.target.closest('[data-go],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],[data-pv],[data-pvexit],[data-mkb],[data-mkc],[data-mkm],[data-mks],[data-mkt],[data-mki],[data-wls],[data-fbwk],[data-fbskip],[data-asgo],[data-asgr],[data-asgnew],[data-cunb],[data-seatsort],[data-stu],[data-wq],[data-wlmv],[data-abso],[data-grp],[data-snote],#aBack,#aRefresh'); if(!el) return;
  if(el.id==='aBack'){ history.back(); return }
  if(el.id==='aRefresh'){ el.classList.add('spin'); try{ sessionStorage.setItem('js_tab',S.tab||'') }catch(x){} setTimeout(function(){ location.replace('/member.html?r='+Date.now()) },350); return }
  var d=el.dataset;
@@ -1091,6 +1118,9 @@ function onClick(e){
  if(d.wlmv){ S.wlMove=S.wlMove===d.wlmv?null:d.wlmv; render(); return }
  if(d.abso){ var aid=d.abso; if(S.absOpen===aid){ S.absOpen=null; render(); return } S.absOpen=aid; render();
    if(!S.absData) S.absData={}; if(!S.absData[aid]){ rpc('branch_week_absences',{p_branch:aid}).then(function(x){ S.absData[aid]=x||[]; render() }).catch(function(){ toast('불러오지 못했습니다'); S.absOpen=null; render() }) }
+   return }
+ if(d.grp){ var gk=d.grp; if(S.grpOpen===gk){ S.grpOpen=null; render(); return } S.grpOpen=gk; render();
+   if(!S.grpData) S.grpData={}; if(!S.grpData[gk]){ rpc('admin_ops_group',{p_kind:gk}).then(function(x){ S.grpData[gk]=x||[]; render() }).catch(function(){ toast('불러오지 못했습니다'); S.grpOpen=null; render() }) }
    return }
  if(el.hasAttribute('data-stu')){ if(!d.stu){ toast('메이크에듀에서 이 학생을 찾지 못했습니다'); return } S.stuId=d.stu; S.stuQ=null; go('stu'); return }
  if(d.snote){ if(C.pv){ toast('미리보기에서는 저장하지 않습니다'); return } var mi=document.getElementById('stuMemo'), mv=mi?mi.value.trim():''; if(d.snote==='메모'&&!mv){ toast('메모를 적어 주세요'); if(mi) mi.focus(); return } el.disabled=true;
