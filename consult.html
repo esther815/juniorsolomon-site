@@ -251,7 +251,7 @@ class Component extends DCLogic {
       { d: '목', t: '16:30–18:30', g: [2], k: 'thu-1630-a' },
       { d: '목', t: '17:00–19:00', g: [5], k: 'thu-1700-a' },
       { d: '금', t: '15:00–17:00', g: [1], k: 'fri-1500-a' },
-      { d: '금', t: '17:00–19:00', g: [2], k: 'fri-1700-a' },
+      { d: '금', t: '17:00–19:00', g: [2], k: 'fri-1700-a', st: 'ok' },
       { d: '토', t: '11:00–13:00', g: [3], k: 'sat-1100-a', dj: 1 },
       { d: '토', t: '11:00–13:00', g: [6, 7], k: 'sat-1100-b' },
       { d: '토', t: '09:00–11:00', g: [1], k: 'sat-0900-a' },
@@ -296,6 +296,7 @@ class Component extends DCLogic {
     var STAGE = { ok: { s: '등록 가능', c: '#3E8A62' }, soon: { s: '마감 임박', c: '#B42A3C' }, full: { s: '대기 접수', c: '#9A93A0' }, waitfull: { s: '대기 마감', c: '#8A5A97' } };
     var stageOf = function (c) {
       if (seats === null) return { s: '확인 중', c: '#9A93A0' };
+      if ((seats === false || !seats[c.k]) && c.st) return STAGE[c.st];
       if (seats === false || !seats[c.k]) return { s: '상담 시 안내', c: '#5F3D66' };
       return STAGE[seats[c.k]];
     };
