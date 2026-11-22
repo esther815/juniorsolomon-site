@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>서재 | 주니어솔로몬 — SL 레인보우 도서</title>
+<meta name="description" content="주니어솔로몬 서재. 빨강에서 보라까지 SL 레인보우로 우리 아이 레벨의 책을 찾습니다. 학부모 교육서도 함께.">
+<link rel="icon" href="favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#fff;color:#1E1A22;font-family:'Noto Sans KR',sans-serif;-webkit-font-smoothing:antialiased;}
+a{color:inherit;}
+.wrap{max-width:1200px;margin:0 auto;padding:40px 24px 80px;}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;}
+.home{font-family:'Noto Sans KR';font-weight:900;font-size:15px;letter-spacing:0.14em;color:#5F3D66;text-decoration:none;}
+.home .j{font-weight:300;}
+.eyebrow{font-size:13px;letter-spacing:0.2em;color:#6E6676;margin-bottom:14px;}
+h1{font-family:'Noto Serif KR',serif;font-weight:600;font-size:clamp(32px,4.4vw,46px);letter-spacing:-0.03em;}
+.lead{margin-top:14px;font-size:17px;line-height:1.8;color:#5E5866;}
+/* 안내 배너 */
+.banner{margin-top:22px;border-radius:16px;padding:18px 22px;font-size:14.5px;line-height:1.7;display:flex;gap:16px;align-items:center;flex-wrap:wrap;}
+.banner.guest{background:#F4EFF6;border:1px solid #E7E0EC;color:#4A3A52;}
+.banner.pending{background:#FFF7E8;border:1px solid #F3E2B8;color:#6B5618;}
+.banner .b{font-weight:700;color:#5F3D66;}
+.banner a.cta{display:inline-flex;align-items:center;min-height:42px;padding:0 20px;border-radius:999px;background:#5F3D66;color:#fff;text-decoration:none;font-weight:700;font-size:14px;}
+/* 탭 */
+.tabs{margin-top:28px;display:flex;gap:8px;border-bottom:1px solid #ECE7F0;}
+.tab{padding:12px 20px;font-size:16px;font-weight:700;color:#8A7F93;background:none;border:none;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;}
+.tab.on{color:#5F3D66;border-bottom-color:#5F3D66;}
+.rainbow{margin-top:26px;display:grid;grid-template-columns:repeat(6,1fr);gap:10px;}
+.lv{border:none;border-radius:14px;padding:14px 10px;color:#fff;text-align:center;cursor:pointer;opacity:.55;transition:.15s;}
+.lv.on{opacity:1;outline:3px solid #1E1A22;outline-offset:2px;}
+.lv .nm{font-weight:700;font-size:15px;}
+.lv .sl{font-size:11px;opacity:.95;margin-top:3px;}
+.lv .ct{font-size:11px;opacity:.9;margin-top:4px;}
+.searchrow{margin-top:24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.search{flex:1;min-width:220px;display:flex;align-items:center;border:1px solid #E4DEE8;border-radius:999px;padding:10px 18px;}
+.search input{border:none;outline:none;font-size:15px;width:100%;font-family:inherit;background:none;}
+.meta{font-size:14px;color:#8A7F93;}
+.secttl{margin-top:22px;font-family:'Noto Serif KR',serif;font-size:22px;font-weight:600;color:#3A2A40;}
+.secsub{margin-top:4px;font-size:14px;color:#8A7F93;}
+.grid{margin-top:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(224px,1fr));gap:14px;}
+.card{display:flex;border:1px solid #ECE7F0;border-radius:14px;overflow:hidden;background:#fff;}
+.spine{width:9px;flex:0 0 9px;}
+.cbody{padding:16px 18px 15px;flex:1;min-width:0;}
+.cbody .bt{font-family:'Noto Serif KR',serif;font-size:17px;font-weight:600;line-height:1.32;word-break:keep-all;}
+.cbody .au{margin-top:5px;font-size:13px;color:#6E6676;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cbody .sr{margin-top:8px;font-size:11px;color:#A99FB0;}
+.lockcard{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;border:1px dashed #D8CEE0;border-radius:14px;background:#FAF7FC;padding:28px 18px;text-align:center;}
+.lockcard .ic{font-size:22px;}
+.lockcard .t{font-size:13.5px;font-weight:700;color:#5F3D66;}
+.lockcard .s{font-size:12px;color:#8A7F93;}
+.more{margin-top:24px;text-align:center;}
+.more button{border:1px solid #E4DEE8;background:#fff;border-radius:999px;padding:12px 28px;font-size:15px;font-weight:700;color:#5F3D66;cursor:pointer;font-family:inherit;}
+.empty{margin-top:30px;color:#8A7F93;font-size:15px;}
+.boot{margin-top:40px;color:#8A7F93;font-size:15px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="home" href="/"><span class="j">주니어</span>솔로몬</a>
+    <span id="who" class="meta"></span>
+  </div>
+  <div class="eyebrow">SOLOMON LIBRARY · SL 레인보우</div>
+  <h1>우리 아이 레벨의 책을 찾다</h1>
+  <p class="lead">빨강에서 보라까지, 일곱 빛깔로 읽기의 길을 엽니다. 색을 눌러 우리 아이 단계의 책을 찾아보세요.</p>
+
+  <div id="banner"></div>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="child">아이 서재</button>
+    <button class="tab" data-tab="parent">학부모 서재</button>
+    <button class="tab" data-tab="manga">만화</button>
+  </div>
+
+  <div id="rainbow" class="rainbow"></div>
+
+  <div class="searchrow">
+    <div class="search"><input id="q" type="text" placeholder="제목·작가·시리즈 검색"></div>
+    <span class="meta" id="count"></span>
+  </div>
+  <div class="secttl" id="secttl"></div>
+  <div class="secsub" id="secsub"></div>
+
+  <div class="grid" id="grid"></div>
+  <div class="more" id="more" style="display:none"><button id="moreBtn">더 보기</button></div>
+  <div id="bootmsg" class="boot">서재를 준비하고 있습니다…</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/library-data.js?v=1"></script>
+<script>
+(function(){
+  var LIB = window.LIB || [];
+  var COLORS = {주황:'#E08A1E',노랑:'#F2B705',초록:'#2E9E4F',파랑:'#1E88E5',남색:'#283593',보라:'#6B4FB8',학부모:'#5F3D66',만화:'#9E7BB5'};
+  var LEVELS = [
+    {c:'주황',sl:'SL 3–5',t:'그림책 철학',sub:'초1–2 · 그림책으로 묻고 느끼는 단계'},
+    {c:'노랑',sl:'SL 6–8',t:'이야기 철학',sub:'초3–4 · 혼자 읽고 인물의 마음과 까닭을 묻는 단계'},
+    {c:'초록',sl:'SL 9–11',t:'인문 철학',sub:'초5–6 · 역사·인물·과학으로 생각을 넓히는 단계'},
+    {c:'파랑',sl:'SL 12',t:'고전 입문',sub:'중등 · 고전과 청소년 문학으로 들어서는 단계'},
+    {c:'남색',sl:'SL 13',t:'고전 사상',sub:'중3–고1 · 사상의 고전을 읽는 단계'},
+    {c:'보라',sl:'SL 14',t:'고전 대작',sub:'고등 · 고전 대작을 완독하는 단계'}
+  ];
+  var PAGE=60, PREVIEW_CAP=12;
+  var state={tab:'child', color:'노랑', shown:PAGE, tier:'guest'}; // guest | pending | member
+
+  var CNT={}; LIB.forEach(function(b){CNT[b.c]=(CNT[b.c]||0)+1;});
+  function esc(s){ return (s||'').replace(/[&<>]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m];}); }
+  function isPreview(){ return state.tier!=='member'; }
+
+  function banner(){
+    var el=document.getElementById('banner');
+    if(state.tier==='member'){ el.innerHTML=''; return; }
+    if(state.tier==='pending'){
+      el.innerHTML='<div class="banner pending"><span><span class="b">재원생 승인 후</span> 서재 전체가 열립니다. 지금은 레벨별 대표 도서를 미리 보실 수 있어요.</span></div>';
+    } else {
+      el.innerHTML='<div class="banner guest"><span><span class="b">가입하면</span> 레벨별 추천을 더 보고, <span class="b">재원생</span>이 되면 서재 전체(약 8,000권)를 열람할 수 있어요.</span><a class="cta" href="member.html">카카오로 시작하기</a></div>';
+    }
+  }
+  function rainbow(){
+    var el=document.getElementById('rainbow');
+    if(state.tab!=='child'){ el.style.display='none'; return; }
+    el.style.display='grid'; el.innerHTML='';
+    LEVELS.forEach(function(L){
+      var d=document.createElement('button');
+      d.className='lv'+(L.c===state.color?' on':''); d.style.background=COLORS[L.c];
+      d.innerHTML='<div class="nm">'+L.c+'</div><div class="sl">'+L.sl+'</div><div class="ct">'+(CNT[L.c]||0)+'권</div>';
+      d.onclick=function(){ state.color=L.c; state.shown=PAGE; render(); };
+      el.appendChild(d);
+    });
+  }
+  function filtered(){
+    var q=(document.getElementById('q').value||'').trim().toLowerCase();
+    var color = state.tab==='child'? state.color : (state.tab==='parent'?'학부모':'만화');
+    return LIB.filter(function(b){
+      if(b.c!==color) return false;
+      if(!q) return true;
+      return (b.t+' '+b.a+' '+b.s).toLowerCase().indexOf(q)>=0;
+    });
+  }
+  function render(){
+    banner(); rainbow();
+    var list=filtered();
+    var color = state.tab==='child'? state.color : (state.tab==='parent'?'학부모':'만화');
+    var spine=COLORS[color];
+    var tt=document.getElementById('secttl'), ss=document.getElementById('secsub');
+    if(state.tab==='child'){ var L=LEVELS.filter(function(x){return x.c===color;})[0]; tt.textContent=L.c+' · '+L.t; ss.textContent=L.sl+' · '+L.sub; }
+    else if(state.tab==='parent'){ tt.textContent='학부모 서재'; ss.textContent='아이와 함께 읽고 성장하는 교육·육아 도서'; }
+    else { tt.textContent='만화'; ss.textContent='학습만화·명작 만화'; }
+
+    var cap = isPreview()? PREVIEW_CAP : state.shown;
+    document.getElementById('count').textContent = isPreview()? ('미리보기 '+Math.min(cap,list.length)+' / '+list.length.toLocaleString()+'권') : (list.length.toLocaleString()+'권');
+    var grid=document.getElementById('grid'); grid.innerHTML='';
+    if(!list.length){ grid.innerHTML='<p class="empty">검색 결과가 없습니다.</p>'; document.getElementById('more').style.display='none'; return; }
+    list.slice(0,cap).forEach(function(b){
+      var c=document.createElement('div'); c.className='card';
+      c.innerHTML='<div class="spine" style="background:'+spine+'"></div><div class="cbody"><div class="bt">'+esc(b.t)+'</div>'+(b.a?'<div class="au">'+esc(b.a)+'</div>':'')+(b.s?'<div class="sr">'+esc(b.s)+'</div>':'')+'</div>';
+      grid.appendChild(c);
+    });
+    if(isPreview() && list.length>cap){
+      var lk=document.createElement('div'); lk.className='lockcard';
+      lk.innerHTML='<div class="ic">🔒</div><div class="t">+'+(list.length-cap).toLocaleString()+'권 더</div><div class="s">'+(state.tier==='pending'?'재원생 승인 후 전체 열람':'재원생이 되면 전체 열람')+'</div>';
+      grid.appendChild(lk);
+      document.getElementById('more').style.display='none';
+    } else {
+      document.getElementById('more').style.display = (!isPreview() && list.length>cap) ? 'block':'none';
+    }
+  }
+
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.onclick=function(){ document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on');}); t.classList.add('on'); state.tab=t.dataset.tab; state.shown=PAGE; render(); };
+  });
+  document.getElementById('q').addEventListener('input', function(){ state.shown=PAGE; render(); });
+  document.getElementById('moreBtn').onclick=function(){ state.shown+=PAGE; render(); };
+
+  // ── 로그인·재원 판별 (실패 시 미리보기로 닫힘) ──
+  function decideTier(sb){
+    return sb.auth.getSession().then(function(r){
+      var s=r && r.data && r.data.session;
+      if(!s || !s.user){ return 'guest'; }
+      // 원장
+      return sb.rpc('is_admin').then(function(a){
+        if(a && a.data===true) return 'member';
+        return sb.from('profiles').select('role,status').eq('id',s.user.id).maybeSingle().then(function(pr){
+          var p=pr && pr.data;
+          if(p && (p.role==='teacher'||p.role==='desk'||p.role==='manager') && p.status==='approved') return 'member';
+          // 학부모: 열린(재원) 자녀가 있으면 재원생
+          return sb.rpc('my_children').then(function(kr){
+            var kids=(kr && kr.data)||[];
+            var active=kids.some(function(k){ return (!k.access || k.access==='open') && (!k.status || k.status==='재원'); });
+            return active ? 'member' : 'pending';
+          }).catch(function(){ return 'pending'; });
+        }).catch(function(){ return 'pending'; });
+      }).catch(function(){ return 'pending'; });
+    }).catch(function(){ return 'guest'; });
+  }
+
+  function start(tier){
+    state.tier=tier;
+    document.getElementById('bootmsg').style.display='none';
+    var who=document.getElementById('who');
+    who.textContent = tier==='member'?'재원생 · 전체 열람':(tier==='pending'?'가입 회원 · 미리보기':'미리보기');
+    render();
+  }
+
+  var booted=false; function boot(t){ if(booted) return; booted=true; start(t); }
+  setTimeout(function(){ boot('guest'); }, 6000); // 네트워크 지연 시 미리보기로
+  try{
+    var sb=window.supabase.createClient('https://gyuuimwalbxsocnamtqk.supabase.co','sb_publishable_Kj2bX4fe9CRSkhvGzBbaJw_y1ZqkjOz');
+    decideTier(sb).then(boot).catch(function(){ boot('guest'); });
+  }catch(e){ boot('guest'); }
+})();
+</script>
+</body>
+</html>
