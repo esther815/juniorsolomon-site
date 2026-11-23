@@ -56,6 +56,21 @@ h1{font-family:'Noto Serif KR',serif;font-weight:600;font-size:clamp(32px,4.4vw,
 .more button{border:1px solid #E4DEE8;background:#fff;border-radius:999px;padding:12px 28px;font-size:15px;font-weight:700;color:#5F3D66;cursor:pointer;font-family:inherit;}
 .empty{margin-top:30px;color:#8A7F93;font-size:15px;}
 .boot{margin-top:40px;color:#8A7F93;font-size:15px;}
+.card{cursor:pointer;transition:border-color .15s,box-shadow .15s;}
+.card:hover{border-color:#D8CEE0;box-shadow:0 6px 18px rgba(95,61,102,.1);}
+.bkov{position:fixed;inset:0;background:rgba(30,20,34,.55);display:none;align-items:center;justify-content:center;z-index:90;padding:20px;}
+.bkov.on{display:flex;}
+.bkbox{background:#fff;border-radius:18px;max-width:620px;width:100%;max-height:88vh;overflow:auto;display:flex;gap:22px;padding:26px;position:relative;}
+.bkx{position:absolute;top:10px;right:14px;border:none;background:none;font-size:20px;color:#8A7F93;cursor:pointer;line-height:1;}
+.bkcover{flex:0 0 150px;width:150px;min-height:210px;border-radius:10px;background:#F4EFF6;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#fff;font-family:'Noto Serif KR',serif;font-size:15px;font-weight:600;text-align:center;padding:14px;line-height:1.45;word-break:keep-all;}
+.bkcover img{width:100%;height:auto;display:block;border-radius:10px;}
+.bkinfo{flex:1;min-width:0;padding-right:10px;}
+.bktt{font-family:'Noto Serif KR',serif;font-size:21px;font-weight:700;line-height:1.35;word-break:keep-all;color:#2A1E30;}
+.bkau{margin-top:8px;font-size:14px;color:#6E6676;}
+.bksr{margin-top:6px;font-size:12px;color:#A99FB0;}
+.bkdesc{margin-top:16px;font-size:14.5px;line-height:1.85;color:#4A4350;white-space:pre-wrap;word-break:keep-all;}
+.bksrc{margin-top:16px;font-size:11.5px;color:#B4AABD;}
+@media(max-width:560px){.bkbox{flex-direction:column;align-items:center;text-align:center;padding:40px 20px 24px;}.bkinfo{padding-right:0;}.bkcover{flex-basis:auto;}}
 </style>
 </head>
 <body>
@@ -158,6 +173,7 @@ h1{font-family:'Noto Serif KR',serif;font-weight:600;font-size:clamp(32px,4.4vw,
     list.slice(0,cap).forEach(function(b){
       var c=document.createElement('div'); c.className='card';
       c.innerHTML='<div class="spine" style="background:'+spine+'"></div><div class="cbody"><div class="bt">'+esc(b.t)+'</div>'+(b.a?'<div class="au">'+esc(b.a)+'</div>':'')+(b.s?'<div class="sr">'+esc(b.s)+'</div>':'')+'</div>';
+      (function(bb,sp){ c.onclick=function(){ openBook(bb,sp); }; })(b,spine);
       grid.appendChild(c);
     });
     if(isPreview() && list.length>cap){
@@ -168,6 +184,46 @@ h1{font-family:'Noto Serif KR',serif;font-weight:600;font-size:clamp(32px,4.4vw,
     } else {
       document.getElementById('more').style.display = (!isPreview() && list.length>cap) ? 'block':'none';
     }
+  }
+
+  // ── 도서 상세창 (표지 + 책 소개, 서점 링크 없음) ──
+  var bkC={};
+  function bkKey(b){ return (b.t+'|'+(b.a||'')).toLowerCase(); }
+  function buildModal(){
+    var d=document.createElement('div'); d.className='bkov'; d.id='bkov';
+    d.innerHTML='<div class="bkbox"><button class="bkx" id="bkx" aria-label="닫기">✕</button><div class="bkcover" id="bkcover"></div><div class="bkinfo"><div class="bktt" id="bktt"></div><div class="bkau" id="bkau"></div><div class="bksr" id="bksr"></div><div class="bkdesc" id="bkdesc"></div><div class="bksrc" id="bksrc"></div></div></div>';
+    document.body.appendChild(d);
+    d.addEventListener('click',function(e){ if(e.target===d||e.target.id==='bkx') d.classList.remove('on'); });
+    document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ var m=document.getElementById('bkov'); if(m) m.classList.remove('on'); } });
+  }
+  function setCover(cover,color,title){
+    var cv=document.getElementById('bkcover'); cv.innerHTML='';
+    if(cover){ cv.style.background='#F4EFF6'; var im=document.createElement('img'); im.alt=''; im.onerror=function(){ cv.style.background=color; cv.textContent=title; }; im.src=cover; cv.appendChild(im); }
+    else { cv.style.background=color; cv.textContent=title; }
+  }
+  function openBook(b,color){
+    if(!document.getElementById('bkov')) buildModal();
+    document.getElementById('bktt').textContent=b.t;
+    document.getElementById('bkau').textContent=b.a||'';
+    document.getElementById('bksr').textContent=b.s||'';
+    document.getElementById('bksrc').textContent='';
+    setCover(null,color,b.t);
+    document.getElementById('bkdesc').textContent='소개를 불러오는 중…';
+    document.getElementById('bkov').classList.add('on');
+    function show(r){
+      r=r||{};
+      setCover(r.cover,color,b.t);
+      document.getElementById('bkdesc').textContent = r.desc || (r.cover?'':'책 소개 정보를 찾지 못했어요.');
+      document.getElementById('bksrc').textContent = (r.cover||r.desc) ? '표지·소개 출처: 카카오 책검색' : '';
+    }
+    var key=bkKey(b);
+    if(bkC[key]){ show(bkC[key]); return; }
+    try{
+      sb.functions.invoke('book',{body:{t:b.t,a:b.a}}).then(function(res){
+        var d=(res&&res.data)||{}; if(res&&res.error){ document.getElementById('bkdesc').textContent='표지 준비 중입니다.'; return; }
+        bkC[key]=d; show(d);
+      }).catch(function(){ document.getElementById('bkdesc').textContent='표지 준비 중입니다.'; });
+    }catch(e){ document.getElementById('bkdesc').textContent='표지 준비 중입니다.'; }
   }
 
   document.querySelectorAll('.tab').forEach(function(t){
