@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>방문 통계 (원장 전용) | 주니어솔로몬</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#FAF9FB;color:#1E1A22;font-family:'Noto Sans KR',sans-serif;-webkit-font-smoothing:antialiased;}
+.wrap{max-width:900px;margin:0 auto;padding:32px 18px 80px;}
+.top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+h1{font-family:'Noto Serif KR',serif;font-size:24px;font-weight:600;color:#3A2A40;}
+.seg{display:inline-flex;border:1px solid #E0D8E6;border-radius:999px;overflow:hidden;}
+.seg button{border:none;background:#fff;padding:8px 16px;font-size:14px;font-weight:700;color:#8A7F93;cursor:pointer;font-family:inherit;}
+.seg button.on{background:#5F3D66;color:#fff;}
+.sitewrap{margin-top:24px;}
+.sitettl{font-family:'Noto Serif KR',serif;font-size:19px;font-weight:600;margin:28px 0 12px;display:flex;align-items:center;gap:10px;}
+.dot{width:12px;height:12px;border-radius:50%;}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}
+.kpi{background:#fff;border:1px solid #EEEAF0;border-radius:16px;padding:18px 20px;}
+.kpi .n{font-size:28px;font-weight:700;color:#3A2A40;line-height:1.1;}
+.kpi .l{margin-top:6px;font-size:13px;color:#8A7F93;}
+.kpi .s{margin-top:2px;font-size:12px;color:#B3A9BA;}
+.panel{margin-top:12px;background:#fff;border:1px solid #EEEAF0;border-radius:16px;padding:18px 20px;}
+.panel h3{font-size:14px;color:#6E6676;font-weight:700;margin-bottom:12px;}
+.bar{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:13px;}
+.bar .lab{flex:0 0 78px;color:#5E5866;text-align:right;}
+.bar .track{flex:1;background:#F0ECF4;border-radius:6px;height:16px;overflow:hidden;}
+.bar .fill{height:100%;border-radius:6px;}
+.bar .val{flex:0 0 54px;color:#3A2A40;font-weight:700;}
+.row{display:flex;justify-content:space-between;font-size:14px;padding:6px 0;border-bottom:1px solid #F3EFF6;}
+.row:last-child{border-bottom:none;}
+.muted{color:#8A7F93;font-size:13px;}
+.lock{margin-top:60px;text-align:center;color:#6E6676;}
+.lock a{display:inline-block;margin-top:14px;padding:12px 24px;border-radius:999px;background:#5F3D66;color:#fff;text-decoration:none;font-weight:700;}
+.note{margin-top:28px;font-size:12px;color:#B3A9BA;line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>방문 통계</h1>
+    <div class="seg"><button data-d="7" class="on">7일</button><button data-d="30">30일</button></div>
+  </div>
+  <div id="body"><p class="muted" style="margin-top:30px">불러오는 중…</p></div>
+  <p class="note" id="note"></p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  var sb=window.supabase.createClient('https://gyuuimwalbxsocnamtqk.supabase.co','sb_publishable_Kj2bX4fe9CRSkhvGzBbaJw_y1ZqkjOz');
+  var body=document.getElementById('body'), note=document.getElementById('note');
+  var days=7, rows=null;
+
+  function lock(){ body.innerHTML='<div class="lock">원장 전용 화면입니다.<br>원장 계정으로 로그인하면 보입니다.<br><a href="member.html">로그인</a></div>'; }
+
+  function fmtSec(ms){ if(!ms) return '-'; var s=Math.round(ms/1000); if(s<60) return s+'초'; return Math.floor(s/60)+'분 '+(s%60)+'초'; }
+  function esc(s){ return (s||'').replace(/[&<>]/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[m];}); }
+
+  function agg(site){
+    var r=rows.filter(function(x){return x.site===site;});
+    var pv=r.filter(function(x){return x.event==='pageview';});
+    var sess={}; pv.forEach(function(x){ if(x.session) sess[x.session]=1; });
+    var dw=r.filter(function(x){return x.event==='dwell'&&x.dwell_ms;});
+    var avg=dw.length? dw.reduce(function(a,x){return a+x.dwell_ms;},0)/dw.length : 0;
+    var clicks={}; r.filter(function(x){return x.event==='click';}).forEach(function(x){ var d=x.detail||'기타'; clicks[d]=(clicks[d]||0)+1; });
+    var trans=r.filter(function(x){return x.event==='transition';}).length;
+    var dev={mobile:0,desktop:0}; pv.forEach(function(x){ if(dev[x.device]!=null) dev[x.device]++; });
+    var refs={}; pv.forEach(function(x){ if(x.ref){ refs[x.ref]=(refs[x.ref]||0)+1; } });
+    var byday={}; pv.forEach(function(x){ var d=(x.ts||'').slice(0,10); if(d) byday[d]=(byday[d]||0)+1; });
+    return {visitors:Object.keys(sess).length, pv:pv.length, avg:avg, clicks:clicks, trans:trans, dev:dev, refs:refs, byday:byday};
+  }
+
+  function bars(obj, color, unit){
+    var ks=Object.keys(obj).sort(function(a,b){return obj[b]-obj[a];}).slice(0,6);
+    if(!ks.length) return '<p class="muted">아직 없음</p>';
+    var mx=Math.max.apply(null,ks.map(function(k){return obj[k];}));
+    return ks.map(function(k){ var w=Math.round(obj[k]/mx*100);
+      return '<div class="bar"><span class="lab">'+esc(k)+'</span><span class="track"><span class="fill" style="width:'+w+'%;background:'+color+'"></span></span><span class="val">'+obj[k]+(unit||'')+'</span></div>'; }).join('');
+  }
+
+  function siteBlock(name, site, color){
+    var a=agg(site);
+    var h='<div class="sitewrap"><div class="sitettl"><span class="dot" style="background:'+color+'"></span>'+name+'</div>';
+    h+='<div class="cards">'+
+      '<div class="kpi"><div class="n">'+a.visitors+'</div><div class="l">방문자(고유)</div></div>'+
+      '<div class="kpi"><div class="n">'+a.pv+'</div><div class="l">페이지뷰</div></div>'+
+      '<div class="kpi"><div class="n">'+fmtSec(a.avg)+'</div><div class="l">평균 머문 시간</div></div>'+
+      (site==='solomon'?'<div class="kpi"><div class="n">'+a.trans+'</div><div class="l">소포스 전환 클릭</div></div>':'')+
+      '</div>';
+    // 일별
+    h+='<div class="panel"><h3>일별 방문자(페이지뷰)</h3>'+bars(a.byday,color)+'</div>';
+    // 클릭 + 유입 + 기기
+    var cl=Object.keys(a.clicks).length? bars(a.clicks,'#C9A24B') : '<p class="muted">아직 없음</p>';
+    h+='<div class="panel"><h3>핵심 클릭</h3>'+cl+'</div>';
+    h+='<div class="panel"><h3>유입 경로</h3>'+(Object.keys(a.refs).length?bars(a.refs,'#2E9E4F'):'<p class="muted">직접 방문 위주</p>')+'</div>';
+    var dtot=a.dev.mobile+a.dev.desktop;
+    h+='<div class="panel"><h3>기기</h3>'+(dtot?('<div class="row"><span>모바일</span><b>'+a.dev.mobile+' ('+Math.round(a.dev.mobile/dtot*100)+'%)</b></div><div class="row"><span>PC</span><b>'+a.dev.desktop+'</b></div>'):'<p class="muted">아직 없음</p>')+'</div>';
+    h+='</div>';
+    return h;
+  }
+
+  function render(){
+    body.innerHTML = siteBlock('주니어솔로몬','solomon','#5F3D66') + siteBlock('소포스에듀','sophos','#6E2B38');
+    note.textContent='최근 '+days+'일 · 익명 집계(개인정보 없음). 숫자가 계속 0이면 Supabase 표(site_events)가 아직 안 만들어진 것일 수 있어요.';
+  }
+
+  function load(){
+    body.innerHTML='<p class="muted" style="margin-top:30px">불러오는 중…</p>';
+    var since=new Date(Date.now()-days*864e5).toISOString();
+    sb.from('site_events').select('site,event,path,ref,session,device,detail,dwell_ms,ts').gte('ts',since).order('ts',{ascending:false}).limit(20000)
+      .then(function(r){
+        if(r.error){ body.innerHTML='<div class="lock">불러오지 못했습니다.<br><span class="muted">'+esc(r.error.message||'')+'</span></div>'; return; }
+        rows=r.data||[]; render();
+      });
+  }
+
+  document.querySelectorAll('.seg button').forEach(function(b){ b.onclick=function(){ document.querySelectorAll('.seg button').forEach(function(x){x.classList.remove('on');}); b.classList.add('on'); days=+b.dataset.d; load(); }; });
+
+  // 원장(admin)만
+  sb.auth.getSession().then(function(r){
+    var s=r&&r.data&&r.data.session;
+    if(!s||!s.user){ lock(); return; }
+    sb.rpc('is_admin').then(function(a){ if(a&&a.data===true) load(); else lock(); }).catch(function(){ lock(); });
+  }).catch(function(){ lock(); });
+})();
+</script>
+</body>
+</html>
