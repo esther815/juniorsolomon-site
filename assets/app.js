@@ -542,9 +542,9 @@ function ssRows(rows,q){
  var cnt={}; rows.forEach(function(x){ cnt[x.name]=(cnt[x.name]||0)+1 });
  return rows.map(function(x){
   var nm=esc(x.name)+(cnt[x.name]>1&&x.by?'('+esc(x.by)+')':'');
-  var cp=String(x.cls||'').split(' · '), cl=cp[0]?cname(cp[0])+(cp[1]?' · '+cp[1]:''):'';
-  var l2=[x.no||'', x.status==='퇴원'&&x.left_on?String(x.left_on).slice(0,7).replace('-','.')+' 퇴원':cl].filter(Boolean).join(' · ');
-  return '<div class="tapr" '+(x.wl?'data-go="wait"':'data-stu="'+esc(x.id)+'"')+'><span class="nm"><b>'+nm+'</b> <span class="sub">'+esc(x.grade||'')+(x.ph4?' · 보호자 …'+esc(x.ph4):'')+'</span>'+(l2?'<br><span class="sub">'+esc(l2)+'</span>':'')+'</span>'+stBadge(x.status)+'</div>' }).join('');
+  var cp=String(x.cls||'').split(' · '), cl=cp[0]?esc(cname(cp[0]))+(cp[1]?' · <span style="white-space:nowrap">'+esc(cp[1])+'</span>':''):'';
+  var l2=[x.no?esc(x.no):'', x.status==='퇴원'&&x.left_on?esc(String(x.left_on).slice(0,7).replace('-','.'))+' 퇴원':cl].filter(Boolean).join(' · ');
+  return '<div class="tapr" '+(x.wl?'data-go="wait"':'data-stu="'+esc(x.id)+'"')+'><span class="nm"><b>'+nm+'</b> <span class="sub">'+esc(x.grade||'')+(x.ph4?' · 보호자 …'+esc(x.ph4):'')+'</span>'+(l2?'<br><span class="sub">'+l2+'</span>':'')+'</span>'+stBadge(x.status)+'</div>' }).join('');
 }
 function ssRun(inp){
  var box=inp.closest('.ss').nextElementSibling, q=inp.value.trim();
