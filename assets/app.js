@@ -1295,7 +1295,7 @@ window.JSApp={mount:function(ctx){
  var root=document.createElement('div'); root.id='app';
  root.innerHTML='<div class="app"><header class="top"><button class="back" id="aBack" hidden>'+I.back+'<span>뒤로</span></button>'+
   '<button class="refresh" id="aRefresh" type="button" aria-label="새로고침" title="새로고침">'+I.refresh+'</button>'+
-  '<a class="refresh" id="aHome" href="/?app=1" aria-label="학원 둘러보기" title="학원 둘러보기">'+I.home2+'</a>'+
+  '<a class="refresh" id="aHome" href="/?app=1&stay=1" aria-label="학원 둘러보기" title="학원 둘러보기">'+I.home2+'</a>'+
   '<div class="brand">주니어솔로몬<small id="aRole"></small></div></header><main class="v" id="aView"><p class="sub" style="padding:40px 0;text-align:center">불러오는 중…</p></main><div class="toast" id="aToast"></div></div>';
  document.body.appendChild(root); document.body.classList.add('app-on');
  root.addEventListener('click',onClick); root.addEventListener('submit',onSubmit);

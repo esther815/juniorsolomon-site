@@ -71,7 +71,7 @@ h2{font-family:'Noto Serif KR',serif;font-weight:600;font-size:20px;margin:36px 
     <div class="js-install"></div>
   </div>
   <div id="msg"></div>
-  <a class="home" href="/?app=1" id="homeLink">← 학원 둘러보기</a>
+  <a class="home" href="/?app=1&amp;stay=1" id="homeLink">← 학원 둘러보기</a>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/site-data.js?v=1"></script>
@@ -81,7 +81,8 @@ h2{font-family:'Noto Serif KR',serif;font-weight:600;font-size:20px;margin:36px 
 (function(){
   var sb = window.supabase.createClient(
     'https://gyuuimwalbxsocnamtqk.supabase.co',
-    'sb_publishable_Kj2bX4fe9CRSkhvGzBbaJw_y1ZqkjOz'
+    'sb_publishable_Kj2bX4fe9CRSkhvGzBbaJw_y1ZqkjOz',
+    {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}   // 로그인 유지: 로그아웃 전까지 그대로
   );
   var out=document.getElementById('out'), msg=document.getElementById('msg');
   function okBirth(v){ if(!/^(19|20)\d{6}$/.test(v)) return false; var y=+v.slice(0,4),m=+v.slice(4,6),d=+v.slice(6); var t=new Date(y,m-1,d); var now=new Date(); return t.getFullYear()===y&&t.getMonth()===m-1&&t.getDate()===d&&t<now&&y>=now.getFullYear()-25; }
@@ -98,7 +99,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
   });
 
   function logoutBtn(){ return '<button class="ghost" id="logout" type="button">로그아웃</button><p style="margin:14px 0 0;text-align:center"><button type="button" id="delacct" style="border:0;background:none;color:#8A8290;font-size:13px;text-decoration:underline;cursor:pointer;font-family:inherit">회원 탈퇴</button></p>' }
-  function bindLogout(){ var b=document.getElementById('logout'); if(b) b.addEventListener('click',function(){ sb.auth.signOut().then(function(){location.replace('member.html')}) });
+  function bindLogout(){ var b=document.getElementById('logout'); if(b) b.addEventListener('click',function(){ try{ localStorage.removeItem('js_role') }catch(e){} sb.auth.signOut({scope:'local'}).then(function(){location.replace('member.html')}) });
     var d=document.getElementById('delacct'); if(d) d.addEventListener('click',function(){
       if(!confirm('회원 탈퇴를 하면 가입 정보(보호자·자녀 정보)가 바로 지워지고 되돌릴 수 없습니다. 탈퇴할까요?')) return;
       if(!confirm('정말 탈퇴할까요? 다시 쓰시려면 처음부터 가입해야 합니다.')) return;
@@ -128,7 +129,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
   function deskCode(){ try{ return localStorage.getItem('js_desk_code')||'' }catch(e){ return '' } }
   var shown=false, curUser=null, meSort='grade';
   function mountApp(p,role){
-    var nick=esc(p.nickname||'회원');
+    var nick=esc(p.nickname||'회원'); try{ localStorage.setItem('js_role',role) }catch(e){}
     window.JSApp.mount({sb:sb,p:p,role:role,L:{installBox:installBox,bindInstall:bindInstall,bindLogout:bindLogout,consults:consults,teacherBoard:teacherBoard,
       admin:admin,classBoard:classBoard,meBoard:meBoard,inviteBtn:inviteBtn,kakaoSetup:kakaoSetup,betaList:betaList,usage:usage,
       openForm:function(kids,preview){ window.JSApp.unmount(); window.scrollTo(0,0); form(p,preview?'학부모':nick,!!preview,kids||[]) }}});
@@ -539,7 +540,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
   if(_as==='student'){ out.innerHTML='<h1>학생 화면</h1><p class="lead">학생 화면은 준비하고 있습니다.<br>열리면 학부모님 앱에서 만든<br>로그인 코드로 들어옵니다.</p><a class="home" href="/?app=1">← 학원 둘러보기</a>'; return }
   if(_as==='teacher'){ var _l=out.querySelector('.lead'); if(_l) _l.innerHTML='선생님은 카카오로 로그인합니다.<br>처음이면 원장님께 받은 초대 링크로 가입해 주세요.' }
   var guest=_qs.get('guest')==='1';
-  try{ if(sessionStorage.getItem('js_inapp')!=='1'){ var _hl=document.getElementById('homeLink'); if(_hl){ _hl.href='index.html'; _hl.textContent='← 홈페이지로' } } }catch(e){}
+  try{ if(sessionStorage.getItem('js_inapp')!=='1'){ var _hl=document.getElementById('homeLink'); if(_hl){ _hl.href='index.html?stay=1'; _hl.textContent='← 홈페이지로' } } }catch(e){}
   if(guest){ out.insertAdjacentHTML('afterbegin','<div class="err" style="background:#FBF4E2;color:#7A5A12;margin:0 0 18px">미리보기 · 가입하지 않은 사람이 보는 화면입니다. <a href="member.html" style="color:#5F3D66;font-weight:700">원장 화면으로 돌아가기</a></div>') }
   else {
   sb.auth.getSession().then(function(r){ var s=r.data&&r.data.session; if(s) show(s.user) });
