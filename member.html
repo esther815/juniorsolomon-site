@@ -58,7 +58,7 @@ h2{font-family:'Noto Serif KR',serif;font-weight:600;font-size:20px;margin:36px 
 .me .up input{display:block;margin:6px 0 12px;font-size:14px;max-width:100%}
 </style>
 <style>@media (hover:hover) and (pointer:fine){html,body{cursor:url("assets/cursor.svg") 3 2, auto}a,button,summary,label,[role="button"],.js-login{cursor:url("assets/cursor-gold.svg") 4 3, pointer}}</style>
-<link rel="stylesheet" href="assets/app.css?v=16">
+<link rel="stylesheet" href="assets/app.css?v=17">
 </head>
 <body>
 <main class="wrap">
@@ -75,7 +75,7 @@ h2{font-family:'Noto Serif KR',serif;font-weight:600;font-size:20px;margin:36px 
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/site-data.js?v=1"></script>
-<script src="assets/app.js?v=36"></script>
+<script src="assets/app.js?v=37"></script>
 <script src="assets/install.js?v=7"></script>
 <script>
 (function(){
@@ -469,9 +469,9 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
         return '<div class="m"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>'+esc(c.display_name||c.name)+'</b><span class="st" style="float:none">'+st.length+(c.cap?'/'+c.cap:'')+'명</span></div>'+
           (st.length?st.map(function(x){
             var dots=(x.att||[]).slice().reverse().map(function(a){return '<span title="'+esc(a.day+' '+a.status)+'" style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:3px;background:'+(AT[a.status]||'#CFC8D4')+'"></span>'}).join('');
-            return '<div class="row2"><span>'+esc(x.name)+' <span style="color:#8A8290;font-size:13px">'+esc(x.grade||'')+(x.status==='휴원'?' · 휴원':'')+'</span></span><span>'+dots+'</span></div>' }).join('')
+            return '<div class="row2" data-stu="'+esc(x.id||'')+'" style="cursor:pointer"><span><u style="text-decoration-color:#D5C1DE;text-underline-offset:3px">'+esc(x.name)+'</u> <span style="color:#8A8290;font-size:13px">'+esc(x.grade||'')+(x.status==='휴원'?' · 휴원':'')+'</span></span><span>'+dots+'</span></div>' }).join('')
           :'<div style="color:#8A8290;font-size:13px;margin-top:6px">배정된 학생이 없습니다.</div>')+'</div>';
-      }).join('')+'<p style="margin:10px 0 0;color:#8A8290;font-size:12px">● 최근 출결 4회 (초록 출석 · 빨강 결석 · 노랑 기타)</p>';
+      }).join('')+'<p style="margin:10px 0 0;color:#8A8290;font-size:12px">● 최근 출결 4회 (초록 출석 · 빨강 결석 · 노랑 기타) · 이름을 누르면 학생 정보가 열립니다</p>';
     });
   }
   var myId='';
@@ -519,7 +519,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
       body='<h1>윤슬 선생님</h1><p class="lead"><span class="badge">강사</span><br>하브루타 초등</p><div class="me"><h2>내 반 2개</h2>'+
         '<div class="m"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>하브루타 초3 · 월 오후 5:00</b><span class="st" style="float:none">5/8명</span></div>'+st.map(function(x){return '<div class="row2"><span>'+x[0]+' <span style="color:#8A8290;font-size:13px">'+x[1]+'</span></span><span>'+x[2].map(dot).join('')+'</span></div>'}).join('')+'</div>'+
         '<div class="m"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>하브루타 초4 · 수 오후 4:00</b><span class="st" style="float:none">6/8명</span></div><div style="color:#8A8290;font-size:13px;margin-top:6px">학생 6명</div></div>'+
-        '<p style="margin:10px 0 0;color:#8A8290;font-size:12px">● 최근 출결 4회 (초록 출석 · 빨강 결석 · 노랑 기타)</p></div>'+
+        '<p style="margin:10px 0 0;color:#8A8290;font-size:12px">● 최근 출결 4회 (초록 출석 · 빨강 결석 · 노랑 기타) · 이름을 누르면 학생 정보가 열립니다</p></div>'+
         '<p class="note" style="text-align:left">학부모 연락이 필요하면 데스크에 요청해 주세요. 학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.</p>';
     } else {
       var kid=function(n,no,g,cls){ return '<div class="card" style="border-color:#D9CFE0;background:#FBF8FC"><div style="font-size:13px;color:#8A8290;font-weight:700;letter-spacing:.04em">우리 아이 수업</div>'+

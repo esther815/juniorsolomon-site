@@ -56,7 +56,7 @@ function tilesFor0(role){
  var T={
   parent:[['today','오늘 우리 아이','출결·다음 수업',I.home],['fb','수업 피드백','선생님이 보낸 수업 이야기',I.note],['asg','과제','선생님이 보낸 학습지',I.book],['notice','공지','학원 소식',I.bell],['time','시간표','수업 요일·예약',I.cal],
           ['req','보강·상담','결석 알림·상담 신청',I.chat],['att','출결 기록','달력으로 한눈에',I.check],['mine','내 정보','자녀 추가·로그아웃',I.me]],
-  teacher:[['fb','수업 피드백','오늘 수업 보내기',I.send],['stu','학생 정보','출결·보강·피드백·메모',I.users],['asg','학습지 과제','보내기·제출 확인',I.book],['tboard','내 반 출결','반별 학생·최근 출결',I.users],['mk','보강','보강 시간·출석 체크',I.cal],['sreq','받은 상담','학부모가 보낸 신청',I.chat],['notice','공지','학원 소식',I.bell]],
+  teacher:[['fb','수업 피드백','오늘 수업 보내기',I.send],['asg','학습지 과제','보내기·제출 확인',I.book],['tboard','내 반 출결','반별 학생·최근 출결',I.users],['mk','보강','보강 시간·출석 체크',I.cal],['sreq','받은 상담','학부모가 보낸 신청',I.chat],['notice','공지','학원 소식',I.bell]],
   desk:[['approve','가입 승인','학부모 가입 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],['mk','보강','보강권·보강 달력',I.cal],['wait','대기 명단','반별 대기',I.note],
         ['board','반별 정원','마감·모집',I.users],['notice','공지','올리기·보기',I.send]],
   manager:[['over','한눈에 현황','우리 지점',I.chart],['approve','가입 승인','학부모 가입 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],
@@ -94,6 +94,7 @@ function home(){
  var un=badge('notice');
  h+='<div class="row" style="align-items:flex-start"><div><p class="hello">'+LABEL[r]+'</p><div class="hello-b">'+hi+'</div></div>'+
     (r==='parent'&&pAccess()==='closed'?'':'<button class="bell" data-go="notice" aria-label="공지 '+un+'건">'+I.bell+nb(un,true)+'</button>')+'</div>';
+ if(r==='admin'||r==='desk'||r==='manager') h+='<div style="margin-top:14px">'+stuSearch()+'</div>';
  h+='<div id="pushSlot"></div><div id="ckSlot"></div>'+(r==='parent'&&pAccess()!=='open'?accCard():summary());
  if(!C.pv&&C.real==='admin') h=h.replace('<div id="pushSlot"></div>','<div id="pushSlot"></div>'+pvCard());
  if(r==='teacher'||r==='admin'){ var fm=fbMissing(); if(fm.length) h+='<button class="card fbwarn" data-go="'+(r==='admin'?'fbw':'fb')+'"><b>⚠️ 피드백이 안 나간 수업 '+fm.length+'개</b><span>'+fm.slice(0,3).map(function(x){return esc(cname(x.class))+' '+md(x.day)}).join(' · ')+(fm.length>3?' 외':'')+'</span></button>' }
@@ -532,11 +533,26 @@ function gradeRank(nm){ var s=String(nm||'');
  if(/고등|수능/.test(s)) return 12.5;
  if(/고학년/.test(s)) return 7; if(/저학년/.test(s)) return 4;
  return 20 }
-function stuSearch(){
- var q=S.stuQ;
- return '<form id="fStuQ" class="sq"><input name="q" placeholder="학생 이름으로 찾기" value="'+esc(q?q.q:'')+'" autocomplete="off"><button class="sm on">찾기</button></form>'+
-  (q?'<div class="card"><div class="list">'+(q.rows.length?q.rows.map(function(x){ return '<div class="tapr" data-stu="'+esc(x.id)+'"><span><b>'+esc(x.name)+'</b> <span class="sub">'+esc(x.grade||'')+'</span>'+(x.status!=='재원'?' <span class="tag g">'+esc(x.status)+'</span>':'')+'</span><i class="chev">›</i></div>' }).join(''):'<p class="sub">「'+esc(q.q)+'」 학생이 없습니다.</p>')+'</div></div>':'');
+function stuSearch(){ if(C.role==='teacher'||C.role==='parent') return '';
+ return '<div class="ss"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input class="ssq" type="search" enterkeyhint="search" placeholder="학생 이름·원생번호로 찾기" autocomplete="off" aria-label="학생 검색"></div><div class="ssr" hidden></div>' }
+var STB={'재원':'s1','휴원':'s2','퇴원':'s3','대기':'s4','미등록':'s4'};
+function stBadge(st){ return '<span class="st '+(STB[st]||'s3')+'">'+esc(st||'')+'</span>' }
+function ssRows(rows,q){
+ if(!rows.length) return '<p class="sub" style="padding:12px 0">「'+esc(q)+'」 학생이 없습니다.</p>';
+ var cnt={}; rows.forEach(function(x){ cnt[x.name]=(cnt[x.name]||0)+1 });
+ return rows.map(function(x){
+  var nm=esc(x.name)+(cnt[x.name]>1&&x.by?'('+esc(x.by)+')':'');
+  var cp=String(x.cls||'').split(' · '), cl=cp[0]?cname(cp[0])+(cp[1]?' · '+cp[1]:''):'';
+  var l2=[x.no||'', x.status==='퇴원'&&x.left_on?String(x.left_on).slice(0,7).replace('-','.')+' 퇴원':cl].filter(Boolean).join(' · ');
+  return '<div class="tapr" '+(x.wl?'data-go="wait"':'data-stu="'+esc(x.id)+'"')+'><span class="nm"><b>'+nm+'</b> <span class="sub">'+esc(x.grade||'')+(x.ph4?' · 보호자 …'+esc(x.ph4):'')+'</span>'+(l2?'<br><span class="sub">'+esc(l2)+'</span>':'')+'</span>'+stBadge(x.status)+'</div>' }).join('');
 }
+function ssRun(inp){
+ var box=inp.closest('.ss').nextElementSibling, q=inp.value.trim();
+ clearTimeout(ssRun.t); if(!q){ box.hidden=true; box.innerHTML=''; return }
+ ssRun.t=setTimeout(function(){ var my=++ssRun.n;
+  rpc('student_search',{p_q:q}).then(function(x){ if(my!==ssRun.n||inp.value.trim()!==q) return; box.innerHTML=ssRows(x||[],q)+'<div class="hint">퇴원·휴원·대기생도 함께 나옵니다. 동명이인은 생년과 보호자 번호 뒤 4자리로 구분합니다.</div>'; box.hidden=false })
+   .catch(function(){ box.innerHTML='<p class="sub" style="padding:12px 0">찾지 못했습니다. 잠시 뒤 다시 적어 주세요.</p>'; box.hidden=false }) },220) }
+ssRun.n=0;
 function monthlyCard(){
  var m=S.stuMonthly;
  if(!m) return '<div class="card"><h3>월간 비교 <span class="sub">지난달 대비</span></h3><p class="sub">불러오는 중…</p></div>';
@@ -551,38 +567,52 @@ function monthlyCard(){
    '</div><p class="sub" style="margin-top:8px">반: '+esc((m.student&&m.student.classes||[]).join(', ')||'-')+'</p></div>'
 }
 function vStu(){
- var h=''; function n(v){ return (+v||0).toLocaleString('ko-KR') }
- if(!S.stuId) return '<h2>학생 정보</h2>'+stuSearch()+(S.stuQ?'':'<div class="card"><p class="sub">이름 일부만 적어도 찾습니다. '+(C.role==='teacher'?'내 반 학생만 보입니다.':'')+'</p></div>');
+ var h=''; function n(v){ return (+v||0).toLocaleString('ko-KR') } function dt(v){ return v?esc(String(v).slice(0,10).replace(/-/g,'.')):'-' }
+ if(!S.stuId) return '<h2>학생 정보</h2>'+(C.role==='teacher'?'<div class="card"><p class="sub">「내 반 출결」에서 학생 이름을 누르면 학생 정보가 열립니다.</p></div>':stuSearch());
  var c=S.stuC;
  if(!c||c.id!==S.stuId) return '<h2>학생 정보</h2><div class="card"><p class="sub">불러오는 중…</p></div>';
  if(c.err) return '<h2>학생 정보</h2><div class="card"><p class="sub">'+esc(c.err)+'</p></div>';
  var W=['일','월','화','수','목','금','토'], A={'출석':'●','지각':'◑','결석':'○','보강':'◐'};
- h+='<h2>'+esc(c.name)+' <span class="sub" style="font-size:15px">'+esc(c.grade||'')+(c.school?' · '+esc(c.school):'')+'</span></h2>';
- h+='<div class="card hl"><div class="list">'+
-  '<div><span>상태</span><span class="tag '+(c.status==='재원'?'ok':'warn')+'">'+esc(c.status)+'</span></div>'+
-  '<div><span>등록일</span><span>'+esc(String(c.joined_on||'-').replace(/-/g,'.'))+(c.left_on?' · 퇴원 '+esc(String(c.left_on).replace(/-/g,'.')):'')+'</span></div>'+
-  (c.classes||[]).map(function(k){ return '<div><span>'+esc(cname(k.name))+'</span><span class="sub">'+(k.weekday!=null?W[k.weekday]+' '+esc(String(k.starts||'').slice(0,5))+' · ':'')+esc(k.teacher||'')+'</span></div>' }).join('')+
-  (c.staff?'<div><span>학부모 연락처</span>'+(c.phone?'<a class="sm on" href="tel:'+esc(c.phone)+'">'+phone(c.phone)+' 전화</a>':'<span class="sub">메이크에듀에 없음</span>')+'</div>':'')+
-  '<div><span>학부모 앱</span><span>'+(c.parent.linked?'<span class="tag ok">연결됨</span>':c.parent.pending?'<span class="tag warn">승인 대기</span>':'<span class="sub">아직 안 들어옴</span>')+'</span></div></div></div>';
+ function tel(v){ return v?phone(v)+' <a class="sm on" style="margin-left:6px" href="tel:'+esc(String(v).replace(/[^0-9]/g,''))+'">전화</a>':'<span class="sub">없음</span>' }
+ function end(k){ if(!k.starts||!k.minutes) return ''; var p=String(k.starts).split(':'), m=(+p[0])*60+(+p[1])+(+k.minutes); return '–'+('0'+Math.floor(m/60)%24).slice(-2)+':'+('0'+m%60).slice(-2) }
+ if(c.staff) h+=stuSearch();
+ // 1 기본
+ h+='<div class="card hl"><p class="sub">'+esc(c.no||'원생번호 없음')+(c.grade?' · 2026학년도 '+esc(c.grade):'')+'</p><h3 style="font-size:23px;margin:4px 0 6px">'+esc(c.name)+' '+stBadge(c.status)+'</h3><div class="kv">'+
+  (c.staff?'<div><span>생년월일</span><span>'+dt(c.birth)+'</span></div>':'')+
+  '<div><span>학교</span><span>'+esc(c.school||'-')+'</span></div>'+
+  (c.staff?'<div><span>학생 휴대폰</span><span>'+tel(c.student_phone)+'</span></div>':'')+'</div></div>';
+ // 2 반·수업
+ h+='<div class="card"><p class="sec">반 · 수업</p><div class="kv">'+
+  ((c.classes||[]).length?c.classes.map(function(k){ return '<div><span>'+esc(cname(k.name))+'</span><span>'+(k.weekday!=null?W[k.weekday]+' '+esc(String(k.starts||'').slice(0,5))+end(k):'')+(k.teacher?'<br><span class="sub">'+esc(k.teacher)+' 선생님</span>':'')+'</span></div>' }).join(''):'<div><span>반</span><span class="sub">배정된 반 없음</span></div>')+
+  '<div><span>SL 레벨</span><span>'+(c.staff?'<select id="stuSl" aria-label="SL 레벨"><option value="">정하지 않음</option>'+[1,2,3,4,5,6,7,8,9,10,11,12,13,14].map(function(i){ return '<option value="'+i+'"'+(+c.sl===i?' selected':'')+'>SL'+i+'</option>' }).join('')+'</select>':(c.sl?'SL'+esc(c.sl):'-'))+'</span></div>'+
+  '<div><span>등록일</span><span>'+dt(c.joined_on)+(c.left_on?'<br><span class="sub">퇴원 '+dt(c.left_on)+'</span>':'')+'</span></div></div></div>';
+ // 3 학부모
+ var pa=c.parent||{};
+ h+='<div class="card"><p class="sec">학부모</p><div class="kv">'+
+  (c.staff?'<div><span>이름</span><span>'+esc(pa.name||'앱 미가입')+'</span></div><div><span>연락처</span><span>'+tel(c.phone||pa.phone)+'</span></div>':'')+
+  '<div><span>앱 가입</span><span>'+(pa.linked?'<span class="tag ok">승인됨</span>':pa.pending?'<span class="tag warn">승인 대기</span>':'<span class="sub">아직 안 들어옴</span>')+'</span></div>'+
+  '<div><span>재원 여부</span><span>'+(c.status==='재원'?'재원생':'<span class="tag warn">비재원 · '+esc(c.status)+'</span>')+'</span></div></div></div>';
+ // 4 출결·보강
+ var at=c.att||[], tk=c.tickets||[], used=tk.filter(function(t){return t.status==='완료'}).length, left=tk.filter(function(t){return t.status==='발급'&&!t.booked}).length, up=c.upcoming||[];
+ h+='<div class="card"><p class="sec">출결 · 보강</p><div class="n3"><div><b>'+n(c.abs30)+'</b><span>30일 결석</span></div><div><b>'+(c.late30?n(c.late30):n(c.etc30))+'</b><span>'+(c.late30?'30일 지각':'30일 기타')+'</span></div><div><b>'+n(left)+'</b><span>남은 보강권</span></div></div>'+
+  (at.length?'<div class="atts">'+at.slice().reverse().map(function(x){ return '<span title="'+esc(x.status)+'"><i class="'+(x.status==='결석'?'ab':x.status==='출석'?'ok':'')+'">'+(A[x.status]||'◇')+'</i><small>'+esc(String(x.day).slice(5).replace('-','/'))+'</small></span>' }).join('')+'</div><p class="sub">● 출석 ○ 결석 ◑ 지각 ◇ 기타</p>':'<p class="sub">메이크에듀 출석 기록이 없습니다.</p>')+
+  '<div class="kv" style="margin-top:8px"><div><span>보강권</span><span>발급 '+n(tk.length)+' · 사용 '+n(used)+' · 남음 '+n(left)+'</span></div>'+
+  '<div><span>예정 보강</span><span>'+(up.length?up.map(function(u){ return esc(md(u.day))+'('+W[new Date(u.day+'T00:00:00').getDay()]+') '+esc(String(u.starts||'').slice(0,5)) }).join('<br>'):'<span class="sub">없음</span>')+'</span></div></div></div>';
+ if(c.staff) h+=monthlyCard();
+ // 5 상담·요청
+ var R=(c.requests||[]).map(function(r){ return {k:r.kind,at:r.at,ok:r.status==='완료',st:r.status} }).concat((c.consults||[]).map(function(x){ return {k:'홈페이지 '+(x.kind||'상담'),at:x.at,ok:x.done,st:x.done?'완료':'접수',w:x.wish} })).sort(function(a,b){ return String(b.at).localeCompare(String(a.at)) });
+ h+='<div class="card"><p class="sec">상담 · 요청</p>'+(R.length?'<div class="list">'+R.map(function(r){ return '<div><span>'+esc(r.k)+' <span class="sub">'+esc(md(String(r.at).slice(0,10)))+(r.w?' · '+esc(r.w):'')+'</span></span><span class="tag '+(r.ok?'ok':'warn')+'">'+esc(r.st)+'</span></div>' }).join('')+'</div>':'<p class="sub">상담 신청·결석 알림·보강 신청 기록이 없습니다.</p>')+'</div>';
+ // 6 피드백
+ var F=c.feedback||[];
+ h+='<div class="card"><p class="sec">최근 수업 피드백</p>'+(F.length?'<div class="list">'+F.map(function(x){ return '<div style="display:block"><b>'+esc(String(x.day).slice(5).replace('-','/'))+'</b> <span class="sub">'+esc(cname(x.class))+(x.kind==='휴강'?' · 휴강':'')+'</span><br><span style="white-space:pre-wrap">'+esc(x.body||'')+'</span></div>' }).join('')+'</div>':'<p class="sub">이 학생 반에 올라온 피드백이 없습니다.</p>')+'</div>';
+ // 7 과제·수납
+ var P=c.pay||[], un=P.reduce(function(a,x){ return a+(x.unpaid||0) },0);
+ h+='<div class="card"><p class="sec">과제'+(c.staff?' · 수납':'')+'</p><div class="kv"><div><span>학습지</span><span>보냄 '+n(c.asg&&c.asg.sent)+' · 제출 '+n(c.asg&&c.asg.done)+'</span></div>'+
+  (c.staff?(P.length?P.slice(0,3).map(function(x){ return '<div><span>'+esc(x.month.slice(5))+'월 수납</span><span>'+(x.unpaid?'<b style="color:#b3261e">미납 '+n(x.unpaid)+'원</b>':'납부 '+n(x.paid)+'원')+'</span></div>' }).join('')+'<div><span>미납 합계</span><span>'+(un?'<b style="color:#b3261e">'+n(un)+'원</b>':'없음')+'</span></div>':'<div><span>수납</span><span class="sub">올라온 수납 내역에 없음</span></div>'):'')+'</div></div>';
  // 조치 기록
  h+='<div class="card"><h3>조치 기록</h3><div class="wb" style="margin:8px 0">'+['통화함','상담 잡음','지켜봄'].map(function(k){ return '<button class="sm" data-snote="'+k+'">'+k+'</button>' }).join('')+'</div>'+
   '<div class="sq" style="margin:0"><input id="stuMemo" maxlength="300" placeholder="한 줄 메모 (선택)"><button type="button" class="sm on" data-snote="메모">메모</button></div>'+
   ((c.notes||[]).length?'<div class="list" style="margin-top:8px">'+c.notes.map(function(x){ return '<div style="display:block"><b>'+esc(x.kind)+'</b> <span class="sub">'+ago(x.at)+(x.author?' · '+esc(x.author):'')+'</span>'+(x.memo?'<br>'+esc(x.memo):'')+'</div>' }).join('')+'</div>':'<p class="sub" style="margin-top:8px">아직 기록이 없습니다. 버튼을 누르면 메모 칸의 글도 함께 남습니다.</p>')+'</div>';
- // 출결
- var at=c.att||[];
- h+='<div class="card"><h3>출결 <span class="sub">최근 '+at.length+'회 · 30일 결석 '+n(c.abs30)+'회</span></h3>'+(at.length?'<div class="atts">'+at.slice().reverse().map(function(x){ return '<span title="'+esc(x.status)+'"><i class="'+(x.status==='결석'?'ab':x.status==='출석'?'ok':'')+'">'+(A[x.status]||'◇')+'</i><small>'+esc(String(x.day).slice(5).replace('-','/'))+'</small></span>' }).join('')+'</div><p class="sub">● 출석 ○ 결석 ◑ 지각 ◐ 보강</p>':'<p class="sub">메이크에듀 출석 기록이 없습니다.</p>')+'</div>';
- if(c.staff) h+=monthlyCard();
- // 보강권
- var tk=c.tickets||[], open=tk.filter(function(t){ return t.status==='발급'&&!t.booked });
- h+='<div class="card"><h3>보강권 <span class="sub">안 쓴 것 '+open.length+'장</span></h3>'+(tk.length?'<div class="list">'+tk.map(function(t){ return '<div><span>'+esc(String(t.absent_day).slice(5).replace('-','/'))+' 결석분 <span class="sub">'+ago(t.issued_at)+' 발급 · '+esc(String(t.expires).slice(5).replace('-','/'))+'까지</span></span><span class="tag '+(t.status==='완료'?'ok':t.booked?'':'warn')+'">'+(t.status==='발급'?(t.booked?'신청함':'안 씀'):esc(t.status))+'</span></div>' }).join('')+'</div>':'<p class="sub">최근 4개월 보강권이 없습니다.</p>')+'</div>';
- // 수납
- if(c.staff){ var P=c.pay||[], un=P.reduce(function(a,x){ return a+(x.unpaid||0) },0);
-  h+='<div class="card"><h3>수납 '+(un?'<span class="tag warn">미납 '+n(un)+'원</span>':'')+'</h3>'+(P.length?'<div class="list">'+P.map(function(x){ return '<div><span>'+esc(x.month.slice(5))+'월 <span class="sub">청구 '+n(x.billed)+'원</span></span><span>'+(x.unpaid?'<b style="color:#b3261e">미납 '+n(x.unpaid)+'원</b>':'<span class="sub">납부 '+n(x.paid)+'원</span>')+'</span></div>' }).join('')+'</div>':'<p class="sub">올라온 수납 내역에 이 학생이 없습니다.</p>')+'</div>' }
- // 피드백·과제·요청
- var F=c.feedback||[];
- h+='<div class="card"><h3>최근 수업 피드백</h3>'+(F.length?'<div class="list">'+F.map(function(x){ return '<div style="display:block"><b>'+esc(String(x.day).slice(5).replace('-','/'))+'</b> <span class="sub">'+esc(cname(x.class))+(x.kind==='휴강'?' · 휴강':'')+'</span><br><span style="white-space:pre-wrap">'+esc(x.body||'')+'</span></div>' }).join('')+'</div>':'<p class="sub">이 학생 반에 올라온 피드백이 없습니다.</p>')+'</div>';
- h+='<div class="card"><div class="list"><div><span>학습지 과제</span><span>'+n(c.asg.done)+' / '+n(c.asg.sent)+'건 제출</span></div>'+
-  ((c.requests||[]).length?c.requests.map(function(r){ return '<div><span>'+esc(r.kind)+' <span class="sub">'+ago(r.at)+'</span></span><span class="tag '+(r.status==='완료'?'ok':'warn')+'">'+esc(r.status)+'</span></div>' }).join(''):'<div><span>학부모 신청</span><span class="sub">없음</span></div>')+'</div></div>';
  return h+tip(c.staff?'학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.':'학부모 연락처와 수납은 원장님만 봅니다. 학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.');
 }
 var GRPL={join_month:'이번 달 신규 등록',left_month:'이번 달 퇴원',paused:'휴원'};
@@ -1103,7 +1133,7 @@ var VIEWS={special:vSpecial,today:vToday,notice:vNotice,time:vTime,req:vReq,att:
  tboard:function(){return '<h2>내 반 출결</h2><div class="legacy"><div id="tboard"></div></div>'+tip('학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.')},
  approve:function(){return '<h2>가입 승인</h2><div id="bulkSlot"></div><div class="legacy"><div id="admin"></div></div>'},
  board:function(){return '<h2>반별 정원</h2><div class="legacy"><div id="board"></div></div>'},
- me:function(){return '<h2>반별·출석부</h2><div class="legacy"><div id="me"></div></div>'}};
+ me:function(){return '<h2>반별·출석부</h2>'+stuSearch()+'<div class="legacy"><div id="me"></div></div>'}};
 
 function render(){
  var v=$('#aView'), back=$('#aBack');
@@ -1232,8 +1262,7 @@ function onSubmit(e){
    rpc('waitlist_set',{p_id:+f.dataset.wlid,p_status:f.dataset.wlst,p_class:f.cls.value}).then(function(){ S.wlMove=null; return rpc('waitlist_board') }).then(function(x){ S.wl=x; render(); toast('반을 옮겼습니다') })
     .catch(function(er){ mb.disabled=false; toast(er&&er.message?er.message.replace(/^.*?: /,''):'옮기지 못했습니다. 다시 눌러 주세요.') });
    return }
- if(f.id==='fStuQ'){ e.preventDefault(); var qv=(f.q.value||'').trim(); if(!qv){ toast('이름을 적어 주세요'); return } rpc('student_search',{p_q:qv}).then(function(x){ S.stuQ={q:qv,rows:x||[]}; render() }).catch(function(){ toast('찾지 못했습니다') }); return }
- if(f.id==='fAsg'){ e.preventDefault(); if(C.pv){ toast('미리보기에서는 보내지 않습니다'); return } asgSend(f); return }
+  if(f.id==='fAsg'){ e.preventDefault(); if(C.pv){ toast('미리보기에서는 보내지 않습니다'); return } asgSend(f); return }
  if(f.id==='fFb'){ e.preventDefault(); if(C.pv){ toast('미리보기에서는 보내지 않습니다'); return }
    var mid=(f.mid.value||'').trim(); if(mid.length<40){ toast('「오늘 수업」을 40자 이상 적어 주세요.'); f.mid.focus(); return }
    var body=[f.intro.value,f.mid.value,f.outro.value].map(function(s){return (s||'').trim()}).filter(Boolean).join('\n\n');
@@ -1270,6 +1299,9 @@ window.JSApp={mount:function(ctx){
   '<div class="brand">주니어솔로몬<small id="aRole"></small></div></header><main class="v" id="aView"><p class="sub" style="padding:40px 0;text-align:center">불러오는 중…</p></main><div class="toast" id="aToast"></div></div>';
  document.body.appendChild(root); document.body.classList.add('app-on');
  root.addEventListener('click',onClick); root.addEventListener('submit',onSubmit);
+ root.addEventListener('change',function(e){ if(e.target.id!=='stuSl') return; if(C.pv){ toast('미리보기에서는 저장하지 않습니다'); return } var v=e.target.value; rpc('student_level_set',{p_id:S.stuId,p_sl:v?+v:null}).then(function(){ if(S.stuC) S.stuC.sl=v?+v:null; toast(v?'SL'+v+'로 저장했습니다':'SL을 비웠습니다') }).catch(function(er){ toast(er&&er.message?er.message.replace(/^.*?: /,''):'저장하지 못했습니다') }) });
+ root.addEventListener('input',function(e){ if(e.target.classList&&e.target.classList.contains('ssq')) ssRun(e.target) });
+ root.addEventListener('keydown',function(e){ if(e.key==='Enter'&&e.target.classList&&e.target.classList.contains('ssq')){ e.preventDefault(); var f=e.target.closest('.ss').nextElementSibling.querySelector('[data-stu],[data-go]'); if(f) f.click() } });
  history.replaceState({jsTab:null},'','');
  window.onpopstate=function(e){ if(!document.getElementById('app')) return; S.asgOpen=null; S.tab=(e.state&&e.state.jsTab)||null; render() };
  clearInterval(window.__jsPoll); window.__jsPoll=setInterval(poll,120000);

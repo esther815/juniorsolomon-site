@@ -242,3 +242,26 @@ body.app-on main.wrap{display:none}
 #app .atts{display:flex;gap:6px;justify-content:space-between;margin:10px 0 6px}#app .atts span{display:flex;flex-direction:column;align-items:center;gap:2px}
 #app .atts i{font-style:normal;font-size:20px;color:#5F3D66}#app .atts i.ab{color:#b3261e}#app .atts small{font-size:11px;color:#8a7f90}
 #app a.sm{text-decoration:none;display:inline-flex;align-items:center;box-sizing:border-box}#app .wb{flex-wrap:wrap}
+/* 학생 검색(원장·관리자) 2026-11-24 */
+#app .ss{position:relative;margin:0 0 14px}
+#app .ss input{width:100%;font:inherit;font-size:16px;padding:13px 16px 13px 44px;border:1.5px solid var(--lav);border-radius:16px;background:#fff;color:var(--ink);outline:none;-webkit-appearance:none;appearance:none}
+#app .ss input:focus{border-color:var(--purple);box-shadow:0 0 0 3px #EFE6F2}
+#app .ss svg{position:absolute;left:15px;top:50%;transform:translateY(-50%);width:19px;height:19px;stroke:var(--purple);fill:none;stroke-width:2;pointer-events:none}
+#app .ssr{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);margin:-6px 0 16px;padding:4px 16px;max-height:60vh;overflow:auto}
+#app .ssr[hidden]{display:none}
+#app .ssr>div.tapr{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line);cursor:pointer}
+#app .ssr>div.tapr:first-child{border-top:0}
+#app .ssr .nm{flex:1;min-width:0}
+#app .ssr .hint{font-size:12.5px;color:var(--mute);padding:10px 0 8px;border-top:1px solid var(--line)}
+#app .st{display:inline-block;font-size:12px;font-weight:500;padding:3px 9px;border-radius:999px;white-space:nowrap;font-family:"Noto Sans KR",sans-serif;vertical-align:middle}
+#app .st.s1{background:#EAF4EE;color:#3E8A62}#app .st.s2{background:#FBF6DC;color:#8A7420}#app .st.s3{background:#F1EFF2;color:#7C7480}#app .st.s4{background:#E7EEF8;color:#3C6497}
+#app .kv>div{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:15px}
+#app .kv>div:first-child{border-top:0;padding-top:2px}
+#app .kv>div>span:first-child{color:var(--mute);flex:none;max-width:45%}
+#app .kv>div>span:last-child{text-align:right}
+#app .kv select{font:inherit;font-size:15px;padding:6px 10px;border:1px solid var(--lav);border-radius:10px;background:#fff;color:var(--ink)}
+#app .sec{font-size:12px;font-weight:700;color:var(--gold);letter-spacing:.5px;margin:0 0 6px}
+#app .n3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 10px}
+#app .n3>div{background:var(--lav-l);border-radius:14px;padding:10px 6px;text-align:center}
+#app .n3 b{display:block;font-size:20px;font-family:"Noto Serif KR",serif}
+#app .n3 span{font-size:12.5px;color:var(--mute)}
