@@ -21,7 +21,7 @@ jobs:
 
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 3.1.0 # 버전 고정(2026-11-09 출시) — "latest"로 두면 GitHub API 조회가 쌓여 rate limit에 걸릴 수 있음
 
       - name: Deploy all functions
         run: supabase functions deploy --project-ref "$SUPABASE_PROJECT_ID" --yes
