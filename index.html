@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
+<script>(function(){try{var q=new URLSearchParams(location.search);if(q.get('stay')==='1')return;if(localStorage.getItem('js_role')==='admin'){location.replace('member.html')}}catch(e){}})();</script>
 <title>주니어솔로몬학원 | 이촌동 하브루타 독서토론·논술 학원</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="index,follow,max-image-preview:large">
@@ -163,7 +164,7 @@ section[id],footer[id]{scroll-margin-top:88px}
 <p style="margin: 0 0 10px; font-size: 13px; letter-spacing: 0.22em; color: #D9B979">WINTER 2027 · 모집 중</p>
 <p style="margin: 0; font-family: 'Noto Serif KR', serif; font-size: clamp(26px, 3.2vw, 40px); font-weight: 700; line-height: 1.3">2027 겨울방학 특강</p>
 <sc-if value="{{ eventOpen }}" hint-placeholder-val="{{ true }}">
-<p style="margin: 12px 0 0; font-size: 17px; line-height: 1.7; color: #F3EEE4"><strong style="color: #F2D58A">12월 15일(화)까지 얼리 등록</strong> 시 5% 할인과 <strong style="color: #F2D58A">크리스마스 반짝 노트</strong>를 드립니다.</p>
+<p style="margin: 12px 0 0; font-size: 17px; line-height: 1.7; color: #F3EEE4"><strong style="color: #F2D58A">겨울특강 등록생 전원</strong>께 <strong style="color: #F2D58A">크리스마스 반짝 노트</strong>를 드리고, <strong style="color: #F2D58A">12월 15일(화)까지 얼리 등록</strong> 시 5% 할인해 드립니다.</p>
 </sc-if>
 <sc-if value="{{ afterEarly }}" hint-placeholder-val="{{ false }}">
 <p style="margin: 12px 0 0; font-size: 17px; line-height: 1.7; color: #F3EEE4">{{ afterEarlyText }}</p>
@@ -502,5 +503,6 @@ badgeColor: open ? '#FFFFFF' : '#3A3440'
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>window.JS_SITE='solomon'</script>
 <script src="assets/track.js?v=1"></script>
+<script>(function(){try{if(localStorage.getItem('js_role')==='admin'){var a=document.createElement('a');a.href='member.html';a.innerHTML='👑 내 화면으로 →';a.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:9000;display:inline-flex;align-items:center;gap:6px;min-height:50px;padding:0 24px;border-radius:999px;background:#5F3D66;color:#fff;font-size:16px;font-weight:700;text-decoration:none;box-shadow:0 8px 24px rgba(47,18,51,.28)';document.body.appendChild(a)}}catch(e){}})();</script>
 </body>
 </html>
