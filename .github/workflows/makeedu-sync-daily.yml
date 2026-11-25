@@ -18,11 +18,22 @@ jobs:
         run: |
           URL="https://gyuuimwalbxsocnamtqk.supabase.co/functions/v1/makeedu-sync"
           KEY="sb_publishable_Kj2bX4fe9CRSkhvGzBbaJw_y1ZqkjOz"
-          echo "=== with auth header ==="
           curl -sS -i --max-time 60 -X POST "$URL" \
             -H "apikey: $KEY" -H "Authorization: Bearer $KEY" \
             -H "Content-Type: application/json" -d '{}' || echo "curl failed $?"
-          echo
-          echo "=== no auth header ==="
-          curl -sS -i --max-time 60 -X POST "$URL" \
-            -H "Content-Type: application/json" -d '{}' || echo "curl failed $?"
+      - name: 함수 실행 로그 조회(디버그용)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+        run: |
+          sleep 5
+          curl -sS "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_ID/analytics/endpoints/logs.all?sql=$(python3 -c "import urllib.parse;print(urllib.parse.quote(open('/dev/stdin').read()))" <<'SQL'
+          select timestamp, event_message from function_edge_logs
+          cross join unnest(metadata) as m
+          cross join unnest(m.response) as response
+          where response.status_code >= 500
+          order by timestamp desc
+          limit 20
+          SQL
+          )&iso_timestamp_start=$(date -u -d '-10 minutes' +%Y-%m-%dT%H:%M:%S.000Z)" \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" | head -c 4000
