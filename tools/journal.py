@@ -20,19 +20,30 @@ def kdate(d):
 
 def card(x):
     pts = ''.join(f'<li>{E(p)}</li>' for p in x['points'])
+    upd = ''
+    if x.get('updates'):
+        lis = ''.join(f'<li><time datetime="{u["date"]}">{kdate(u["date"])}</time> {E(u["text"])}</li>' for u in x['updates'])
+        upd = f'<div class="updates"><p class="lab">후속보도</p><ul>{lis}</ul></div>'
     return f'''<article class="nc" data-cat="{E(x['cat'])}" id="{E(x['id'])}">
   <div class="meta"><span class="cat">{E(x['cat'])}</span><time datetime="{x['date']}">{kdate(x['date'])}</time><span class="src">{E(x['source'])}</span></div>
   <h2>{E(x['title'])}</h2>
   <p class="deck">{E(x['deck'])}</p>
   <div class="three"><p class="lab">세 줄 요약</p><ol>{pts}</ol></div>
   <p class="note"><b>솔로몬 노트</b>{E(x['note'])}</p>
+  {upd}
   <a class="orig" href="{E(x['url'])}" target="_blank" rel="noopener nofollow">원문 기사 보기 · {E(x['source'])} →</a>
 </article>'''
 
 def page(icon_src, home_href):
-    top3 = ''.join(f'<li><a href="#{E(x["id"])}"><span>{E(x["cat"])}</span>{E(x["title"])}</a></li>' for x in items[:3])
+    pinned = [x for x in items if x.get('pin')]
+    feed = [x for x in items if not x.get('pin')]
+    notice = ''
+    if pinned:
+        ncards = '\n'.join(card(x) for x in pinned)
+        notice = f'<section class="notice" aria-label="공지"><p class="notice-lab">공지 · 꼭 읽어 주세요</p>{ncards}</section>'
+    top3 = ''.join(f'<li><a href="#{E(x["id"])}"><span>{E(x["cat"])}</span>{E(x["title"])}</a></li>' for x in feed[:3])
     chips = ''.join(f'<button type="button" class="chip" data-f="{c}" aria-pressed="{"true" if c=="전체" else "false"}">{c}</button>' for c in CATS)
-    cards = '\n'.join(card(x) for x in items)
+    cards = '\n'.join(card(x) for x in feed)
     ld = json.dumps({"@context": "https://schema.org", "@type": "CollectionPage", "name": "솔로몬 저널",
                      "description": "주니어솔로몬이 고른 교육·시사 뉴스 세 줄 요약", "publisher": {"@type": "EducationalOrganization", "name": "주니어솔로몬"}}, ensure_ascii=False)
     return f'''<!DOCTYPE html>
@@ -83,6 +94,14 @@ a{{color:inherit}}h1,h2{{text-wrap:balance}}p,li{{text-wrap:pretty}}
 .three ol{{margin:0;padding-left:22px}}.three li{{margin:6px 0;font-size:16px;line-height:1.7}}
 .note{{margin:16px 0 0;font-size:15.5px;line-height:1.7;color:var(--text);padding-left:14px;border-left:3px solid var(--gold)}}
 .note b{{display:inline-block;margin-right:10px;color:var(--gold);font-size:13.5px;letter-spacing:.04em}}
+.updates{{margin:16px 0 0;padding:14px 18px;background:var(--lilac-l);border:1px solid var(--line)}}
+.updates .lab{{margin:0 0 8px;font-size:12.5px;font-weight:700;letter-spacing:.08em;color:var(--purple2)}}
+.updates ul{{margin:0;padding-left:18px}}.updates li{{margin:6px 0;font-size:15px;line-height:1.65}}
+.updates time{{font-weight:700;color:var(--purple);margin-right:6px}}
+.notice{{margin:28px 0 6px}}
+.notice-lab{{display:inline-block;margin:0 0 2px;padding:5px 15px;background:var(--purple);color:#fff;font-size:13px;font-weight:700;letter-spacing:.06em}}
+.notice .nc{{border:2px solid var(--gold-l);border-bottom:2px solid var(--gold-l);background:#fff;padding:26px 24px 24px;margin-top:10px}}
+.notice .nc .cat{{background:var(--gold);border-color:var(--gold);color:#fff}}
 .orig{{display:inline-block;margin-top:16px;font-size:14.5px;color:var(--purple);text-decoration:none;border-bottom:1px solid var(--gold-l)}}
 .empty{{display:none;padding:50px 0;text-align:center;color:var(--muted)}}
 footer{{margin-top:70px;padding:34px 0 50px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);line-height:1.9}}
@@ -97,6 +116,7 @@ footer{{margin-top:70px;padding:34px 0 50px;border-top:1px solid var(--line);fon
 <p class="tag">교육과 세상을 읽는 눈</p>
 <p class="ed">주니어솔로몬이 고른 교육·시사 소식을 세 줄로 정리합니다.</p>
 </section>
+{notice}
 <section class="top3" aria-label="최근 소식 세 줄"><p>LATEST · 이번 호 세 줄</p><ol>{top3}</ol></section>
 <div class="tools"><div class="chips" role="group" aria-label="분류">{chips}</div><input class="q" type="search" placeholder="검색 (예: 문해력, 수행평가)" aria-label="솔로몬 저널 검색"></div>
 <section id="list">{cards}</section>
@@ -104,7 +124,7 @@ footer{{margin-top:70px;padding:34px 0 50px;border-top:1px solid var(--line);fon
 <footer>요약과 솔로몬 노트는 주니어솔로몬이 기사를 읽고 정리한 것입니다. 정확한 내용은 각 원문 기사에서 확인해 주세요.<br>© 주니어솔로몬. 주니어솔로몬®은 등록상표(제40-1582862호)입니다.</footer>
 </main>
 <script>
-(function(){{var f='전체',q='';var cards=[].slice.call(document.querySelectorAll('.nc'));
+(function(){{var f='전체',q='';var cards=[].slice.call(document.querySelectorAll('#list .nc'));
 function run(){{var n=0;cards.forEach(function(c){{var ok=(f==='전체'||c.getAttribute('data-cat')===f)&&(!q||c.textContent.indexOf(q)>=0);c.style.display=ok?'':'none';if(ok)n++}});document.getElementById('empty').style.display=n?'none':'block'}}
 [].forEach.call(document.querySelectorAll('.chip'),function(b){{b.onclick=function(){{f=b.getAttribute('data-f');[].forEach.call(document.querySelectorAll('.chip'),function(x){{x.setAttribute('aria-pressed',x===b?'true':'false')}});run()}}}});
 document.querySelector('.q').addEventListener('input',function(e){{q=e.target.value.trim();run()}});}})();
