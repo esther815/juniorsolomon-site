@@ -1,0 +1,150 @@
+"""주니어솔로몬 교육 노트(note.html) 생성 + 홈페이지 미리보기 조각 생성.
+data/note.json 한 파일만 고치면 페이지와 홈페이지 미리보기가 함께 바뀐다.
+직접 실행하지 않고 tools/update_note.py 를 실행한다."""
+import json, html, sys, datetime, os
+ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))  # 저장소 맨 위 폴더
+
+E = html.escape
+items = sorted(json.load(open(os.path.join(ROOT, 'data', 'note.json'), encoding='utf8')), key=lambda x: (x['date'], x['id']), reverse=True)
+CATS = ['전체', '교육정책', '초등', '독서·문해력', '평가']
+WD = '월화수목금토일'
+SOPHOS = 'https://sophosedu.co.kr/brief.html'
+
+
+def NB(s):
+    """제목 끝 두 낱말이 줄 끝에 홀로 남지 않게 묶는다."""
+    p = s.rsplit(' ', 2)
+    if len(p) < 3 or len(p[1]) + len(p[2]) > 10:
+        p = s.rsplit(' ', 1)
+        return s if len(p) < 2 else p[0] + ' <span style="white-space:nowrap">' + p[1] + '</span>'
+    return p[0] + ' <span style="white-space:nowrap">' + p[1] + ' ' + p[2] + '</span>'
+
+
+def kdate(d):
+    t = datetime.date.fromisoformat(d)
+    return f"{t.year}. {t.month}. {t.day}.({WD[t.weekday()]})"
+
+
+def card(x):
+    pts = ''.join(f'<li>{E(p)}</li>' for p in x['points'])
+    return f'''<article class="nc" data-cat="{E(x['cat'])}" id="{E(x['id'])}">
+  <div class="meta"><span class="cat">{E(x['cat'])}</span><time datetime="{x['date']}">{kdate(x['date'])}</time><span class="src">{E(x['source'])}</span></div>
+  <h2>{NB(E(x['title']))}</h2>
+  <p class="deck">{E(x['deck'])}</p>
+  <div class="three"><p class="lab">세 줄 요약</p><ol>{pts}</ol></div>
+  <p class="note"><b>솔로몬 노트</b>{E(x['note'])}</p>
+  <a class="orig" href="{E(x['url'])}" target="_blank" rel="noopener nofollow">원문 기사 보기 · {E(x['source'])} →</a>
+</article>'''
+
+
+def page():
+    top3 = ''.join(f'<li><a href="#{E(x["id"])}"><span>{E(x["cat"])}</span>{E(x["title"])}</a></li>' for x in items[:3])
+    top3_sec = f'<section class="top3" aria-label="최근 소식 세 줄"><p>LATEST · 최근 세 줄</p><ol>{top3}</ol></section>' if items else ''
+    chips = ''.join(f'<button type="button" class="chip" data-f="{c}" aria-pressed="{"true" if c == "전체" else "false"}">{c}</button>' for c in CATS)
+    cards = '\n'.join(card(x) for x in items)
+    empty_txt = '첫 소식을 준비하고 있습니다.' if not items else '해당하는 소식이 아직 없습니다.'
+    ld = json.dumps({"@context": "https://schema.org", "@type": "CollectionPage", "name": "주니어솔로몬 교육 노트",
+                     "url": "https://juniorsolomon.com/note.html",
+                     "description": "유아·초등 학부모를 위한 교육 뉴스 세 줄 요약",
+                     "publisher": {"@type": "EducationalOrganization", "name": "주니어솔로몬학원"}}, ensure_ascii=False)
+    return f'''<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>주니어솔로몬 교육 노트 | 유아·초등 교육 뉴스 세 줄 요약</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="canonical" href="https://juniorsolomon.com/note.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="주니어솔로몬학원">
+<meta property="og:title" content="주니어솔로몬 교육 노트 · 제목만 읽어도 알 수 있게">
+<meta property="og:url" content="https://juniorsolomon.com/note.html">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:image" content="https://juniorsolomon.com/assets/og-share-v9.jpg">
+<meta property="og:description" content="유아·초등 학부모가 알아야 할 교육 뉴스를 주니어솔로몬이 골라 세 줄로 정리합니다.">
+<meta name="description" content="유아·초등 학부모가 알아야 할 교육 뉴스를 주니어솔로몬이 골라 세 줄로 정리합니다. 교육정책, 초등, 독서·문해력, 평가 소식.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&amp;family=Noto+Sans+KR:wght@300;400;500;700&amp;display=swap" rel="stylesheet">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#2B1233">
+<script type="application/ld+json">{ld}</script>
+<style>
+:root{{--plum:#5F3D66;--plum2:#3E2743;--ink:#1E1A22;--text:#3A3440;--muted:#6E6676;--line:#E4DEE8;--soft:#FAF8FB;--gold:#D9B873}}
+*{{box-sizing:border-box}}
+body{{margin:0;background:#FFFFFF;color:var(--ink);font-family:'Noto Sans KR',sans-serif;font-size:17px;line-height:1.8;word-break:keep-all;overflow-wrap:break-word;-webkit-font-smoothing:antialiased}}
+h1,h2{{text-wrap:balance}}p,li{{text-wrap:pretty}}
+a{{color:var(--plum)}}a:hover{{color:var(--plum2)}}
+@media (hover:hover) and (pointer:fine){{html,body{{cursor:url("assets/cursor.svg") 3 2, auto}}a,button,label{{cursor:url("assets/cursor-gold.svg") 4 3, pointer}}}}
+.wrap{{max-width:880px;margin:0 auto;padding:0 24px}}
+.hd{{border-bottom:1px solid #EEEAF0}}
+.hd .in{{max-width:1200px;margin:0 auto;padding:22px 24px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px}}
+.hd img{{display:block;height:46px;width:auto}}
+.back{{display:inline-flex;align-items:center;min-height:44px;padding:0 22px;border-radius:999px;border:1px solid #CFC8D4;color:var(--ink);text-decoration:none;font-size:15px}}
+.mast{{padding:88px 0 36px}}
+.mast .k{{margin:0 0 14px;font-size:14px;letter-spacing:.08em;color:var(--plum)}}
+.mast h1{{margin:0;font-family:'Noto Serif KR',serif;font-weight:600;font-size:clamp(32px,4vw,48px);line-height:1.3;letter-spacing:-.03em}}
+.mast p.lead{{margin:18px 0 0;color:var(--text)}}
+.mast p.sub{{margin:10px 0 0;font-size:15px;color:var(--muted)}}
+.top3{{background:var(--plum);color:#F4EEF6;padding:30px 34px;border-radius:22px;margin-top:8px}}
+.top3 p{{margin:0 0 12px;font-size:13px;letter-spacing:.2em;color:var(--gold)}}
+.top3 ol{{margin:0;padding-left:22px}}.top3 li{{margin:8px 0;font-family:'Noto Serif KR',serif;font-size:18.5px;line-height:1.55}}
+.top3 a{{text-decoration:none;color:#fff}}.top3 a span{{display:inline-block;margin-right:10px;padding:0 9px;border:1px solid rgba(217,184,115,.6);border-radius:999px;color:var(--gold);font-family:'Noto Sans KR',sans-serif;font-size:12.5px;vertical-align:2px}}
+.tools{{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:40px 0 10px}}
+.chips{{display:flex;flex-wrap:wrap;gap:8px}}
+.chip{{font:inherit;font-size:14.5px;padding:7px 16px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink)}}
+.chip[aria-pressed="true"]{{background:var(--plum);border-color:var(--plum);color:#fff}}
+.q{{font:inherit;font-size:15px;padding:9px 16px;border:1px solid var(--line);border-radius:999px;background:#fff;min-width:220px}}
+.nc{{padding:40px 0 36px;border-bottom:1px solid var(--line)}}
+.meta{{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:14px;color:var(--muted)}}
+.cat{{padding:1px 10px;border-radius:999px;background:#F6F1F8;border:1px solid var(--line);color:var(--plum);font-weight:700;font-size:13px}}
+.nc h2{{margin:14px 0 0;font-family:'Noto Serif KR',serif;font-weight:600;font-size:clamp(24px,3vw,30px);line-height:1.4;letter-spacing:-.02em}}
+.deck{{margin:12px 0 0;font-size:17px;color:var(--plum2);font-weight:500;line-height:1.7}}
+.three{{margin-top:20px;padding:20px 24px;background:var(--soft);border:1px solid var(--line);border-radius:16px}}
+.three .lab{{margin:0 0 8px;font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--plum)}}
+.three ol{{margin:0;padding-left:22px}}.three li{{margin:6px 0;font-size:16px;line-height:1.7;color:var(--text)}}
+.note{{margin:16px 0 0;font-size:15.5px;line-height:1.7;color:var(--text);padding-left:14px;border-left:3px solid var(--gold)}}
+.note b{{display:inline-block;margin-right:10px;color:var(--plum);font-size:13.5px}}
+.orig{{display:inline-block;margin-top:16px;font-size:14.5px;text-decoration:none;border-bottom:1px solid var(--gold)}}
+.empty{{display:none;padding:50px 0;text-align:center;color:var(--muted)}}
+.sophos{{margin-top:48px;padding:22px 24px;border-radius:16px;background:var(--soft);border:1px solid var(--line);font-size:15.5px;color:var(--text)}}
+.sophos a{{font-weight:700}}
+footer{{margin-top:56px;padding:34px 0 50px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);line-height:1.9}}
+@media (max-width:600px){{.hd .in{{padding:16px}}.wrap{{padding:0 16px}}.top3{{padding:24px 20px}}.q{{min-width:0;width:100%}}.mast{{padding:56px 0 28px}}}}
+</style>
+</head>
+<body>
+<header class="hd"><div class="in"><a href="index.html"><img src="assets/logo_js_gold.png" alt="주니어솔로몬학원"></a><a class="back" href="index.html">← 메인으로</a></div></header>
+<main class="wrap">
+<section class="mast"><p class="k">EDUCATION NOTE</p><h1>주니어솔로몬 교육 노트</h1><p class="lead">유아·초등 학부모가 알아야 할 교육 뉴스를 골라, 제목만 읽어도 알 수 있게 정리합니다.</p><p class="sub">중학교·고입 소식은 <a href="{SOPHOS}" target="_blank" rel="noopener">소포스 입시 노트</a>에서 전합니다.</p></section>
+{top3_sec}
+<div class="tools"><div class="chips" role="group" aria-label="분류">{chips}</div><input class="q" type="search" placeholder="검색 (예: 문해력, 교과서)" aria-label="교육 노트 검색"></div>
+<section id="list">{cards}</section>
+<p class="empty" id="empty">{empty_txt}</p>
+<p class="sophos">중학생 자녀를 두셨다면 — 내신·고입·대입 소식은 <a href="{SOPHOS}" target="_blank" rel="noopener">소포스 입시 노트 →</a></p>
+<footer>요약과 솔로몬 노트는 주니어솔로몬학원이 기사를 읽고 정리한 것입니다. 정확한 내용은 각 원문 기사에서 확인해 주세요.<br>© 주니어솔로몬학원. 무단 복제·전재·배포·변형 및 생성형 AI를 이용한 학습·분석·유사·파생 콘텐츠 제작을 금합니다.</footer>
+</main>
+<script>
+(function(){{var f='전체',q='';var cards=[].slice.call(document.querySelectorAll('.nc'));
+function run(){{var n=0;cards.forEach(function(c){{var ok=(f==='전체'||c.getAttribute('data-cat')===f)&&(!q||c.textContent.indexOf(q)>=0);c.style.display=ok?'':'none';if(ok)n++}});document.getElementById('empty').style.display=n?'none':'block'}}
+[].forEach.call(document.querySelectorAll('.chip'),function(b){{b.onclick=function(){{f=b.getAttribute('data-f');[].forEach.call(document.querySelectorAll('.chip'),function(x){{x.setAttribute('aria-pressed',x===b?'true':'false')}});run()}}}});
+document.querySelector('.q').addEventListener('input',function(e){{q=e.target.value.trim();run()}});run();}})();
+</script>
+</body>
+</html>
+'''
+
+
+def teaser():
+    if not items:
+        return '<p class="nt-empty">첫 소식을 준비하고 있습니다.</p>'
+    return ''.join(f'''<a class="nt-item" href="note.html#{E(x['id'])}"><span class="nt-cat">{E(x['cat'])}</span><span class="nt-t">{NB(E(x['title']))}</span><span class="nt-d">{E(x['deck'])}</span><time>{kdate(x['date'])}</time></a>''' for x in items[:3])
+
+
+if __name__ == '__main__':
+    mode = sys.argv[1]
+    if mode == 'page':
+        sys.stdout.write(page())
+    elif mode == 'teaser':
+        sys.stdout.write(teaser())

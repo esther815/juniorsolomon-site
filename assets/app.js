@@ -245,11 +245,29 @@ function vMine(){
  h+='<div class="card"><div class="list"><div><span>보호자</span><span>'+esc(p.nickname||'')+'</span></div><div><span>연락처</span><span>'+phone(p.phone)+'</span></div></div></div>';
  h+='<div class="card"><h3>자녀</h3><div class="list" id="kidsList"><div><span class="sub">불러오는 중…</span></div></div>'+
     '<div style="margin-top:14px"><button class="btn ghost" type="button" id="editKids">자녀 추가 · 정보 고치기</button></div></div>';
+ if(C.role==='parent'&&!C.pv&&pAccess()==='open') h+='<div id="nsSlot"></div>';
  h+=sndCard()+C.L.installBox();
  h+='<div style="margin-top:14px"><button class="btn ghost" type="button" id="logout">로그아웃</button></div>'+
     '<p style="text-align:center;margin-top:14px"><button type="button" id="delacct" style="border:0;background:none;color:#8A7F8E;font-size:13px;text-decoration:underline;cursor:pointer;font-family:inherit">회원 탈퇴</button></p>';
  return h+tip('개인정보는 학원 수업 안내와 연락에만 씁니다. <a class="link" href="privacy.html">개인정보 처리방침</a>');
 }
+
+/* ── 교육 노트 알림톡 구독 — 재원생 가족(회원·자녀 승인)에게만 보인다. 판정은 서버(ns_my_status)가 한다 ── */
+var NS_SITE='solomon';
+var NS_CONSENT='[교육 노트 알림톡 수신 동의] 주니어솔로몬학원이 주니어솔로몬 교육 노트 새 글(제목·세 줄 요약·솔로몬 노트)을 아래 휴대폰 번호로 카카오 알림톡으로 보내는 데 동의합니다. 수집 항목: 휴대폰 번호, 동의 일시, 발송 결과 · 이용 목적: 교육 노트 알림톡 발송 · 보유 기간: 구독을 끄거나 회원 정보를 삭제할 때까지(발송 결과는 1년). 동의하지 않으셔도 되며, 그 경우 알림톡만 받지 않으실 뿐 다른 이용에는 제한이 없습니다.';
+function nsRender(st){ var b=$('#nsSlot'); if(!b) return; if(!st||!st.enrolled){ b.innerHTML=''; return }
+ b.innerHTML='<div class="card"><h3 style="margin:0">교육 노트 받아 보기</h3><p class="sub">재원생 가족께 드리는 서비스입니다. <a class="link" href="note.html">주니어솔로몬 교육 노트</a>에 새 글이 올라오면 카카오 알림톡으로 보내 드립니다. 밤 9시 이후 올라온 글은 다음 날 아침 8시에 보냅니다.</p>'+
+  (st.on?'<div class="list" style="margin-top:12px"><div><span>지금 받고 계십니다</span><span>'+esc(st.phone||'')+'</span></div></div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn ghost" type="button" id="nsOff">받지 않기</button><button class="btn ghost" type="button" id="nsChg">번호 바꾸기</button></div><div id="nsF" style="display:none"></div>'
+        :'<div id="nsF"></div>')+'</div>';
+ var f=function(){ var el=$('#nsF'); el.style.display=''; el.innerHTML='<label class="l" for="nsPh">알림톡 받을 휴대폰 번호</label><input type="tel" id="nsPh" inputmode="tel" maxlength="13" placeholder="010-0000-0000" value="'+(st.on?'':phone(C.p.phone))+'" style="padding-left:16px">'+
+   '<p class="sub" style="margin-top:10px;font-size:13px;line-height:1.7">'+esc(NS_CONSENT)+'</p><label class="chk2"><input type="checkbox" id="nsOk"><span>위 내용을 읽었고 알림톡 수신에 동의합니다.</span></label><p class="sub" id="nsEr" role="alert" style="color:#B3261E;min-height:1em"></p><button class="btn" type="button" id="nsOn">알림톡 받기</button>';
+  $('#nsOn').onclick=function(){ var bt=this, ph=$('#nsPh').value.replace(/[^0-9]/g,'');
+   if(!/^01[016789][0-9]{7,8}$/.test(ph)){ $('#nsEr').textContent='휴대폰 번호를 확인해 주세요.'; return }
+   if(!$('#nsOk').checked){ $('#nsEr').textContent='수신 동의에 표시해 주세요.'; return }
+   bt.disabled=true; rpc('ns_subscribe',{p_site:NS_SITE,p_phone:ph,p_on:true,p_consent:NS_CONSENT}).then(function(d){ toast('교육 노트 알림톡을 신청했습니다'); nsRender(d) }).catch(function(){ $('#nsEr').textContent='저장하지 못했습니다. 잠시 뒤 다시 해 주세요.'; bt.disabled=false }) } };
+ if(!st.on) f(); else { $('#nsChg').onclick=f; $('#nsOff').onclick=function(){ if(!confirm('교육 노트 알림톡을 그만 받으시겠습니까?')) return; rpc('ns_subscribe',{p_site:NS_SITE,p_phone:'',p_on:false,p_consent:''}).then(function(d){ toast('알림톡을 껐습니다'); nsRender(d) }).catch(function(){ toast('바꾸지 못했습니다. 다시 눌러 주세요') }) } }
+}
+function nsLoad(){ rpc('ns_my_status',{p_site:NS_SITE}).then(nsRender).catch(function(){ nsRender(null) }) }
 
 /* ── 보강 ── */
 var GR=['4세','5세','6세','7세','초1','초2','초3','초4','초5','초6','중1','중2','중3','고1','고2','고3'];
@@ -1184,6 +1202,7 @@ function after(){
  if(t==='set'){ L.inviteBtn('tinv','tinvm','new_teacher_invite','t','강사'); L.inviteBtn('dinv','dinvm','new_desk_invite','d','관리자'); L.kakaoSetup(); L.betaList(); L.usage();
    $('#pv').onclick=function(){ L.openForm(null,true) } }
  if(t==='mine'){ L.bindInstall(); bindLogout();
+   if($('#nsSlot')) nsLoad();
    C.sb.from('children').select('*').eq('parent_id',C.p.id).order('created_at').then(function(r){ var kids=r.data||[], KST={pending:'승인 대기',approved:'승인',rejected:'확인 필요'};
      var el=$('#kidsList'); if(el) el.innerHTML=kids.map(function(k){return '<div><span>'+esc(k.name)+'<br><span class="sub">'+esc(k.grade||'')+' · '+esc(k.school||'')+'</span></span><span class="tag '+(k.status==='approved'?'ok':'y')+'">'+KST[k.status]+'</span></div>'}).join('')||'<div><span class="sub">등록된 자녀가 없습니다.</span></div>';
      $('#editKids').onclick=function(){ L.openForm(kids) } }) }
