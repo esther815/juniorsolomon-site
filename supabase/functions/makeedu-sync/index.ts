@@ -191,7 +191,11 @@ Deno.serve(async (_req: Request) => {
     );
   } catch (e) {
     const message = String((e as any)?.message || e);
-    await sb.rpc("log_sync_error", { p_source: "api", p_error: message }).catch(() => {});
+    try {
+      await sb.rpc("log_sync_error", { p_source: "api", p_error: message });
+    } catch (_logErr) {
+      // 오류 기록 자체가 실패해도 아래 응답은 정상적으로 내려가야 함
+    }
     return new Response(
       JSON.stringify({ ok: false, step: "sync", message }),
       { status: 500, headers: { "Content-Type": "application/json" } },
