@@ -18,14 +18,12 @@ jobs:
         run: |
           URL="https://gyuuimwalbxsocnamtqk.supabase.co/functions/v1/makeedu-sync"
           KEY="sb_publishable_Kj2bX4fe9CRSkhvGzBbaJw_y1ZqkjOz"
-          curl -sS -i --max-time 60 -X POST "$URL" \
+          code=$(curl -sS -o body.txt -w "%{http_code}" --max-time 60 -X POST "$URL" \
             -H "apikey: $KEY" -H "Authorization: Bearer $KEY" \
-            -H "Content-Type: application/json" -d '{}' || echo "curl failed $?"
-      - name: 함수 로그 조회(디버그용)
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
-        run: |
-          curl -sS -G "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_ID/analytics/endpoints/logs" \
-            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
-            --data-urlencode "sql=select id, timestamp, event_message from edge_logs order by timestamp desc limit 5" | head -c 3000
+            -H "Content-Type: application/json" -d '{}' || echo 000)
+          echo "status $code"
+          cat body.txt
+          if [ "$code" != "200" ]; then
+            echo "::error::메이크에듀 동기화 실패 (status $code)"
+            exit 1
+          fi
