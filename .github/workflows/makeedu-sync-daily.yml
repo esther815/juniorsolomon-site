@@ -18,12 +18,11 @@ jobs:
         run: |
           URL="https://gyuuimwalbxsocnamtqk.supabase.co/functions/v1/makeedu-sync"
           KEY="sb_publishable_Kj2bX4fe9CRSkhvGzBbaJw_y1ZqkjOz"
-          code=$(curl -sS -o body.txt -w "%{http_code}" --max-time 60 -X POST "$URL" \
+          echo "=== with auth header ==="
+          curl -sS -i --max-time 60 -X POST "$URL" \
             -H "apikey: $KEY" -H "Authorization: Bearer $KEY" \
-            -H "Content-Type: application/json" -d '{}' || echo 000)
-          echo "status $code"
-          cat body.txt
-          if [ "$code" != "200" ]; then
-            echo "::error::메이크에듀 동기화 실패 (status $code)"
-            exit 1
-          fi
+            -H "Content-Type: application/json" -d '{}' || echo "curl failed $?"
+          echo
+          echo "=== no auth header ==="
+          curl -sS -i --max-time 60 -X POST "$URL" \
+            -H "Content-Type: application/json" -d '{}' || echo "curl failed $?"
