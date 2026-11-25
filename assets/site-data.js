@@ -3,7 +3,7 @@ window.JS_DATA = {
   // 이벤트: 홈페이지 첫 화면 팝업 + 앱 공지 맨 위. until(마지막 날)이 지나면 모두에서 자동으로 사라짐
   events: [
     {id:'quest', img:'assets/38d8901671523352e0071b88494cd34c.jpg', alt:'새로 나왔습니다 — 솔로몬 QUEST 자기주도 학습지 12월 오픈. 재원생은 문해력 자기주도 학습 시간에 학원에서 별도 비용 없이 풉니다', href:'programs.html#havruta', until:'2026-12-31'},
-    {id:'note',   img:'assets/03b20bf0d8abd195548f67557be817d4.jpg', alt:'크리스마스 반짝 노트 선물 — 재원생 전원과 12월 15일까지 겨울방학 특강 얼리 등록 친구에게 드립니다', href:'special.html#note-event', until:'2026-12-15'},
+    {id:'note',   img:'assets/03b20bf0d8abd195548f67557be817d4.jpg', imgs:['assets/03b20bf0d8abd195548f67557be817d4.jpg','assets/955a510be0512b0b5310a247c01c99b6.jpg'], alt:'크리스마스 반짝 노트 선물 — 재원생 전원과 12월 15일까지 겨울방학 특강 얼리 등록 친구에게 드립니다', href:'special.html#note-event', until:'2026-12-15'},
     {id:'sophos', img:'assets/0f9d29382158b1b52d3697f3654cb8a8.jpg', alt:'소포스의 문장을 선물합니다 — 얼리 등록·신규 등록 상담 고객께 3색 볼펜과 명언 L파일 1세트', href:'special.html#sophos-gift', until:'2027-02-28'}
   ],
   // 방학 특강(임시 방): end(마지막 수업일)이 지나면 홈페이지·앱 모두 '지난 특강'으로 넘어감 (지난 특강에는 포스터·금액을 보이지 않음)

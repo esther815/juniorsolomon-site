@@ -925,7 +925,22 @@ function evUnseen(){ try{ var seen=JSON.parse(localStorage.getItem('js_ev_seen')
 function evMarkSeen(){ try{ localStorage.setItem('js_ev_seen',JSON.stringify(events().map(function(e){return e.id}))) }catch(e){} }
 function evCards(){
  var E=events(); if(!E.length) return '';
- return '<p class="hello" style="margin:4px 0 10px">Events</p>'+E.map(function(e){ return '<a class="card evc" href="/'+esc(e.href)+'"><img src="/'+esc(e.img)+'" alt="'+esc(e.alt)+'" loading="lazy"><span class="sub">~ '+md(e.until)+'까지 · 자세히 보기 ›</span></a>' }).join('')+'<p class="hello" style="margin:18px 0 10px">Notices</p>';
+ return '<p class="hello" style="margin:4px 0 10px">Events</p>'+E.map(function(e){ return '<a class="card evc" role="button" tabindex="0" data-ev="'+esc(e.id)+'" style="cursor:pointer"><img src="/'+esc(e.img)+'" alt="'+esc(e.alt)+'" loading="lazy"><span class="sub">~ '+md(e.until)+'까지 · 포스터 보기 ›</span></a>' }).join('')+'<p class="hello" style="margin:18px 0 10px">Notices</p>';
+}
+/* 공지 이벤트 포스터를 앱 안에서 바로 열기 (홈페이지로 나가지 않음) */
+function openEvent(id){
+ var E=events(), e=null; for(var i=0;i<E.length;i++){ if(E[i].id===id){ e=E[i]; break } } if(!e) return;
+ var imgs=(e.imgs&&e.imgs.length)?e.imgs:[e.img];
+ var el=document.createElement('div');
+ el.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(24,12,28,.93);overflow:auto;-webkit-overflow-scrolling:touch;padding:56px 12px 28px';
+ el.innerHTML='<button type="button" class="evx" aria-label="닫기" style="position:fixed;top:12px;right:12px;z-index:1;min-height:44px;padding:0 16px;border:none;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;font-size:15px;font-weight:700">닫기 ✕</button>'+
+  '<div style="max-width:560px;margin:0 auto">'+imgs.map(function(s){ return '<img src="/'+esc(s)+'" alt="'+esc(e.alt||'')+'" style="display:block;width:100%;margin:0 auto 12px;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.35)">' }).join('')+'</div>';
+ function close(){ el.remove(); document.removeEventListener('keydown',onKey) }
+ function onKey(ev){ if(ev.key==='Escape') close() }
+ el.addEventListener('click',function(ev){ if(ev.target===el||ev.target.closest('.evx')) close() });
+ document.addEventListener('keydown',onKey);
+ (document.getElementById('app')||document.body).appendChild(el);
+ try{ evMarkSeen() }catch(_){}
 }
 function vSpecial(){
  var L=specials(), t=todayK();
@@ -1200,11 +1215,12 @@ function load(){
 
 function onClick(e){
  ac();
- var el=e.target.closest('[data-go],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],[data-pv],[data-pvexit],[data-mkb],[data-mkc],[data-mkm],[data-mks],[data-mkt],[data-mki],[data-wls],[data-fbwk],[data-fbskip],[data-asgo],[data-asgr],[data-asgnew],[data-cunb],[data-seatsort],[data-stu],[data-wq],[data-wlmv],[data-abso],[data-grp],[data-snote],#aBack,#aRefresh'); if(!el) return;
+ var el=e.target.closest('[data-go],[data-ev],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],[data-pv],[data-pvexit],[data-mkb],[data-mkc],[data-mkm],[data-mks],[data-mkt],[data-mki],[data-wls],[data-fbwk],[data-fbskip],[data-asgo],[data-asgr],[data-asgnew],[data-cunb],[data-seatsort],[data-stu],[data-wq],[data-wlmv],[data-abso],[data-grp],[data-snote],#aBack,#aRefresh'); if(!el) return;
  if(el.id==='aBack'){ history.back(); return }
  if(el.id==='aRefresh'){ el.classList.add('spin'); try{ sessionStorage.setItem('js_tab',S.tab||'') }catch(x){} setTimeout(function(){ location.replace('/member.html?r='+Date.now()) },350); return }
  var d=el.dataset;
  if(d.go){ go(d.go); return }
+ if(d.ev){ openEvent(d.ev); return }
  if(d.asgo){ var q=d.asgo.split('|'); history.pushState({jsTab:'asg',asg:1},'',''); asgOpen({mode:'do',id:+q[0],student:q[1]}); return }
  if(d.asgr){ var q2=d.asgr.split('|'); history.pushState({jsTab:'asg',asg:1},'',''); asgOpen({mode:'review',id:+q2[0],sub:+q2[1]}); return }
  if(d.asgnew){ S.asgNew=!S.asgNew; render(); return }
