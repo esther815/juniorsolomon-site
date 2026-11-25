@@ -1,0 +1,29 @@
+name: makeedu-sync-daily
+
+# 메이크에듀(원생·수업·출결)를 매일 자동으로 동기화합니다.
+# supabase/functions/makeedu-sync 함수를 호출만 하는 워크플로입니다(배포는 deploy-functions.yml 담당).
+# 함수 안에서 MAKEEDU_API_KEY·SUPABASE_SERVICE_ROLE_KEY를 Supabase 쪽 비밀로 따로 쓰므로,
+# 여기서는 게이트웨이 통과용 공개 anon 키만 있으면 됩니다(keepalive.yml과 같은 키, 새 비밀 아님).
+
+on:
+  schedule:
+    - cron: "10 21 * * *"   # 매일 06:10 KST
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 메이크에듀 동기화 함수 호출
+        run: |
+          URL="https://gyuuimwalbxsocnamtqk.supabase.co/functions/v1/makeedu-sync"
+          KEY="sb_publishable_Kj2bX4fe9CRSkhvGzBbaJw_y1ZqkjOz"
+          code=$(curl -sS -o body.txt -w "%{http_code}" --max-time 60 -X POST "$URL" \
+            -H "apikey: $KEY" -H "Authorization: Bearer $KEY" \
+            -H "Content-Type: application/json" -d '{}' || echo 000)
+          echo "status $code"
+          cat body.txt
+          if [ "$code" != "200" ]; then
+            echo "::error::메이크에듀 동기화 실패 (status $code)"
+            exit 1
+          fi
