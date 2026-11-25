@@ -28,10 +28,12 @@ jobs:
         run: |
           sleep 5
           curl -sS "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_ID/analytics/endpoints/logs?sql=$(python3 -c "import urllib.parse;print(urllib.parse.quote(open('/dev/stdin').read()))" <<'SQL'
-          select timestamp, event_message from `function_edge_logs`
+          select timestamp, event_message, response.status_code, request.path
+          from edge_logs
           cross join unnest(metadata) as m
           cross join unnest(m.response) as response
-          where response.status_code >= 500
+          cross join unnest(m.request) as request
+          where request.path like '%makeedu-sync%'
           order by timestamp desc
           limit 20
           SQL
