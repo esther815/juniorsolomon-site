@@ -27,7 +27,7 @@ jobs:
           SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
         run: |
           sleep 5
-          curl -sS "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_ID/analytics/endpoints/logs.all?sql=$(python3 -c "import urllib.parse;print(urllib.parse.quote(open('/dev/stdin').read()))" <<'SQL'
+          curl -sS "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_ID/analytics/endpoints/logs?sql=$(python3 -c "import urllib.parse;print(urllib.parse.quote(open('/dev/stdin').read()))" <<'SQL'
           select timestamp, event_message from function_edge_logs
           cross join unnest(metadata) as m
           cross join unnest(m.response) as response
