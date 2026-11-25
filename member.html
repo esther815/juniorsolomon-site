@@ -416,14 +416,27 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return
     });
   }
   var CK={form:'상담 신청',wait:'대기 신청',tel:'전화 버튼',sms:'문자 버튼',kakao:'카톡 버튼'};
+  function digits(s){ return (s||'').replace(/\D/g,'') }
   function consults(){
     var box=document.getElementById('cons'); if(!box) return;
-    sb.from('consult_requests').select('*').order('created_at',{ascending:false}).limit(60).then(function(r){
-      if(r.error){ box.innerHTML=''; return }
-      var all=r.data||[], open=all.filter(function(c){return !c.handled_at}), done=all.filter(function(c){return c.handled_at}).slice(0,10);
+    Promise.all([
+      sb.from('consult_requests').select('*').order('created_at',{ascending:false}).limit(60),
+      sb.from('me_students').select('name,guardian_phone,status').in('status',['재원','휴원']),
+      sb.from('staff_directory').select('name,phone')
+    ]).then(function(r){
+      if(r[0].error){ box.innerHTML=''; return }
+      var all=r[0].data||[], open=all.filter(function(c){return !c.handled_at}), done=all.filter(function(c){return c.handled_at}).slice(0,10);
+      var stuByPhone={}; (r[1].data||[]).forEach(function(s){ var p=digits(s.guardian_phone); if(p) stuByPhone[p]=s });
+      var staffByPhone={}; (r[2].data||[]).forEach(function(s){ var p=digits(s.phone); if(p) staffByPhone[p]=s });
+      var who=function(c){
+        var p=digits(c.phone); if(!p) return '';
+        if(staffByPhone[p]) return '<span class="tag" style="background:#EDE6F0;color:#5F3D66;border-radius:8px;padding:2px 8px;font-size:12px;font-weight:700">강사 · '+esc(staffByPhone[p].name)+'</span>';
+        if(stuByPhone[p]) return '<span class="tag" style="background:#E6F3EC;color:#2E7D52;border-radius:8px;padding:2px 8px;font-size:12px;font-weight:700">회원 · '+esc(stuByPhone[p].name)+' 보호자('+(stuByPhone[p].status)+')</span>';
+        return '<span class="tag" style="background:#F3F1F4;color:#8A8290;border-radius:8px;padding:2px 8px;font-size:12px;font-weight:700">비회원</span>';
+      };
       var fmt=function(t){ return esc((t||'').replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3')) };
       var card=function(c){
-        return '<div class="m"><span class="st '+(c.handled_at?'approved':'')+'">'+(c.handled_at?'처리 완료':'처리 전')+'</span><b>'+esc(CK[c.kind]||c.kind)+'</b> · <span style="color:#8A8290">'+ago(c.created_at)+'</span>'+
+        return '<div class="m"><span class="st '+(c.handled_at?'approved':'')+'">'+(c.handled_at?'처리 완료':'처리 전')+'</span><b>'+esc(CK[c.kind]||c.kind)+'</b> · <span style="color:#8A8290">'+ago(c.created_at)+'</span>'+(c.phone?' · '+who(c):'')+
           (c.guardian_name||c.phone?'<br>'+esc(c.guardian_name||'')+(c.phone?' · <a href="tel:'+esc(c.phone)+'" style="color:#5F3D66">'+fmt(c.phone)+'</a>':''):'')+
           (c.wish?'<br>희망: '+esc(c.wish):'')+(c.page?'<br><span style="color:#8A8290;font-size:13px">'+esc(c.page)+'</span>':'')+
           (c.handled_at?'':'<div class="act"><button class="okb" data-done="'+c.id+'" style="flex:1">처리 완료로 표시</button></div>')+'</div>';
