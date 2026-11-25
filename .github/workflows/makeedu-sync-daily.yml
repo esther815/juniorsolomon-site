@@ -21,21 +21,11 @@ jobs:
           curl -sS -i --max-time 60 -X POST "$URL" \
             -H "apikey: $KEY" -H "Authorization: Bearer $KEY" \
             -H "Content-Type: application/json" -d '{}' || echo "curl failed $?"
-      - name: 함수 실행 로그 조회(디버그용)
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 3.1.0
+      - name: 비밀 값 등록 여부 확인(디버그용, 값은 안 보임)
+        run: supabase secrets list --project-ref "$SUPABASE_PROJECT_ID"
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
-        run: |
-          sleep 5
-          curl -sS "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_ID/analytics/endpoints/logs?sql=$(python3 -c "import urllib.parse;print(urllib.parse.quote(open('/dev/stdin').read()))" <<'SQL'
-          select timestamp, event_message, response.status_code, request.path
-          from edge_logs
-          cross join unnest(metadata) as m
-          cross join unnest(m.response) as response
-          cross join unnest(m.request) as request
-          where request.path like '%makeedu-sync%'
-          order by timestamp desc
-          limit 20
-          SQL
-          )&iso_timestamp_start=$(date -u -d '-10 minutes' +%Y-%m-%dT%H:%M:%S.000Z)" \
-            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" | head -c 4000
