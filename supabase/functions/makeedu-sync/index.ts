@@ -24,7 +24,13 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const API_BASE = "https://mx7.makeedu.co.kr";
+const MAKEEDU_BASE = "https://mx7.makeedu.co.kr";
+// 메이크에듀는 등록된 고정 IP(15.134.103.239, AWS Lightsail makeedu-relay)에서 온 호출만 받는다.
+// 비밀 값 MAKEEDU_RELAY_URL(예: https://15-134-103-239.sslip.io)을 넣으면 그 중계 서버를 거쳐 호출한다.
+// MAKEEDU_RELAY_TOKEN은 중계 서버가 아무나 쓰지 못하게 확인하는 값이다. 둘 다 없으면 직접 호출(지금처럼 403).
+const RELAY_URL = (Deno.env.get("MAKEEDU_RELAY_URL") || "").replace(/\/+$/, "");
+const RELAY_TOKEN = Deno.env.get("MAKEEDU_RELAY_TOKEN") || "";
+const API_BASE = RELAY_URL || MAKEEDU_BASE;
 const PAGE_SIZE = 100;
 const MAX_PAGES = 200; // 안전장치(무한 루프 방지) — 학생·반 수가 이보다 많아질 일은 없음
 
@@ -38,7 +44,9 @@ async function fetchAllPages(
   while (page <= MAX_PAGES) {
     const qs = new URLSearchParams({ ...params, page: String(page), pageSize: String(PAGE_SIZE) });
     const res = await fetch(`${API_BASE}${path}?${qs.toString()}`, {
-      headers: { "X-API-Key": apiKey },
+      headers: RELAY_URL
+        ? { "X-API-Key": apiKey, "X-Relay-Token": RELAY_TOKEN }
+        : { "X-API-Key": apiKey },
     });
     if (!res.ok) {
       const body = await res.text().catch(() => "");
