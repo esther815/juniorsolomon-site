@@ -10,7 +10,7 @@ CATS = ['전체', '교육', '시사', '세계', '과학', '문화']
 WD = '월화수목금토일'
 # 카카오톡 바로 보내기 — 카카오 개발자 > 내 애플리케이션 > 앱 키 > 'JavaScript 키'(공개용 키).
 # 비워 두면 휴대폰 공유창·링크 복사로 대신한다. 키를 넣은 앱의 플랫폼 > Web 에 https://juniorsolomon.com 이 등록돼 있어야 한다.
-KAKAO_JS_KEY = ''
+KAKAO_JS_KEY = '1970bf47704aa8766cc9184c492fec6d'
 OG_IMAGE = 'https://juniorsolomon.com/assets/og-share-v9.jpg'
 SHARE_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>'
 
