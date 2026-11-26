@@ -8,6 +8,7 @@ E = html.escape
 items = sorted(json.load(open(os.path.join(ROOT, 'data', 'journal.json'), encoding='utf8')), key=lambda x: x['date'], reverse=True)
 CATS = ['전체', '교육', '시사', '세계', '과학', '문화']
 WD = '월화수목금토일'
+SHARE_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>'
 
 def NB(s):
     p = s.rsplit(' ', 2)
@@ -32,6 +33,7 @@ def card(x):
   <p class="note"><b>솔로몬 노트</b>{E(x['note'])}</p>
   {upd}
   <a class="orig" href="{E(x['url'])}" target="_blank" rel="noopener nofollow">원문 기사 보기 · {E(x['source'])} →</a>
+  <button type="button" class="shr" data-share-id="{E(x['id'])}" data-share-title="{E(x['title'])}" data-share-text="{E(x['deck'])}">{SHARE_ICON} 카카오톡 공유</button>
 </article>'''
 
 def page(icon_src, home_href):
@@ -103,6 +105,15 @@ a{{color:inherit}}h1,h2{{text-wrap:balance}}p,li{{text-wrap:pretty}}
 .notice .nc{{border:2px solid var(--gold-l);border-bottom:2px solid var(--gold-l);background:#fff;padding:26px 24px 24px;margin-top:10px}}
 .notice .nc .cat{{background:var(--gold);border-color:var(--gold);color:#fff}}
 .orig{{display:inline-block;margin-top:16px;font-size:14.5px;color:var(--purple);text-decoration:none;border-bottom:1px solid var(--gold-l)}}
+.nc{{scroll-margin-top:84px}}
+.nc.hl{{animation:hlpulse 1.5s ease 2}}
+@keyframes hlpulse{{0%,100%{{background:transparent}}50%{{background:var(--lilac-l)}}}}
+.share{{display:inline-flex;align-items:center;gap:8px;margin-top:20px;padding:11px 22px;border-radius:999px;border:1px solid var(--gold-l);background:#fff;color:var(--purple2);font:600 14.5px 'Noto Sans KR',sans-serif;cursor:pointer}}
+.share:hover{{background:var(--lilac-l)}}
+.shr{{display:inline-flex;align-items:center;gap:6px;margin:16px 0 0 14px;padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--purple);font:600 13.5px 'Noto Sans KR',sans-serif;cursor:pointer}}
+.shr:hover{{background:var(--lilac-l)}}
+.toast{{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 22px;border-radius:999px;font-size:14px;z-index:999;opacity:0;pointer-events:none;transition:opacity .25s;max-width:88vw;text-align:center}}
+.toast.show{{opacity:1}}
 .empty{{display:none;padding:50px 0;text-align:center;color:var(--muted)}}
 footer{{margin-top:70px;padding:34px 0 50px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);line-height:1.9}}
 @media (max-width:600px){{.top3{{padding:24px 20px}}.q{{min-width:0;width:100%}}}}
@@ -115,6 +126,7 @@ footer{{margin-top:70px;padding:34px 0 50px;border-top:1px solid var(--line);fon
 <h1>솔로몬 저널</h1>
 <p class="tag">교육과 세상을 읽는 눈</p>
 <p class="ed">주니어솔로몬이 고른 교육·시사 소식을 세 줄로 정리합니다.</p>
+<button type="button" id="shareAll" class="share">{SHARE_ICON} 솔로몬 저널 공유하기</button>
 </section>
 {notice}
 <section class="top3" aria-label="최근 소식 세 줄"><p>LATEST · 이번 호 세 줄</p><ol>{top3}</ol></section>
@@ -127,7 +139,25 @@ footer{{margin-top:70px;padding:34px 0 50px;border-top:1px solid var(--line);fon
 (function(){{var f='전체',q='';var cards=[].slice.call(document.querySelectorAll('#list .nc'));
 function run(){{var n=0;cards.forEach(function(c){{var ok=(f==='전체'||c.getAttribute('data-cat')===f)&&(!q||c.textContent.indexOf(q)>=0);c.style.display=ok?'':'none';if(ok)n++}});document.getElementById('empty').style.display=n?'none':'block'}}
 [].forEach.call(document.querySelectorAll('.chip'),function(b){{b.onclick=function(){{f=b.getAttribute('data-f');[].forEach.call(document.querySelectorAll('.chip'),function(x){{x.setAttribute('aria-pressed',x===b?'true':'false')}});run()}}}});
-document.querySelector('.q').addEventListener('input',function(e){{q=e.target.value.trim();run()}});}})();
+document.querySelector('.q').addEventListener('input',function(e){{q=e.target.value.trim();run()}});
+/* 공유하기 — 저널 전체 + 기사별. 모바일은 공유창(카카오톡 포함), PC는 링크 복사 */
+var toastEl=null;
+function toast(t){{if(!toastEl){{toastEl=document.createElement('div');toastEl.className='toast';document.body.appendChild(toastEl)}}toastEl.textContent=t;toastEl.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(function(){{toastEl.classList.remove('show')}},2800)}}
+function pageUrl(){{return location.origin+location.pathname}}
+function doShare(d){{
+  if(navigator.share){{navigator.share(d).catch(function(){{}});return}}
+  if(navigator.clipboard&&navigator.clipboard.writeText){{navigator.clipboard.writeText(d.url).then(function(){{toast('링크를 복사했어요. 카카오톡에 붙여넣어 보내 보세요.')}}).catch(function(){{window.prompt('링크를 복사해 카카오톡에 붙여넣어 보내 보세요.',d.url)}})}}
+  else window.prompt('링크를 복사해 카카오톡에 붙여넣어 보내 보세요.',d.url);
+}}
+var shareAll=document.getElementById('shareAll');
+if(shareAll) shareAll.addEventListener('click',function(){{doShare({{title:'솔로몬 저널 · 교육과 세상을 읽는 눈',text:'주니어솔로몬이 고른 교육·시사 소식을 세 줄로 정리합니다.',url:pageUrl()}})}});
+[].forEach.call(document.querySelectorAll('.shr'),function(b){{
+  b.addEventListener('click',function(){{doShare({{title:'솔로몬 저널 — '+b.getAttribute('data-share-title'),text:b.getAttribute('data-share-text'),url:pageUrl()+'#'+b.getAttribute('data-share-id')}})}});
+}});
+/* 공유 링크로 들어오면 그 기사로 이동해 잠깐 강조 */
+if(location.hash.length>1){{var tgt=document.getElementById(decodeURIComponent(location.hash.slice(1)));
+  if(tgt){{setTimeout(function(){{tgt.scrollIntoView({{behavior:'smooth',block:'start'}});tgt.classList.add('hl');setTimeout(function(){{tgt.classList.remove('hl')}},3000)}},80)}}}}
+}})();
 </script><script src="assets/install.js?v=7" defer></script></body></html>'''
 
 def teaser(journal_href):

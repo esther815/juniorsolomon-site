@@ -55,6 +55,15 @@ a{color:inherit}h1,h2{text-wrap:balance}p,li{text-wrap:pretty}
 .notice .nc{border:2px solid var(--gold-l);border-bottom:2px solid var(--gold-l);background:#fff;padding:26px 24px 24px;margin-top:10px}
 .notice .nc .cat{background:var(--gold);border-color:var(--gold);color:#fff}
 .orig{display:inline-block;margin-top:16px;font-size:14.5px;color:var(--purple);text-decoration:none;border-bottom:1px solid var(--gold-l)}
+.nc{scroll-margin-top:84px}
+.nc.hl{animation:hlpulse 1.5s ease 2}
+@keyframes hlpulse{0%,100%{background:transparent}50%{background:var(--lilac-l)}}
+.share{display:inline-flex;align-items:center;gap:8px;margin-top:20px;padding:11px 22px;border-radius:999px;border:1px solid var(--gold-l);background:#fff;color:var(--purple2);font:600 14.5px 'Noto Sans KR',sans-serif;cursor:pointer}
+.share:hover{background:var(--lilac-l)}
+.shr{display:inline-flex;align-items:center;gap:6px;margin:16px 0 0 14px;padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--purple);font:600 13.5px 'Noto Sans KR',sans-serif;cursor:pointer}
+.shr:hover{background:var(--lilac-l)}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 22px;border-radius:999px;font-size:14px;z-index:999;opacity:0;pointer-events:none;transition:opacity .25s;max-width:88vw;text-align:center}
+.toast.show{opacity:1}
 .empty{display:none;padding:50px 0;text-align:center;color:var(--muted)}
 footer{margin-top:70px;padding:34px 0 50px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);line-height:1.9}
 @media (max-width:600px){.top3{padding:24px 20px}.q{min-width:0;width:100%}}
@@ -67,6 +76,7 @@ footer{margin-top:70px;padding:34px 0 50px;border-top:1px solid var(--line);font
 <h1>솔로몬 저널</h1>
 <p class="tag">교육과 세상을 읽는 눈</p>
 <p class="ed">주니어솔로몬이 고른 교육·시사 소식을 세 줄로 정리합니다.</p>
+<button type="button" id="shareAll" class="share"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg> 솔로몬 저널 공유하기</button>
 </section>
 <section class="notice" aria-label="공지"><p class="notice-lab">공지 · 꼭 읽어 주세요</p><article class="nc" data-cat="교육" id="2607-02-reading-education">
   <div class="meta"><span class="cat">교육</span><time datetime="2026-07-02">2026. 7. 2.(목)</time><span class="src">교육부</span></div>
@@ -76,6 +86,7 @@ footer{margin-top:70px;padding:34px 0 50px;border-top:1px solid var(--line);font
   <p class="note"><b>솔로몬 노트</b>학교가 독서를 먼저 챙기기 시작했습니다. 집에서도 &#x27;매일 10분, 함께 읽고 한마디 나누기&#x27;로 이어 가면 아이의 독서 습관이 훨씬 단단해집니다.</p>
   
   <a class="orig" href="https://www.moe.go.kr/boardCnts/listRenew.do?boardID=294&amp;m=020402" target="_blank" rel="noopener nofollow">원문 기사 보기 · 교육부 →</a>
+  <button type="button" class="shr" data-share-id="2607-02-reading-education" data-share-title="학교가 &#x27;책 읽는 힘&#x27;을 키운다 — 학교 독서교육 활성화 방안" data-share-text="교육부가 모든 학생을 &#x27;스스로 책을 찾아 읽는 독자&#x27;로 키우겠다며, 수업과 이어지는 독서를 강화하고 &#x27;독서교육 집중 학년&#x27;을 정하는 방안을 내놨다."><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg> 카카오톡 공유</button>
 </article></section>
 <section class="top3" aria-label="최근 소식 세 줄"><p>LATEST · 이번 호 세 줄</p><ol><li><a href="#2611-24-exam-smart-device"><span>시사</span>시험장에 들어온 스마트 안경, 학교는 어떻게 막나</a></li><li><a href="#2611-24-performance-literacy"><span>교육</span>수행평가가 바뀐다 — 교실에서 직접 읽고 쓰고 말한다</a></li><li><a href="#2611-23-fake-application-report"><span>시사</span>대입 &#x27;거짓 원서&#x27;를 잡는다 — 허위 원서접수 신고센터</a></li></ol></section>
 <div class="tools"><div class="chips" role="group" aria-label="분류"><button type="button" class="chip" data-f="전체" aria-pressed="true">전체</button><button type="button" class="chip" data-f="교육" aria-pressed="false">교육</button><button type="button" class="chip" data-f="시사" aria-pressed="false">시사</button><button type="button" class="chip" data-f="세계" aria-pressed="false">세계</button><button type="button" class="chip" data-f="과학" aria-pressed="false">과학</button><button type="button" class="chip" data-f="문화" aria-pressed="false">문화</button></div><input class="q" type="search" placeholder="검색 (예: 문해력, 수행평가)" aria-label="솔로몬 저널 검색"></div>
@@ -87,6 +98,7 @@ footer{margin-top:70px;padding:34px 0 50px;border-top:1px solid var(--line);font
   <p class="note"><b>솔로몬 노트</b>새 기술이 나오면 지키는 규칙도 따라 바뀝니다. &#x27;이미 정해진 사실&#x27;과 &#x27;아직 논의 중인 방안&#x27;을 구분해 읽는 연습을 해 보세요.</p>
   <div class="updates"><p class="lab">후속보도</p><ul><li><time datetime="2026-11-19">2026. 11. 19.(목)</time> 2027학년도 수능에서도 스마트기기 관련 부정행위자 98명이 적발됐다. 최종 징계 수위는 12월 11일 성적 발표 전에 정해진다.</li><li><time datetime="2026-11-24">2026. 11. 24.(화)</time> 교육부가 내신 시험 관리를 수능 수준으로 높이고 처벌을 강화하는 방안을 추진한다고 밝혔다. &#x27;전과목 0점&#x27;이나 &#x27;다음 해 응시 제한&#x27; 같은 강한 처벌은 아직 확정된 규칙이 아니라 검토 중인 방안이다.</li></ul></div>
   <a class="orig" href="https://www.yna.co.kr/view/AKR20261124076451530" target="_blank" rel="noopener nofollow">원문 기사 보기 · 교육부·언론 종합 →</a>
+  <button type="button" class="shr" data-share-id="2611-24-exam-smart-device" data-share-title="시험장에 들어온 스마트 안경, 학교는 어떻게 막나" data-share-text="인공지능(AI) 스마트 안경 같은 기기로 시험 부정행위가 생기면서, 교육부가 시험 관리와 처벌을 강화하는 방안을 내놓고 있다."><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg> 카카오톡 공유</button>
 </article>
 <article class="nc" data-cat="교육" id="2611-24-performance-literacy">
   <div class="meta"><span class="cat">교육</span><time datetime="2026-11-24">2026. 11. 24.(화)</time><span class="src">지역내일</span></div>
@@ -96,6 +108,7 @@ footer{margin-top:70px;padding:34px 0 50px;border-top:1px solid var(--line);font
   <p class="note"><b>솔로몬 노트</b>집에서 대신 써 주는 공부는 이제 통하지 않습니다. 평소 읽은 글을 아이가 자기 말로 설명해 보게 하는 것이 가장 좋은 대비입니다.</p>
   
   <a class="orig" href="https://www.localnaeil.com/News/View/655073" target="_blank" rel="noopener nofollow">원문 기사 보기 · 지역내일 →</a>
+  <button type="button" class="shr" data-share-id="2611-24-performance-literacy" data-share-title="수행평가가 바뀐다 — 교실에서 직접 읽고 쓰고 말한다" data-share-text="집에서 해 오는 과제형 수행평가는 줄고, 수업 시간에 스스로 읽고 이해해 글과 말로 표현하는 방식이 커진다. 전문가들은 문해력을 모든 과목의 바탕으로 꼽는다."><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg> 카카오톡 공유</button>
 </article>
 <article class="nc" data-cat="시사" id="2611-23-fake-application-report">
   <div class="meta"><span class="cat">시사</span><time datetime="2026-11-23">2026. 11. 23.(월)</time><span class="src">교육부</span></div>
@@ -105,6 +118,7 @@ footer{margin-top:70px;padding:34px 0 50px;border-top:1px solid var(--line);font
   <p class="note"><b>솔로몬 노트</b>남보다 유리해지려고 규칙의 빈틈을 이용하는 것이 왜 공정하지 않은지 생각해 보세요. 눈치 싸움이 아니라 정직한 실력으로 겨루는 것이 입시의 바탕입니다.</p>
   
   <a class="orig" href="https://www.moe.go.kr/boardCnts/listRenew.do?boardID=294&amp;m=020402" target="_blank" rel="noopener nofollow">원문 기사 보기 · 교육부 →</a>
+  <button type="button" class="shr" data-share-id="2611-23-fake-application-report" data-share-title="대입 &#x27;거짓 원서&#x27;를 잡는다 — 허위 원서접수 신고센터" data-share-text="지원할 생각 없이 원서만 내서 경쟁률을 미리 알아내는 &#x27;허위 원서접수&#x27;를 막으려고, 교육부가 전용 신고센터를 새로 열었다."><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg> 카카오톡 공유</button>
 </article>
 <article class="nc" data-cat="교육" id="2611-20-admissions-2028">
   <div class="meta"><span class="cat">교육</span><time datetime="2026-11-20">2026. 11. 20.(금)</time><span class="src">교육부</span></div>
@@ -114,6 +128,7 @@ footer{margin-top:70px;padding:34px 0 50px;border-top:1px solid var(--line);font
   <p class="note"><b>솔로몬 노트</b>초등 시기에는 등급·과목보다, 어떤 글이든 스스로 읽고 생각을 정리해 표현하는 힘을 키우는 것이 바뀐 입시의 바탕이 됩니다.</p>
   
   <a class="orig" href="https://www.korea.kr/briefing/policyBriefingView.do?newsId=156607888" target="_blank" rel="noopener nofollow">원문 기사 보기 · 교육부 →</a>
+  <button type="button" class="shr" data-share-id="2611-20-admissions-2028" data-share-title="2028 대입, 초등 학부모가 알아 둘 큰 그림" data-share-text="2028학년도 수능부터 문·이과 구분과 선택과목이 사라지고, 고교 내신은 5등급제로 바뀐다. 지금 초등생이 맞이할 입시의 뼈대다."><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg> 카카오톡 공유</button>
 </article>
 <article class="nc" data-cat="시사" id="2611-16-sick-student-attendance">
   <div class="meta"><span class="cat">시사</span><time datetime="2026-11-16">2026. 11. 16.(월)</time><span class="src">교육부</span></div>
@@ -123,6 +138,7 @@ footer{margin-top:70px;padding:34px 0 50px;border-top:1px solid var(--line);font
   <p class="note"><b>솔로몬 노트</b>규칙 하나가 누군가에게는 학교를 계속 다닐 수 있는 길이 됩니다. &#x27;모두에게 똑같이&#x27;와 &#x27;필요한 사람에게 더&#x27;가 어떻게 함께 갈 수 있을지 이야기해 보세요.</p>
   
   <a class="orig" href="https://www.korea.kr/news/policyNewsView.do?newsId=148975788" target="_blank" rel="noopener nofollow">원문 기사 보기 · 교육부 →</a>
+  <button type="button" class="shr" data-share-id="2611-16-sick-student-attendance" data-share-title="아파서 빠진 날도 출석으로 — 중증·난치질환 학생 배려" data-share-text="희귀·중증 난치질환을 앓는 학생이 정기 진료로 학교를 못 가도 &#x27;질병 결석&#x27;이 아니라 &#x27;출석 인정&#x27;으로 처리할 수 있게 하는 제도가 추진된다."><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg> 카카오톡 공유</button>
 </article>
 <article class="nc" data-cat="과학" id="2607-29-invention-festival">
   <div class="meta"><span class="cat">과학</span><time datetime="2026-07-29">2026. 7. 29.(수)</time><span class="src">지식재산처</span></div>
@@ -132,6 +148,7 @@ footer{margin-top:70px;padding:34px 0 50px;border-top:1px solid var(--line);font
   <p class="note"><b>솔로몬 노트</b>좋은 발명은 거창한 데서 오지 않습니다. &#x27;불이 나면 숨쉬기 힘들다&#x27;는 익숙한 불편을 그냥 지나치지 않은 데서 시작됐어요. 아이가 느낀 작은 불편을 적어 보게 해 주세요.</p>
   
   <a class="orig" href="https://www.ip-edu.net" target="_blank" rel="noopener nofollow">원문 기사 보기 · 지식재산처 →</a>
+  <button type="button" class="shr" data-share-id="2607-29-invention-festival" data-share-title="작은 아이디어가 대통령상 — 청소년 발명 페스티벌" data-share-text="경남의 한 초등학교 5학년 학생이 만든 &#x27;초기화재 대피 호흡 그립톡&#x27;이 전국 학생발명전시회에서 대통령상을 받았다. 일상의 작은 불편에서 시작된 발명 이야기다."><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg> 카카오톡 공유</button>
 </article>
 <article class="nc" data-cat="교육" id="2512-kicce-child-development">
   <div class="meta"><span class="cat">교육</span><time datetime="2025-12-02">2025. 12. 2.(화)</time><span class="src">육아정책연구소</span></div>
@@ -141,6 +158,7 @@ footer{margin-top:70px;padding:34px 0 50px;border-top:1px solid var(--line);font
   <p class="note"><b>솔로몬 노트</b>점수 한두 개보다, 스스로 생활하고 친구와 어울리는 힘이 아이를 더 멀리 데려갑니다. 읽고 말하고 함께 생각하는 경험이 그 바탕이 됩니다.</p>
   
   <a class="orig" href="https://kicce.re.kr/main/board/view.do?menu_idx=231&amp;board_idx=53658&amp;manage_idx=41" target="_blank" rel="noopener nofollow">원문 기사 보기 · 육아정책연구소 →</a>
+  <button type="button" class="shr" data-share-id="2512-kicce-child-development" data-share-title="코로나 시대를 보낸 아이들, 지금 어떻게 자랐나" data-share-text="코로나19를 겪은 아이들이 만 5세와 초등 1학년이 되었을 때의 변화를 추적한 연구다. 지능(IQ)에는 큰 차이가 없었지만, 생활력과 사회성에서는 뚜렷한 성장을 보였다."><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg> 카카오톡 공유</button>
 </article></section>
 <p class="empty" id="empty">해당하는 소식이 아직 없습니다.</p>
 <footer>요약과 솔로몬 노트는 주니어솔로몬이 기사를 읽고 정리한 것입니다. 정확한 내용은 각 원문 기사에서 확인해 주세요.<br>© 주니어솔로몬. 주니어솔로몬®은 등록상표(제40-1582862호)입니다.</footer>
@@ -149,5 +167,23 @@ footer{margin-top:70px;padding:34px 0 50px;border-top:1px solid var(--line);font
 (function(){var f='전체',q='';var cards=[].slice.call(document.querySelectorAll('#list .nc'));
 function run(){var n=0;cards.forEach(function(c){var ok=(f==='전체'||c.getAttribute('data-cat')===f)&&(!q||c.textContent.indexOf(q)>=0);c.style.display=ok?'':'none';if(ok)n++});document.getElementById('empty').style.display=n?'none':'block'}
 [].forEach.call(document.querySelectorAll('.chip'),function(b){b.onclick=function(){f=b.getAttribute('data-f');[].forEach.call(document.querySelectorAll('.chip'),function(x){x.setAttribute('aria-pressed',x===b?'true':'false')});run()}});
-document.querySelector('.q').addEventListener('input',function(e){q=e.target.value.trim();run()});})();
+document.querySelector('.q').addEventListener('input',function(e){q=e.target.value.trim();run()});
+/* 공유하기 — 저널 전체 + 기사별. 모바일은 공유창(카카오톡 포함), PC는 링크 복사 */
+var toastEl=null;
+function toast(t){if(!toastEl){toastEl=document.createElement('div');toastEl.className='toast';document.body.appendChild(toastEl)}toastEl.textContent=t;toastEl.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(function(){toastEl.classList.remove('show')},2800)}
+function pageUrl(){return location.origin+location.pathname}
+function doShare(d){
+  if(navigator.share){navigator.share(d).catch(function(){});return}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(d.url).then(function(){toast('링크를 복사했어요. 카카오톡에 붙여넣어 보내 보세요.')}).catch(function(){window.prompt('링크를 복사해 카카오톡에 붙여넣어 보내 보세요.',d.url)})}
+  else window.prompt('링크를 복사해 카카오톡에 붙여넣어 보내 보세요.',d.url);
+}
+var shareAll=document.getElementById('shareAll');
+if(shareAll) shareAll.addEventListener('click',function(){doShare({title:'솔로몬 저널 · 교육과 세상을 읽는 눈',text:'주니어솔로몬이 고른 교육·시사 소식을 세 줄로 정리합니다.',url:pageUrl()})});
+[].forEach.call(document.querySelectorAll('.shr'),function(b){
+  b.addEventListener('click',function(){doShare({title:'솔로몬 저널 — '+b.getAttribute('data-share-title'),text:b.getAttribute('data-share-text'),url:pageUrl()+'#'+b.getAttribute('data-share-id')})});
+});
+/* 공유 링크로 들어오면 그 기사로 이동해 잠깐 강조 */
+if(location.hash.length>1){var tgt=document.getElementById(decodeURIComponent(location.hash.slice(1)));
+  if(tgt){setTimeout(function(){tgt.scrollIntoView({behavior:'smooth',block:'start'});tgt.classList.add('hl');setTimeout(function(){tgt.classList.remove('hl')},3000)},80)}}
+})();
 </script><script src="assets/install.js?v=7" defer></script></body></html>
