@@ -39,6 +39,7 @@ def card(x):
 def page(icon_src, home_href):
     pinned = [x for x in items if x.get('pin')]
     feed = [x for x in items if not x.get('pin')]
+    latest = E(feed[0]['id']) if feed else ''
     notice = ''
     if pinned:
         ncards = '\n'.join(card(x) for x in pinned)
@@ -158,7 +159,7 @@ if(shareAll) shareAll.addEventListener('click',function(){{doShare({{title:'ì†”ë
 if(location.hash.length>1){{var tgt=document.getElementById(decodeURIComponent(location.hash.slice(1)));
   if(tgt){{setTimeout(function(){{tgt.scrollIntoView({{behavior:'smooth',block:'start'}});tgt.classList.add('hl');setTimeout(function(){{tgt.classList.remove('hl')}},3000)}},80)}}}}
 }})();
-</script><script src="assets/install.js?v=7" defer></script></body></html>'''
+</script><script src="assets/install.js?v=7" defer></script><script>try{{localStorage.setItem('js_journal_seen','{latest}')}}catch(e){{}}</script></body></html>'''
 
 def teaser(journal_href):
     return ''.join(f'''<a class="bt-item" href="{journal_href}#{E(x['id'])}"><span class="bt-cat">{E(x['cat'])}</span><span class="bt-t">{NB(E(x['title']))}</span><span class="bt-d">{NB(E(x['deck']))}</span><time>{kdate(x['date'])}</time></a>''' for x in items[:3])
