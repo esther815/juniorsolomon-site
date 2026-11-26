@@ -1,6 +1,7 @@
-"""솔로몬 저널 갱신: data/journal.json 점검 → journal.html 다시 만들기.
+"""솔로몬 저널 갱신: data/journal.json 점검 → journal.html 다시 만들기 + index.html 첫 화면 미리보기(최신 3건) 교체.
+※ 알림톡: main 에 올리는 순간 새 기사가 구독 학부모께 카카오 알림톡으로 나갈 수 있다(ALIMTALK_MODE=live 일 때). 원장님 「올려」 전에는 main 에 올리지 않는다. supabase/알림톡_준비_안내.md 참고.
 실행: 저장소 맨 위 폴더에서  python3 tools/update_journal.py"""
-import os, sys, subprocess, json, datetime
+import os, re, sys, subprocess, json, datetime
 ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 J = os.path.join(ROOT, 'tools', 'journal.py')
 CATS = ['교육', '시사', '세계', '과학', '문화']
@@ -20,4 +21,9 @@ if bad:
     print('고칠 곳:\n- ' + '\n- '.join(bad)); sys.exit(1)
 page = subprocess.run([sys.executable, J, 'page-file', 'index.html'], capture_output=True, text=True, check=True).stdout
 open(os.path.join(ROOT, 'journal.html'), 'w', encoding='utf8').write(page)
-print(f'완료: 기사 {len(items)}건 · journal.html 갱신')
+teaser = subprocess.run([sys.executable, J, 'teaser', 'journal.html'], capture_output=True, text=True, check=True).stdout.strip().replace('class="bt-', 'class="nt-')
+ip = os.path.join(ROOT, 'index.html'); s = open(ip, encoding='utf8').read()
+s, n = re.subn(r'(<!--JOURNAL:START-->).*?(<!--JOURNAL:END-->)', lambda m: m.group(1) + teaser + m.group(2), s, flags=re.S)
+if n != 1: print('index.html에서 <!--JOURNAL:START--> 표시를 찾지 못했습니다.'); sys.exit(1)
+open(ip, 'w', encoding='utf8').write(s)
+print(f'완료: 기사 {len(items)}건 · journal.html · 첫 화면 미리보기 갱신')
