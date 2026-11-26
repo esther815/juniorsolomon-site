@@ -33,7 +33,7 @@ def card(x):
   <p class="note"><b>솔로몬 노트</b>{E(x['note'])}</p>
   {upd}
   <a class="orig" href="{E(x['url'])}" target="_blank" rel="noopener nofollow">원문 기사 보기 · {E(x['source'])} →</a>
-  <button type="button" class="shr" data-share-id="{E(x['id'])}" data-share-title="{E(x['title'])}" data-share-text="{E(x['deck'])}">{SHARE_ICON} 카카오톡 공유</button>
+  <button type="button" class="shr" data-share-id="{E(x['id'])}" data-share-title="{E(x['title'])}" data-share-text="{E(x['deck'])}">{SHARE_ICON} 공유하기</button>
 </article>'''
 
 def page(icon_src, home_href):
@@ -113,6 +113,13 @@ a{{color:inherit}}h1,h2{{text-wrap:balance}}p,li{{text-wrap:pretty}}
 .share:hover{{background:var(--lilac-l)}}
 .shr{{display:inline-flex;align-items:center;gap:6px;margin:16px 0 0 14px;padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--purple);font:600 13.5px 'Noto Sans KR',sans-serif;cursor:pointer}}
 .shr:hover{{background:var(--lilac-l)}}
+.sh-bg{{position:fixed;inset:0;z-index:60;background:rgba(30,26,34,.45);display:none;align-items:flex-end;justify-content:center}}.sh-bg.on{{display:flex}}
+.sh{{width:100%;max-width:520px;background:#fff;border-radius:22px 22px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom))}}
+.sh h3{{margin:0 0 4px;font:700 16px 'Noto Sans KR',sans-serif;color:var(--purple2)}}.sh .st{{margin:0 0 16px;font-size:13.5px;color:var(--muted);line-height:1.5}}
+.sh-g{{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}}
+.sh-g button{{display:flex;flex-direction:column;align-items:center;gap:7px;padding:12px 4px;border:1px solid var(--line);border-radius:14px;background:#fff;font:500 13px 'Noto Sans KR',sans-serif;color:#1E1A22;cursor:pointer}}
+.sh-g button:hover{{background:var(--lilac-l)}}.sh-g i{{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;font:700 15px/1 'Noto Sans KR',sans-serif;font-style:normal;color:#fff}}
+.sh-x{{display:block;width:100%;margin-top:14px;padding:12px;border:0;border-radius:12px;background:var(--lilac-l);font:600 14.5px 'Noto Sans KR',sans-serif;color:var(--purple2);cursor:pointer}}
 .toast{{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 22px;border-radius:999px;font-size:14px;z-index:999;opacity:0;pointer-events:none;transition:opacity .25s;max-width:88vw;text-align:center}}
 .toast.show{{opacity:1}}
 .empty{{display:none;padding:50px 0;text-align:center;color:var(--muted)}}
@@ -145,10 +152,31 @@ document.querySelector('.q').addEventListener('input',function(e){{q=e.target.va
 var toastEl=null;
 function toast(t){{if(!toastEl){{toastEl=document.createElement('div');toastEl.className='toast';document.body.appendChild(toastEl)}}toastEl.textContent=t;toastEl.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(function(){{toastEl.classList.remove('show')}},2800)}}
 function pageUrl(){{return location.origin+location.pathname}}
-function doShare(d){{
-  if(navigator.share){{navigator.share(d).catch(function(){{}});return}}
-  if(navigator.clipboard&&navigator.clipboard.writeText){{navigator.clipboard.writeText(d.url).then(function(){{toast('링크를 복사했어요. 카카오톡에 붙여넣어 보내 보세요.')}}).catch(function(){{window.prompt('링크를 복사해 카카오톡에 붙여넣어 보내 보세요.',d.url)}})}}
-  else window.prompt('링크를 복사해 카카오톡에 붙여넣어 보내 보세요.',d.url);
+function copyLink(u,msg){{
+  var done=function(){{toast(msg||'링크를 복사했어요.')}};
+  if(navigator.clipboard&&navigator.clipboard.writeText){{navigator.clipboard.writeText(u).then(done).catch(function(){{window.prompt('이 주소를 복사해 주세요.',u)}})}}
+  else window.prompt('이 주소를 복사해 주세요.',u);
+}}
+var SH=null,CUR=null;
+var NETS=[['kakao','카카오톡','#FEE500','#191919','K'],['naver','네이버 블로그','#03C75A','#fff','N'],['x','X','#000','#fff','X'],
+  ['threads','스레드','#000','#fff','@'],['insta','인스타그램','#D6249F','#fff','◎'],['copy','링크 복사','#5F3D66','#fff','⧉']];
+function openWin(u){{window.open(u,'_blank','noopener,width=600,height=640')}}
+function pick(k){{var d=CUR,u=d.url,t=d.title,e=encodeURIComponent;closeSheet();
+  if(k==='kakao'){{if(navigator.share){{navigator.share(d).catch(function(){{}})}}else copyLink(u,'링크를 복사했어요. 카카오톡 대화창에 붙여 넣어 보내 주세요.');return}}
+  if(k==='naver'){{openWin('https://share.naver.com/web/shareView?url='+e(u)+'&title='+e(t));return}}
+  if(k==='x'){{openWin('https://twitter.com/intent/tweet?text='+e(t)+'&url='+e(u));return}}
+  if(k==='threads'){{openWin('https://www.threads.net/intent/post?text='+e(t+' '+u));return}}
+  if(k==='insta'){{if(navigator.share&&/Android|iPhone|iPad/i.test(navigator.userAgent)){{navigator.share(d).catch(function(){{}})}}else copyLink(u,'인스타그램은 웹에서 바로 공유할 수 없어 링크를 복사했어요. 스토리의 링크 스티커나 프로필에 붙여 넣어 주세요.');return}}
+  copyLink(u);
+}}
+function closeSheet(){{if(SH)SH.classList.remove('on')}}
+function doShare(d){{CUR=d;
+  if(!SH){{SH=document.createElement('div');SH.className='sh-bg';
+    SH.innerHTML='<div class="sh" role="dialog" aria-label="공유하기"><h3>공유하기</h3><p class="st"></p><div class="sh-g">'+NETS.map(function(n){{return '<button type="button" data-k="'+n[0]+'"><i style="background:'+n[2]+';color:'+n[3]+'">'+n[4]+'</i>'+n[1]+'</button>'}}).join('')+'</div><button type="button" class="sh-x">닫기</button></div>';
+    document.body.appendChild(SH);
+    SH.addEventListener('click',function(ev){{var b=ev.target.closest('[data-k]');if(b){{pick(b.getAttribute('data-k'));return}}if(ev.target===SH||ev.target.classList.contains('sh-x'))closeSheet()}});
+    document.addEventListener('keydown',function(ev){{if(ev.key==='Escape')closeSheet()}})}}
+  SH.querySelector('.st').textContent=d.title;SH.classList.add('on');
 }}
 var shareAll=document.getElementById('shareAll');
 if(shareAll) shareAll.addEventListener('click',function(){{doShare({{title:'솔로몬 저널 · 교육과 세상을 읽는 눈',text:'주니어솔로몬이 고른 교육·시사 소식을 세 줄로 정리합니다.',url:pageUrl()}})}});
