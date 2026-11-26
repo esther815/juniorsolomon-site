@@ -525,7 +525,7 @@ badgeColor: open ? '#FFFFFF' : '#3A3440'
   function today(){ var d=new Date(Date.now()+9*3600e3); return d.toISOString().slice(0,10) }
   function hidden(id){ try{ return localStorage.getItem('jsp_hide_'+id)===today() }catch(e){ return false } }
   var list=EVENTS.filter(function(e){ return today()<=e.until && !hidden(e.id) });
-  // 소개 영상을 먼저 보여 준 뒤(첫 재생이 끝나면) 창을 한 번에 하나씩 띄운다.
+  // 소개 영상을 먼저 보여 준 뒤(7초 뒤) 창을 한 번에 하나씩 띄운다.
   // 순서: 학원 소식 → (끝나면) 리딩오션 안내. 리딩오션 창은 assets/ro-popup.js가 JSQ에 줄을 선다.
   var JSQ=window.JSQ={q:[],busy:false,ready:false,
     add:function(fn){ this.q.push(fn); this.run() },
@@ -547,14 +547,7 @@ badgeColor: open ? '#FFFFFF' : '#3A3440'
   }
   list.forEach(function(e){ JSQ.add(function(){ show(e) }) });
   function go(){ if(JSQ.ready) return; JSQ.ready=true; setTimeout(function(){ JSQ.run() },400) }
-  function arm(){
-    var v=document.querySelector('#youtube video');
-    if(!v){ go(); return }
-    v.addEventListener('ended',go);
-    v.addEventListener('timeupdate',function(){ if(v.duration&&v.currentTime>=v.duration-0.4) go() });
-    setTimeout(function(){ if(v.paused) go() },4000);   // 자동 재생이 막힌 경우
-    setTimeout(go,26000);                               // 최대 대기
-  }
+  function arm(){ setTimeout(go,7000) }   // 영상을 7초 본 뒤 첫 창
   if(document.readyState==='complete') arm(); else window.addEventListener('load',arm);
 })();
 </script>
