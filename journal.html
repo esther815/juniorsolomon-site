@@ -4,6 +4,7 @@
 <meta name="description" content="주니어솔로몬이 재원생 가정을 위해 꼭 알아야 할 교육·시사 뉴스를 골라 세 줄로 정리합니다.">
 <meta property="og:title" content="솔로몬 저널 · 교육과 세상을 읽는 눈">
 <meta property="og:description" content="교육·시사 뉴스를 세 줄로 정리합니다.">
+<meta property="og:type" content="website"><meta property="og:url" content="https://juniorsolomon.com/journal.html"><meta property="og:image" content="https://juniorsolomon.com/assets/og-share-v9.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#5F3D66"><link rel="icon" href="favicon.ico" sizes="any"><link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+KR:wght@600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
@@ -319,6 +320,7 @@ var NETS=[['kakao','카카오톡','#FEE500','#191919','K'],['naver','네이버 �
   ['threads','스레드','#000','#fff','@'],['insta','인스타그램','#D6249F','#fff','◎'],['copy','링크 복사','#5F3D66','#fff','⧉']];
 function openWin(u){window.open(u,'_blank','noopener,width=600,height=640')}
 function pick(k){var d=CUR,u=d.url,t=d.title,e=encodeURIComponent;closeSheet();
+  if(k==='kakao'&&window.Kakao&&Kakao.isInitialized&&Kakao.isInitialized()){try{Kakao.Share.sendDefault({objectType:'feed',content:{title:t,description:d.text||'',imageUrl:'https://juniorsolomon.com/assets/og-share-v9.jpg',link:{mobileWebUrl:u,webUrl:u}},buttons:[{title:'기사 보기',link:{mobileWebUrl:u,webUrl:u}}]});return}catch(er){}}
   if(k==='kakao'){if(navigator.share){navigator.share(d).catch(function(){})}else copyLink(u,'링크를 복사했어요. 카카오톡 대화창에 붙여 넣어 보내 주세요.');return}
   if(k==='naver'){openWin('https://share.naver.com/web/shareView?url='+e(u)+'&title='+e(t));return}
   if(k==='x'){openWin('https://twitter.com/intent/tweet?text='+e(t)+'&url='+e(u));return}

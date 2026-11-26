@@ -8,6 +8,10 @@ E = html.escape
 items = sorted(json.load(open(os.path.join(ROOT, 'data', 'journal.json'), encoding='utf8')), key=lambda x: x['date'], reverse=True)
 CATS = ['전체', '교육', '시사', '세계', '과학', '문화']
 WD = '월화수목금토일'
+# 카카오톡 바로 보내기 — 카카오 개발자 > 내 애플리케이션 > 앱 키 > 'JavaScript 키'(공개용 키).
+# 비워 두면 휴대폰 공유창·링크 복사로 대신한다. 키를 넣은 앱의 플랫폼 > Web 에 https://juniorsolomon.com 이 등록돼 있어야 한다.
+KAKAO_JS_KEY = ''
+OG_IMAGE = 'https://juniorsolomon.com/assets/og-share-v9.jpg'
 SHARE_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>'
 
 def NB(s):
@@ -37,6 +41,8 @@ def card(x):
 </article>'''
 
 def page(icon_src, home_href):
+    KAKAO_SDK = ('<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js" crossorigin="anonymous"></script>'
+                 f'<script>try{{Kakao.init({json.dumps(KAKAO_JS_KEY)})}}catch(e){{}}</script>') if KAKAO_JS_KEY else ''
     pinned = [x for x in items if x.get('pin')]
     feed = [x for x in items if not x.get('pin')]
     latest = E(feed[0]['id']) if feed else ''
@@ -55,6 +61,7 @@ def page(icon_src, home_href):
 <meta name="description" content="주니어솔로몬이 재원생 가정을 위해 꼭 알아야 할 교육·시사 뉴스를 골라 세 줄로 정리합니다.">
 <meta property="og:title" content="솔로몬 저널 · 교육과 세상을 읽는 눈">
 <meta property="og:description" content="교육·시사 뉴스를 세 줄로 정리합니다.">
+<meta property="og:type" content="website"><meta property="og:url" content="https://juniorsolomon.com/journal.html"><meta property="og:image" content="{OG_IMAGE}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#5F3D66"><link rel="icon" href="favicon.ico" sizes="any"><link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+KR:wght@600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
@@ -162,6 +169,7 @@ var NETS=[['kakao','카카오톡','#FEE500','#191919','K'],['naver','네이버 �
   ['threads','스레드','#000','#fff','@'],['insta','인스타그램','#D6249F','#fff','◎'],['copy','링크 복사','#5F3D66','#fff','⧉']];
 function openWin(u){{window.open(u,'_blank','noopener,width=600,height=640')}}
 function pick(k){{var d=CUR,u=d.url,t=d.title,e=encodeURIComponent;closeSheet();
+  if(k==='kakao'&&window.Kakao&&Kakao.isInitialized&&Kakao.isInitialized()){{try{{Kakao.Share.sendDefault({{objectType:'feed',content:{{title:t,description:d.text||'',imageUrl:'{OG_IMAGE}',link:{{mobileWebUrl:u,webUrl:u}}}},buttons:[{{title:'기사 보기',link:{{mobileWebUrl:u,webUrl:u}}}}]}});return}}catch(er){{}}}}
   if(k==='kakao'){{if(navigator.share){{navigator.share(d).catch(function(){{}})}}else copyLink(u,'링크를 복사했어요. 카카오톡 대화창에 붙여 넣어 보내 주세요.');return}}
   if(k==='naver'){{openWin('https://share.naver.com/web/shareView?url='+e(u)+'&title='+e(t));return}}
   if(k==='x'){{openWin('https://twitter.com/intent/tweet?text='+e(t)+'&url='+e(u));return}}
@@ -187,7 +195,7 @@ if(shareAll) shareAll.addEventListener('click',function(){{doShare({{title:'솔�
 if(location.hash.length>1){{var tgt=document.getElementById(decodeURIComponent(location.hash.slice(1)));
   if(tgt){{setTimeout(function(){{tgt.scrollIntoView({{behavior:'smooth',block:'start'}});tgt.classList.add('hl');setTimeout(function(){{tgt.classList.remove('hl')}},3000)}},80)}}}}
 }})();
-</script><script src="assets/install.js?v=7" defer></script><script>try{{localStorage.setItem('js_journal_seen','{latest}')}}catch(e){{}}</script></body></html>'''
+</script>{KAKAO_SDK}<script src="assets/install.js?v=7" defer></script><script>try{{localStorage.setItem('js_journal_seen','{latest}')}}catch(e){{}}</script></body></html>'''
 
 def teaser(journal_href):
     return ''.join(f'''<a class="bt-item" href="{journal_href}#{E(x['id'])}"><span class="bt-cat">{E(x['cat'])}</span><span class="bt-t">{NB(E(x['title']))}</span><span class="bt-d">{NB(E(x['deck']))}</span><time>{kdate(x['date'])}</time></a>''' for x in items[:3])
