@@ -1,0 +1,63 @@
+# 알림톡(솔로몬 저널) 데이터베이스 설치 — 손으로만 실행한다(Actions > db-apply > Run workflow).
+#  mode=check : 읽기만 한다. 회원·자녀 표와 기존 ns_ 표·함수 상태를 보여 준다.
+#  mode=apply : check 결과가 맞을 때만 supabase/sql/01·02 를 차례로 실행하고 결과를 확인한다(여러 번 실행해도 안전).
+# 필요한 비밀값: SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_ID (함수 배포에 쓰는 것과 같음)
+name: db-apply
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "check(읽기만) 또는 apply(설치)"
+        required: true
+        default: check
+        type: choice
+        options: [check, apply]
+permissions:
+  contents: read
+jobs:
+  db:
+    runs-on: ubuntu-latest
+    env:
+      TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      REF: ${{ secrets.SUPABASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: 실행 도구 준비
+        run: |
+          cat > /tmp/q.py <<'PY'
+          import json, os, sys, urllib.request
+          sql = open(sys.argv[1], encoding="utf8").read()
+          req = urllib.request.Request(
+              f"https://api.supabase.com/v1/projects/{os.environ['REF']}/database/query",
+              data=json.dumps({"query": sql}).encode(), method="POST",
+              headers={"Authorization": f"Bearer {os.environ['TOKEN']}", "Content-Type": "application/json"})
+          try:
+              out = urllib.request.urlopen(req, timeout=120).read().decode()
+          except urllib.error.HTTPError as e:
+              print("실패:", e.code, e.read().decode()[:2000]); sys.exit(1)
+          print(out[:4000])
+          open("/tmp/last.json", "w").write(out)
+          PY
+      - name: 상태 확인 (읽기만)
+        run: python3 /tmp/q.py supabase/sql/00_check.sql
+      - name: 설치 전 점검
+        if: inputs.mode == 'apply'
+        run: |
+          python3 - <<'PY'
+          import json, sys
+          r = json.load(open("/tmp/last.json"))[0]["result"]
+          r = json.loads(r) if isinstance(r, str) else r
+          ok = (set(r.get("profiles_cols") or []) >= {"id", "status", "role"}
+                and set(r.get("children_cols") or []) >= {"parent_id", "status"} and r.get("is_admin"))
+          print("점검:", "통과" if ok else "중단 — 회원·자녀 표 구조가 예상과 다름")
+          sys.exit(0 if ok else 1)
+          PY
+      - name: 공용 설정 설치 (ns_ 표·함수)
+        if: inputs.mode == 'apply'
+        run: python3 /tmp/q.py "supabase/sql/01_ns_공용_설정.sql"
+      - name: 솔로몬 재원 자동 판정 설치
+        if: inputs.mode == 'apply'
+        run: python3 /tmp/q.py "supabase/sql/02_솔로몬저널_재원기준.sql"
+      - name: 결과 확인
+        if: inputs.mode == 'apply'
+        run: python3 /tmp/q.py supabase/sql/99_verify.sql
