@@ -1,15 +1,15 @@
-# 솔로몬 저널이 main 에 올라가면 새 기사를 알림톡 발송 함수로 넘긴다.
-# 매일 08:05(KST)에는 밤사이 올라와 대기 중인 기사를 보낸다.
+# 솔로몬 저널 알림톡 — 하루 한 번만 발송(원장 결정 2026-11-26).
+# 올릴 때마다 보내지 않는다. 매일 08:05(KST) 한 번, 그날 새로 올라온 기사를 모아 함수로 넘긴다.
+# (여러 건이어도 학부모에게 한 통으로 가게 하려면 발송 함수·카카오 템플릿을 '요약형 묶음'으로 바꿔야 함 —
+#  supabase/알림톡_준비_안내.md 「하루 1통 묶음 발송」 참고. 그 부분은 소포스와 공용이라 앱(발송) 채팅이 맡는다.)
 # 저장소 Settings > Secrets and variables > Actions 에 두 값이 있어야 동작한다:
 #   NEWS_DISPATCH_URL     https://gyuuimwalbxsocnamtqk.supabase.co/functions/v1/news-dispatch
 #   NEWS_DISPATCH_SECRET  Supabase 함수의 DISPATCH_SECRET 과 같은 값
+# (두 값이 없으면 발송 단계는 그냥 건너뛴다.)
 name: news-dispatch
 on:
-  push:
-    branches: [main]
-    paths: [data/journal.json]
   schedule:
-    - cron: "5 23 * * *"
+    - cron: "5 23 * * *"   # 매일 08:05 KST — 하루 한 번만
   workflow_dispatch:
 permissions:
   contents: read
@@ -23,25 +23,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
-      - name: 새 기사 찾기
-        if: github.event_name == 'push'
+          fetch-depth: 0
+      - name: 어제 이후 새 기사 찾기
+        if: env.URL != ''
         run: |
-          git show HEAD~1:data/journal.json > /tmp/old.json 2>/dev/null || echo "[]" > /tmp/old.json
+          OLD=$(git rev-list -1 --before="20 hours ago" HEAD || true)
+          if [ -n "$OLD" ]; then
+            git show "$OLD:data/journal.json" > /tmp/old.json 2>/dev/null || echo "[]" > /tmp/old.json
+          else
+            echo "[]" > /tmp/old.json
+          fi
           python3 - <<'PY'
           import json
           old = {x["id"] for x in json.load(open("/tmp/old.json"))}
           new = [x for x in json.load(open("data/journal.json")) if x["id"] not in old]
           body = {"site": "solomon", "items": [{k: x[k] for k in ("id", "title", "points", "note")} for x in new]}
           json.dump(body, open("/tmp/body.json", "w"), ensure_ascii=False)
-          print("새 기사:", [x["id"] for x in new])
+          print("오늘 보낼 새 기사:", [x["id"] for x in new])
           PY
-      - name: 새 기사 넘기기
-        if: github.event_name == 'push' && env.URL != ''
+      - name: 하루치 한 번에 보내기
+        if: env.URL != ''
         run: |
-          if [ "$(python3 -c 'import json;print(len(json.load(open("/tmp/body.json"))["items"]))')" = "0" ]; then echo "새 기사 없음"; exit 0; fi
+          N=$(python3 -c 'import json;print(len(json.load(open("/tmp/body.json"))["items"]))')
+          if [ "$N" = "0" ]; then echo "새 기사 없음 — 발송 생략"; exit 0; fi
           curl -sS --fail-with-body -X POST "$URL" -H "content-type: application/json" -H "x-dispatch-secret: $SECRET" --data @/tmp/body.json
-      - name: 야간 대기분 보내기
-        if: github.event_name != 'push' && env.URL != ''
-        run: |
           curl -sS --fail-with-body -X POST "$URL" -H "content-type: application/json" -H "x-dispatch-secret: $SECRET" --data '{"flush":true}'
