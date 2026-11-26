@@ -91,23 +91,11 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 </div>
 </button>
 </sc-for>
-<a href="#premium" aria-label="프리미엄 글쓰기반 안내 보기" style="display: flex; flex-direction: column; border: 1px solid #EEEAF0; border-radius: 20px; overflow: hidden; background: #FFFFFF; text-decoration: none; color: inherit">
-<div style="position: relative; aspect-ratio: 210 / 297; background: #FBF8F3; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; box-shadow: inset 0 0 0 6px #FBF8F3, inset 0 0 0 7px #D9C48E">
-<span style="position: absolute; top: 14px; left: 14px; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; background: #5F3D66; color: #FFFFFF">모집 중</span>
-<p style="margin: 0; font-size: 12px; letter-spacing: 0.28em; color: #B08A2E">2027 WINTER</p>
-<p style="margin: 14px 0 0; font-family: 'Noto Serif KR', serif; font-size: 28px; font-weight: 600; line-height: 1.35; color: #4E3254">프리미엄<br>글쓰기반</p>
-<p style="margin: 16px 0 0; font-size: 14px; line-height: 1.7; color: #5E5866">매주 금요일 · 8회<br>초등 4–6학년</p>
-</div>
-<div style="padding: 24px 22px 26px">
-<h3 style="margin: 0 0 8px; font-family: 'Noto Serif KR', serif; font-size: 21px; font-weight: 600; color: #1E1A22">프리미엄 글쓰기반</h3>
-<p style="margin: 0 0 14px; font-size: 15px; line-height: 1.7; color: #5E5866">하정빈 선생님 · 8가지 글쓰기 · 회당 6시간</p>
-<span style="font-size: 14px; color: #5F3D66">커리큘럼 보기 →</span>
-</div>
-</a>
+
 </div>
 <p style="margin: 32px 0 0; font-size: 15px; color: #5E5866">1세션 1/11–1/22 · 2세션 1/25–2/5 · 3세션 2/15–2/26</p>
 
-<div id="premium" style="margin-top: 72px; scroll-margin-top: 88px; padding: 44px 32px; border-radius: 24px; background: #FBF8F3; border: 1px solid #D9C48E">
+<div id="premium-class" style="margin-top: 72px; scroll-margin-top: 88px; padding: 44px 32px; border-radius: 24px; background: #FBF8F3; border: 1px solid #D9C48E">
 <p style="margin: 0 0 8px; font-size: 13px; letter-spacing: 0.2em; color: #B08A2E">2027 겨울방학 특강 · PREMIUM WRITING</p>
 <h2 style="margin: 0; font-family: 'Noto Serif KR', serif; font-size: clamp(28px, 3.4vw, 40px); font-weight: 600; line-height: 1.35; color: #4E3254">프리미엄 글쓰기반</h2>
 <p style="margin: 14px 0 0; font-size: 17px; line-height: 1.85; color: #3A3440">글쓰기 자신감을 기르는 8주 과정입니다. 여덟 가지 글을 직접 써 보고, 쓴 글을 함께 읽고 토론하며 마무리합니다.</p>
@@ -136,7 +124,7 @@ a{color:#5F3D66}a:hover{color:#3E2743}
 </div>
 <p style="margin: 18px 0 0; font-size: 13px; line-height: 1.7; color: #8A8392">주니어솔로몬학원 · 중부교육지원청 제3336호 · 교습과정 보습·논술 · 서울 용산구 이촌동 LG프라자 4층</p>
 </div>
-<script>(function(){var e=document.getElementById('premium');if(e&&new Date()>new Date('2027-02-26T23:59:59+09:00')){e.style.display='none';}})();</script>
+<script>(function(){var e=document.getElementById("premium-class");if(e&&new Date()>new Date('2027-02-26T23:59:59+09:00')){e.style.display='none';}})();</script>
 </sc-if>
 
 <sc-if value="{{ eventOpen }}" hint-placeholder-val="{{ true }}">
@@ -244,7 +232,7 @@ class Component extends DCLogic {
   constructor(props) {
     super(props);
     var _h = (typeof location !== 'undefined' && location.hash || '').slice(1);
-    this.state = { open: ['maum', 'lab', 'ocean', 'sophos'].indexOf(_h) >= 0 ? _h : null, copied: false };
+    this.state = { open: ['maum', 'lab', 'premium', 'ocean', 'sophos'].indexOf(_h) >= 0 ? _h : null, copied: false };
   }
   renderVals() {
     var pick = this.props.previewDate || '오늘';

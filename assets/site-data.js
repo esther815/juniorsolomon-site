@@ -10,6 +10,7 @@ window.JS_DATA = {
   specials: [
       { id: 'maum', title: '문학으로 마음여행', sub: '장화연 원장 직강 하브루타', period: '2027 겨울 · 1/11–2/26', deadline: '2026-12-24', end: '2027-02-26', posters: ['assets/dcb4db7c1b9ba97096b7767217a25911.jpg', 'assets/b2a64420c63d9c6c119a2d3d6b3ffafe.jpg'], guide: 'assets/8da441d4dc827fd6e8347646fafe95b4.jpg' },
       { id: 'lab', title: '생각의 실험실', sub: '장화연 원장 직강 비문학 사고력 · 초등 3–6학년', period: '2027 겨울 · 1/11–2/26', deadline: '2026-12-24', end: '2027-02-26', posters: ['assets/02b5641ea51b63ecc224680ccee75fe9.jpg', 'assets/a45f7301b153464d7f515eff664526ab.jpg'], guide: 'assets/4698cf8e4f7bb404ad73b833ca9e2697.jpg' },
+      { id: 'premium', title: '프리미엄 글쓰기반', sub: '하정빈 선생님 · 초등 4–6학년 · 매주 금요일 8회', period: '2027 겨울 · 1/8–2/26', deadline: null, end: '2027-02-26', posters: ['assets/796c673d9036f7ea7ee3df2e5e0319b0.jpg'] },
       { id: 'ocean', title: '리딩오션 겨울 무제한반', sub: '방학 동안 매일 읽는 집중 독서', period: '2027 겨울 · 1–2월', deadline: null, end: '2027-02-26', posters: ['assets/f0b017b788e77932a3de9cac94e6ee58.jpg', 'assets/dc3435e2570ee55d68f38de69477dcfd.jpg', 'assets/1e207de38a26d16cc76b89e44d7bd484.jpg'] },
       { id: 'sophos', title: '소포스 프라이빗', sub: '중고등 국어·수학 소수정예 코칭', period: '2027 겨울', deadline: '2026-12-30', end: '2027-02-26', posters: ['assets/ea1914603b99f184d13eca3d2b77aedf.jpg', 'assets/d3b8b140d3d1e4d8e132ee148bdcc67c.jpg'] }
   ]
