@@ -56,6 +56,7 @@ section[id],footer[id]{scroll-margin-top:88px}
 .js-tel2{font-size:13px;font-weight:700;color:#5F3D66;text-decoration:none;white-space:nowrap}
 @media (max-width:1400px){.js-nav,.js-tels{display:none}.js-menu{display:block}.js-act{margin-left:auto}}
 @media (max-width:560px){.js-hd-in{padding:10px 16px;gap:10px}.js-logo img{height:40px}.js-login .t{display:none}.js-login{padding:0 12px}.js-mem{display:none}.js-cta{padding:0 18px;font-size:16px;min-height:46px}}
+.jnew{display:none;vertical-align:2px;margin-left:5px;font-size:10.5px;font-weight:800;line-height:1;color:#fff;background:#D7483E;border-radius:999px;padding:3px 6px;letter-spacing:.03em}.jnew.on{display:inline-block}
 .nt-list{margin-top:44px;border-top:1px solid #1E1A22;word-break:keep-all;overflow-wrap:break-word}
 .nt-item{display:grid;grid-template-columns:120px 1fr 150px;gap:6px 24px;align-items:baseline;padding:24px 0;border-bottom:1px solid #E4DEE8;text-decoration:none;color:#1E1A22;transition:background .25s}
 .nt-item:hover{background:#FAF8FB;color:#1E1A22}
@@ -133,7 +134,7 @@ section[id],footer[id]{scroll-margin-top:88px}
 </sc-if>
 <a href="consult.html">수업 시간표</a>
 <a href="fees.html">교습비</a>
-<a href="journal.html">솔로몬 저널</a>
+<a href="journal.html">솔로몬 저널<span class="jnew">NEW</span></a>
 <a href="#director" onClick="{{ goDirector }}">원장 소개</a>
 <a href="/visit.html">오시는 길</a>
 </nav>
@@ -152,7 +153,7 @@ section[id],footer[id]{scroll-margin-top:88px}
 </sc-if>
 <a href="consult.html">수업 시간표</a>
 <a href="fees.html">교습비 안내</a>
-<a href="journal.html">솔로몬 저널</a>
+<a href="journal.html">솔로몬 저널<span class="jnew">NEW</span></a>
 <a href="guide.html">앱 사용설명서</a>
 <a href="#director" onClick="{{ goDirector }}">원장 소개</a>
 <a href="/visit.html">오시는 길</a>
@@ -229,7 +230,7 @@ section[id],footer[id]{scroll-margin-top:88px}
 <nav aria-label="바로가기" style="margin-top: 56px; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px">
 <a href="#programs" onClick="{{ goPrograms }}" style="display: block; padding: 22px 22px 20px; border-radius: 18px; border: 1px solid #E4DEE8; background: #FFFFFF; text-decoration: none; color: #1E1A22"><span style="display: block; font-size: 18px; font-weight: 700">프로그램</span><span style="display: block; margin-top: 6px; font-size: 14px; color: #5E5866">유아부터 고등까지, 단계별 과정</span></a>
 <a href="seojae.html" style="display: block; padding: 22px 22px 20px; border-radius: 18px; border: 1px solid #E4DEE8; background: #FFFFFF; text-decoration: none; color: #1E1A22"><span style="display: block; font-size: 18px; font-weight: 700">서재</span><span style="display: block; margin-top: 6px; font-size: 14px; color: #5E5866">우리 아이 레벨의 책 · 가입하면 열람</span></a>
-<a href="journal.html" style="display: block; padding: 22px 22px 20px; border-radius: 18px; border: 1px solid #E4DEE8; background: #FFFFFF; text-decoration: none; color: #1E1A22"><span style="display: block; font-size: 18px; font-weight: 700">솔로몬 저널 <span id="jnew" style="display:none;vertical-align:middle;margin-left:3px;font-size:11px;font-weight:800;color:#fff;background:#D7483E;border-radius:999px;padding:2px 7px;letter-spacing:.03em">NEW</span></span><span style="display: block; margin-top: 6px; font-size: 14px; color: #5E5866">교육·시사 소식을 세 줄로 · 매주 갱신</span></a>
+<a href="journal.html" style="display: block; padding: 22px 22px 20px; border-radius: 18px; border: 1px solid #E4DEE8; background: #FFFFFF; text-decoration: none; color: #1E1A22"><span style="display: block; font-size: 18px; font-weight: 700">솔로몬 저널 <span class="jnew">NEW</span></span><span style="display: block; margin-top: 6px; font-size: 14px; color: #5E5866">교육·시사 소식을 세 줄로 · 매주 갱신</span></a>
 <a href="guide.html" style="display: block; padding: 22px 22px 20px; border-radius: 18px; border: 1px solid #E4DEE8; background: #FFFFFF; text-decoration: none; color: #1E1A22"><span style="display: block; font-size: 18px; font-weight: 700">앱 사용설명서</span><span style="display: block; margin-top: 6px; font-size: 14px; color: #5E5866">재원생 학부모용 · 로그인 후 내려받기</span></a>
 <a href="fees.html" style="display: block; padding: 22px 22px 20px; border-radius: 18px; border: 1px solid #E4DEE8; background: #FFFFFF; text-decoration: none; color: #1E1A22"><span style="display: block; font-size: 18px; font-weight: 700">교습비 안내</span><span style="display: block; margin-top: 6px; font-size: 14px; color: #5E5866">교육청 등록 교습비와 반환기준</span></a>
 <a href="/visit.html" style="display: block; padding: 22px 22px 20px; border-radius: 18px; border: 1px solid #E4DEE8; background: #FFFFFF; text-decoration: none; color: #1E1A22"><span style="display: block; font-size: 18px; font-weight: 700">시간·오시는 길</span><span style="display: block; margin-top: 6px; font-size: 14px; color: #5E5866">이촌역 4번 출구 도보 5분 · 주차 2시간</span></a>
@@ -421,7 +422,7 @@ section[id],footer[id]{scroll-margin-top:88px}
 </div>
 <a href="journal.html" style="display: inline-flex; align-items: center; min-height: 50px; padding: 0 26px; border-radius: 999px; background: #5F3D66; color: #FFFFFF; font-size: 16px; font-weight: 700; text-decoration: none; white-space: nowrap">솔로몬 저널 전체 보기 →</a>
 </div>
-<div class="nt-list"><!--JOURNAL:START--><a class="nt-item" href="journal.html#2611-26-ai-bank-jobs"><span class="nt-cat">시사</span><span class="nt-t">AI가 바꾸는 일자리, <span style="white-space:nowrap">이제 은행까지</span></span><span class="nt-d">모바일 뱅킹에 AI가 더해지며, 고연봉으로 꼽히던 은행권에서도 희망퇴직이 늘고 신규 채용은 <span style="white-space:nowrap">줄고 있다.</span></span><time>2026. 11. 26.(목)</time></a><a class="nt-item" href="journal.html#2611-25-kai-moon-lander"><span class="nt-cat">과학</span><span class="nt-t">한국 달 착륙선의 뼈대, <span style="white-space:nowrap">KAI가 만든다</span></span><span class="nt-d">한국항공우주산업(KAI)이 한국항공우주연구원과 달 착륙선 본체 구조계 개발 계약을 맺었다. 2032년 발사를 목표로 하는 달 탐사 2단계 <span style="white-space:nowrap">사업의 하나다.</span></span><time>2026. 11. 25.(수)</time></a><a class="nt-item" href="journal.html#2611-25-ai-admission-counsel"><span class="nt-cat">시사</span><span class="nt-t">입시 상담까지 맡은 AI, 시험은 무엇을 <span style="white-space:nowrap">물어야 할까</span></span><span class="nt-d">수능 부정행위는 막으면서 입시 상담은 AI에게 묻는 시대, 시험이 무엇을 평가해야 하는지 묻는 질문이 <span style="white-space:nowrap">커지고 있다.</span></span><time>2026. 11. 25.(수)</time></a><!--JOURNAL:END--></div>
+<div class="nt-list" data-latest="2026-11-26"><!--JOURNAL:START--><a class="nt-item" href="journal.html#2611-26-ai-bank-jobs"><span class="nt-cat">시사</span><span class="nt-t">AI가 바꾸는 일자리, <span style="white-space:nowrap">이제 은행까지</span></span><span class="nt-d">모바일 뱅킹에 AI가 더해지며, 고연봉으로 꼽히던 은행권에서도 희망퇴직이 늘고 신규 채용은 <span style="white-space:nowrap">줄고 있다.</span></span><time>2026. 11. 26.(목)</time></a><a class="nt-item" href="journal.html#2611-25-kai-moon-lander"><span class="nt-cat">과학</span><span class="nt-t">한국 달 착륙선의 뼈대, <span style="white-space:nowrap">KAI가 만든다</span></span><span class="nt-d">한국항공우주산업(KAI)이 한국항공우주연구원과 달 착륙선 본체 구조계 개발 계약을 맺었다. 2032년 발사를 목표로 하는 달 탐사 2단계 <span style="white-space:nowrap">사업의 하나다.</span></span><time>2026. 11. 25.(수)</time></a><a class="nt-item" href="journal.html#2611-25-ai-admission-counsel"><span class="nt-cat">시사</span><span class="nt-t">입시 상담까지 맡은 AI, 시험은 무엇을 <span style="white-space:nowrap">물어야 할까</span></span><span class="nt-d">수능 부정행위는 막으면서 입시 상담은 AI에게 묻는 시대, 시험이 무엇을 평가해야 하는지 묻는 질문이 <span style="white-space:nowrap">커지고 있다.</span></span><time>2026. 11. 25.(수)</time></a><!--JOURNAL:END--></div>
 </div>
 </section>
 
@@ -555,7 +556,8 @@ badgeColor: open ? '#FFFFFF' : '#3A3440'
 <script src="assets/ro-popup.js?v=2" defer></script>
 <script src="assets/install.js?v=7" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>(function(){try{var box=document.querySelector('.nt-list'),j=document.getElementById('jnew');if(!box||!j)return;var a=box.querySelector('a[href*="#"]');if(!a)return;var id=(a.getAttribute('href').split('#')[1]||'');if(id&&localStorage.getItem('js_journal_seen')!==id)j.style.display='inline-block';}catch(e){}})();</script>
+<script>/* 솔로몬 저널 NEW: 가장 최근 기사가 7일 이내면 메뉴·바로가기에 빨간 NEW (화면이 그려진 뒤 표시) */
+window.addEventListener('load',function(){try{var b=document.querySelector('.nt-list[data-latest]');if(!b)return;var d=new Date(b.getAttribute('data-latest')+'T00:00:00+09:00');if((Date.now()-d)/864e5<=7)[].forEach.call(document.querySelectorAll('.jnew'),function(e){e.classList.add('on')})}catch(e){}});</script>
 <script>window.JS_SITE='solomon'</script>
 <script src="assets/track.js?v=1"></script>
 <script>try{navigator.clearAppBadge&&navigator.clearAppBadge().catch(function(){});caches.open('js-pref').then(function(c){return c.put('/__badge',new Response('0'))}).catch(function(){})}catch(e){}</script>

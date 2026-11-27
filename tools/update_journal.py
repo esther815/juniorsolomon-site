@@ -25,5 +25,7 @@ teaser = subprocess.run([sys.executable, J, 'teaser', 'journal.html'], capture_o
 ip = os.path.join(ROOT, 'index.html'); s = open(ip, encoding='utf8').read()
 s, n = re.subn(r'(<!--JOURNAL:START-->).*?(<!--JOURNAL:END-->)', lambda m: m.group(1) + teaser + m.group(2), s, flags=re.S)
 if n != 1: print('index.html에서 <!--JOURNAL:START--> 표시를 찾지 못했습니다.'); sys.exit(1)
+latest = max(x['date'] for x in items)
+s = re.sub(r'<div class="nt-list"[^>]*>', f'<div class="nt-list" data-latest="{latest}">', s, count=1)
 open(ip, 'w', encoding='utf8').write(s)
 print(f'완료: 기사 {len(items)}건 · journal.html · 첫 화면 미리보기 갱신')
