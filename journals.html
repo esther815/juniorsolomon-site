@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
+<!-- 두 사이트 공용 페이지: juniorsolomon.com 과 sophosedu.co.kr 에 같은 파일이 올라간다. 고칠 때는 juniorsolomon-site 에서 고치고 tools/publish_journals.sh 로 함께 올린다. -->
 <title>솔로몬 저널 · 소포스 저널 | 교육 뉴스를 세 줄로</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="canonical" href="https://juniorsolomon.com/journals.html">
@@ -16,8 +17,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&amp;family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet">
-<link rel="icon" href="favicon.ico" sizes="any">
-<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="icon" href="https://juniorsolomon.com/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="https://juniorsolomon.com/assets/apple-touch-icon.png">
 <meta name="theme-color" content="#2B1233">
 <style>
 :root{--plum:#5F3D66;--plum2:#3E2743;--gold:#C9A24A;--wine:#3E111B;--wine2:#5C1A28;--ink:#1E1A22;--text:#3A3440;--muted:#6E6676;--line:#E4DEE8;--paper:#FCFAF6}
@@ -95,7 +96,7 @@ footer{margin-top:72px;padding:30px 0 44px;border-top:1px solid var(--line);text
       <article class="jr sol">
         <div class="top"><small>JUNIOR SOLOMON</small><h3>솔로몬 저널</h3><p>유아·초등 · 교육정책 · 시사 · 과학</p></div>
         <ul id="solList"><li>최신 기사를 불러오는 중입니다.</li></ul>
-        <div class="act"><a class="btn p" href="journal.html">저널 보기</a><a class="btn s" href="member.html">알림톡 신청</a></div>
+        <div class="act"><a class="btn p" href="https://juniorsolomon.com/journal.html">저널 보기</a><a class="btn s" href="https://juniorsolomon.com/member.html">알림톡 신청</a></div>
       </article>
       <article class="jr sop">
         <div class="top"><small>SOPHOS EDU</small><h3>소포스 저널</h3><p>중·고등 · 입시 · 내신 · 대입 정책</p></div>
@@ -136,7 +137,7 @@ footer{margin-top:72px;padding:30px 0 44px;border-top:1px solid var(--line);text
       el.innerHTML=d.map(function(x){return '<li><a href="'+base+'#'+encodeURIComponent(x.id)+'"><span>'+esc(x.cat)+'</span><em>'+esc(x.title)+'</em></a></li>'}).join('')||'<li>첫 소식을 준비하고 있습니다.</li>';
     }).catch(function(){el.innerHTML='<li><a href="'+base+'">저널에서 최신 기사를 확인해 주세요 →</a></li>'});
   }
-  fill(document.getElementById('solList'),'data/journal.json','journal.html');
+  fill(document.getElementById('solList'),'https://juniorsolomon.com/data/journal.json','https://juniorsolomon.com/journal.html');
   fill(document.getElementById('sopList'),'https://sophosedu.co.kr/data/news.json','https://sophosedu.co.kr/brief.html');
 
   var toastEl=null;
