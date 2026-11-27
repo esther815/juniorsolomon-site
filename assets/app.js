@@ -414,15 +414,24 @@ function absPanel(id){
 function vOver(){
  var br=S.over||[], h='<h2>한눈에 현황</h2>';
  if(!br.length) return h+'<div class="card"><p class="sub">자료를 불러오지 못했습니다.</p></div>';
- h+=br.map(function(b){ var a=b.att_week||{}, rate=a.total?Math.round(a.present/a.total*100):null, op=S.absOpen===b.id;
+ h+=br.map(function(b){ var a=b.att_week||{}, rate=a.total?Math.round(a.present/a.total*100):null, op=S.absOpen===b.id, pop=S.pausedOpen===b.id;
   return '<div class="card"><div class="row"><h3 style="margin:0;font-family:\'Noto Serif KR\',serif;font-weight:600;font-size:19px">'+esc(b.name)+'</h3><span class="tag">반 '+b.classes+'개</span></div>'+
-   '<div class="list" style="margin-top:8px"><div><span>재원생</span><b>'+b.students+'명</b></div><div><span>휴원</span><span>'+b.paused+'명</span></div>'+
+   '<div class="list" style="margin-top:8px"><div><span>재원생</span><b>'+b.students+'명</b></div>'+
+   '<div><button type="button" class="tapr" data-pausedo="'+esc(b.id)+'" style="all:unset;cursor:pointer;display:flex;justify-content:space-between;width:100%"><span>휴원</span><b>'+b.paused+'명 '+(pop?'▴':'▾')+'</b></button></div>'+
    (rate==null?'<div><span>이번 주 출석률</span><span>기록 없음</span></div>':
      '<div><button type="button" class="tapr" data-abso="'+esc(b.id)+'" style="all:unset;cursor:pointer;display:flex;justify-content:space-between;width:100%"><span>이번 주 출석률</span><b>'+rate+'% ('+a.present+'/'+a.total+') '+(op?'▴':'▾')+'</b></button></div>')+
    '<div><span>가입 승인 대기</span><span>'+b.pending+'건</span></div><div><span>처리 전 앱 요청</span><span>'+b.requests+'건</span></div><div><span>처리 전 홈페이지 상담</span><span>'+b.consults+'건</span></div></div>'+
+   (pop?pausedPanel(b.id):'')+
    (op?absPanel(b.id):'')+
    (GOAL[b.id]?'<div class="bar"><i style="width:'+Math.min(100,Math.round(b.students/GOAL[b.id]*100))+'%"></i></div><p class="sub" style="margin-top:6px">2027년 10월 목표 '+GOAL[b.id]+'명 대비 '+Math.round(b.students/GOAL[b.id]*100)+'%</p>':'')+'</div>' }).join('');
  return h+tip(C.role==='admin'?'지점이 늘어나면 지점마다 한 장씩 나오고, 첫 화면에서 지점을 골라 볼 수 있습니다. 지점장 계정은 자기 지점만 봅니다.':'우리 지점 자료만 보입니다.');
+}
+function pausedPanel(id){
+ var rows=(S.pausedData||{})[id];
+ if(!rows) return '<div class="list" style="margin-top:10px"><p class="sub">불러오는 중…</p></div>';
+ if(!rows.length) return '<div class="list" style="margin-top:10px"><p class="sub">휴원 중인 학생이 없습니다.</p></div>';
+ return '<div class="list" style="margin-top:10px">'+rows.map(function(x){
+   return '<div class="tapr" data-stu="'+esc(x.id||'')+'"><span><b>'+esc(x.name)+'</b>'+(x.grade?' <span class="sub">('+esc(x.grade)+')</span>':'')+'<br><span class="sub">'+esc(x.class||'')+(x.teacher?' · '+esc(x.teacher):'')+'</span></span><i class="chev">›</i></div>' }).join('')+'</div>';
 }
 function fbMissing(){ return ((S.fbw||{}).rows||[]).filter(function(x){return x.state==='안 나감'}) }
 function loadFbw(off){ var m=new Date(Date.now()+9*3600e3); m.setUTCDate(m.getUTCDate()+7*(off||0)); var day=m.toISOString().slice(0,10);
@@ -1249,7 +1258,7 @@ function load(){
 
 function onClick(e){
  ac();
- var el=e.target.closest('[data-go],[data-ev],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],[data-pv],[data-pvexit],[data-mkb],[data-mkc],[data-mkm],[data-mks],[data-mkt],[data-mki],[data-wls],[data-fbwk],[data-fbskip],[data-asgo],[data-asgr],[data-asgnew],[data-cunb],[data-seatsort],[data-stu],[data-wq],[data-wlmv],[data-abso],[data-grp],[data-snote],#aBack,#aRefresh'); if(!el) return;
+ var el=e.target.closest('[data-go],[data-ev],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],[data-pv],[data-pvexit],[data-mkb],[data-mkc],[data-mkm],[data-mks],[data-mkt],[data-mki],[data-wls],[data-fbwk],[data-fbskip],[data-asgo],[data-asgr],[data-asgnew],[data-cunb],[data-seatsort],[data-stu],[data-wq],[data-wlmv],[data-abso],[data-pausedo],[data-grp],[data-snote],#aBack,#aRefresh'); if(!el) return;
  if(el.id==='aBack'){ history.back(); return }
  if(el.id==='aRefresh'){ el.classList.add('spin'); try{ sessionStorage.setItem('js_tab',S.tab||'') }catch(x){}
    var go2=function(){ if(go2.done) return; go2.done=true; location.replace('/member.html?r='+Date.now()) };
@@ -1269,6 +1278,9 @@ function onClick(e){
  if(d.wlmv){ S.wlMove=S.wlMove===d.wlmv?null:d.wlmv; render(); return }
  if(d.abso){ var aid=d.abso; if(S.absOpen===aid){ S.absOpen=null; render(); return } S.absOpen=aid; render();
    if(!S.absData) S.absData={}; if(!S.absData[aid]){ rpc('branch_week_absences',{p_branch:aid}).then(function(x){ S.absData[aid]=x||[]; render() }).catch(function(){ toast('불러오지 못했습니다'); S.absOpen=null; render() }) }
+   return }
+ if(d.pausedo){ var pid=d.pausedo; if(S.pausedOpen===pid){ S.pausedOpen=null; render(); return } S.pausedOpen=pid; render();
+   if(!S.pausedData) S.pausedData={}; if(!S.pausedData[pid]){ rpc('branch_paused_students',{p_branch:pid}).then(function(x){ S.pausedData[pid]=x||[]; render() }).catch(function(){ toast('불러오지 못했습니다'); S.pausedOpen=null; render() }) }
    return }
  if(d.grp){ var gk=d.grp; if(S.grpOpen===gk){ S.grpOpen=null; render(); return } S.grpOpen=gk; render();
    if(!S.grpData) S.grpData={}; if(!S.grpData[gk]){ rpc('admin_ops_group',{p_kind:gk}).then(function(x){ S.grpData[gk]=x||[]; render() }).catch(function(){ toast('불러오지 못했습니다'); S.grpOpen=null; render() }) }
