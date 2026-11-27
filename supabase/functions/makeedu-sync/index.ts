@@ -188,13 +188,6 @@ Deno.serve(async (_req: Request) => {
         classes: C.length,
         enrollments: E.length,
         snapshot_changes: snap.data?.changes ?? null,
-        // 임시 점검용: joined_on/left_on이 비는 원인(메이크에듀 날짜 형식) 확인 뒤 지울 것
-        _debug_sample_dates: studentItems.slice(0, 2).map((x: any) => ({
-          studentId: x.studentId,
-          admissionDate: x.admissionDate,
-          withdrawalDate: x.withdrawalDate,
-          status: x.status,
-        })),
         attendance_range: `${fmtDate(start)}~${fmtDate(end)}`,
         attendance_rows_sent: rows.length,
         attendance_saved: attendanceSaved,
