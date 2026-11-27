@@ -1,0 +1,33 @@
+# 출결 매칭 중복정리+수정 1회 적용 — Actions에서 수동 실행(workflow_dispatch)
+# 필요한 비밀값: SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_ID (기존 배포와 동일한 값 재사용)
+# 여러 번 실행해도 안전함(supabase/sql/03_출결_중복정리_및_매칭수정.sql 참고)
+name: attendance-fix-apply
+on:
+  workflow_dispatch: {}
+permissions:
+  contents: read
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    env:
+      TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      REF: ${{ secrets.SUPABASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: 실행 도구 준비
+        run: |
+          cat > /tmp/q.py <<'PY'
+          import json, os, sys, urllib.request
+          sql = open(sys.argv[1], encoding="utf8").read()
+          req = urllib.request.Request(
+              f"https://api.supabase.com/v1/projects/{os.environ['REF']}/database/query",
+              data=json.dumps({"query": sql}).encode(), method="POST",
+              headers={"Authorization": f"Bearer {os.environ['TOKEN']}", "Content-Type": "application/json"})
+          try:
+              out = urllib.request.urlopen(req, timeout=120).read().decode()
+          except urllib.error.HTTPError as e:
+              print("실패:", e.code, e.read().decode()[:4000]); sys.exit(1)
+          print(out[:4000])
+          PY
+      - name: 중복 정리 + 매칭 함수 수정 적용
+        run: python3 /tmp/q.py "supabase/sql/03_출결_중복정리_및_매칭수정.sql"
