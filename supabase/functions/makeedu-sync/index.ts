@@ -72,7 +72,16 @@ const STATUS_MAP: Record<string, string> = {
   WITHDRAWN: "퇴원",
 };
 
+// 앱의 "새로고침" 버튼이 브라우저에서 직접 이 함수를 호출한다(원장·데스크 화면).
+// 기존에는 GitHub Actions(서버 대 서버)만 호출해서 CORS가 필요 없었음.
+const cors = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
 Deno.serve(async (_req: Request) => {
+  if (_req.method === "OPTIONS") return new Response("ok", { headers: cors });
   const makeeduKey = Deno.env.get("MAKEEDU_API_KEY");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -85,7 +94,7 @@ Deno.serve(async (_req: Request) => {
         message:
           "MAKEEDU_API_KEY 비밀 값을 찾지 못했습니다. Supabase 대시보드 Edge Functions > Secrets에서 확인해 주세요.",
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
+      { status: 500, headers: { ...cors, "Content-Type": "application/json" } },
     );
   }
   if (!supabaseUrl || !serviceRoleKey) {
@@ -95,7 +104,7 @@ Deno.serve(async (_req: Request) => {
         step: "config",
         message: "SUPABASE_URL 또는 SUPABASE_SERVICE_ROLE_KEY 비밀 값을 찾지 못했습니다.",
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
+      { status: 500, headers: { ...cors, "Content-Type": "application/json" } },
     );
   }
 
@@ -195,7 +204,7 @@ Deno.serve(async (_req: Request) => {
         note:
           "출결은 '등원 기록 있음=O'만 반영했습니다. 결석·지각 판정은 메이크에듀 API에 값이 없어 반영하지 않았습니다.",
       }),
-      { headers: { "Content-Type": "application/json" } },
+      { headers: { ...cors, "Content-Type": "application/json" } },
     );
   } catch (e) {
     const message = String((e as any)?.message || e);
@@ -206,7 +215,7 @@ Deno.serve(async (_req: Request) => {
     }
     return new Response(
       JSON.stringify({ ok: false, step: "sync", message }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
+      { status: 500, headers: { ...cors, "Content-Type": "application/json" } },
     );
   }
 });

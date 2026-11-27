@@ -1236,7 +1236,13 @@ function onClick(e){
  ac();
  var el=e.target.closest('[data-go],[data-ev],[data-kid],[data-br],[data-mon],[data-rk],[data-rf],[data-rs],[data-delnotice],[data-snd],[data-snd-on],[data-pv],[data-pvexit],[data-mkb],[data-mkc],[data-mkm],[data-mks],[data-mkt],[data-mki],[data-wls],[data-fbwk],[data-fbskip],[data-asgo],[data-asgr],[data-asgnew],[data-cunb],[data-seatsort],[data-stu],[data-wq],[data-wlmv],[data-abso],[data-grp],[data-snote],#aBack,#aRefresh'); if(!el) return;
  if(el.id==='aBack'){ history.back(); return }
- if(el.id==='aRefresh'){ el.classList.add('spin'); try{ sessionStorage.setItem('js_tab',S.tab||'') }catch(x){} setTimeout(function(){ location.replace('/member.html?r='+Date.now()) },350); return }
+ if(el.id==='aRefresh'){ el.classList.add('spin'); try{ sessionStorage.setItem('js_tab',S.tab||'') }catch(x){}
+   var go2=function(){ if(go2.done) return; go2.done=true; location.replace('/member.html?r='+Date.now()) };
+   if(C.role==='admin'||C.role==='manager'||C.role==='desk'){
+     C.sb.functions.invoke('makeedu-sync').catch(function(){}).then(go2);
+     setTimeout(go2,8000); // 메이크에듀 응답이 늦어도 8초 안에는 넘어감
+   } else { setTimeout(go2,350) }
+   return }
  var d=el.dataset;
  if(d.go){ go(d.go); return }
  if(d.ev){ openEvent(d.ev); return }
