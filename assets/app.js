@@ -1238,7 +1238,7 @@ function onClick(e){
  if(el.id==='aBack'){ history.back(); return }
  if(el.id==='aRefresh'){ el.classList.add('spin'); try{ sessionStorage.setItem('js_tab',S.tab||'') }catch(x){}
    var go2=function(){ if(go2.done) return; go2.done=true; location.replace('/member.html?r='+Date.now()) };
-   if(C.role==='admin'||C.role==='manager'||C.role==='desk'){
+   if(C.role==='admin'){ // 메이크에듀 재동기화는 원장만(지점장·데스크는 추후 요청 시 열기)
      C.sb.functions.invoke('makeedu-sync').catch(function(){}).then(go2);
      setTimeout(go2,8000); // 메이크에듀 응답이 늦어도 8초 안에는 넘어감
    } else { setTimeout(go2,350) }

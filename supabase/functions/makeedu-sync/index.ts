@@ -108,6 +108,31 @@ Deno.serve(async (_req: Request) => {
     );
   }
 
+  // 로그인한 사람이 브라우저에서 직접 부른 경우(새로고침 버튼)엔 원장인지 확인한다.
+  // 공개 키·service role 키로만 부르는 자동 동기화(cron)는 그대로 통과시킨다(로그인 사용자가 없음).
+  const authHeader = _req.headers.get("Authorization") || "";
+  const jwt = authHeader.replace(/^Bearer\s+/i, "").trim();
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "sb_publishable_Kj2bX4fe9CRSkhvGzBbaJw_y1ZqkjOz";
+  if (jwt && jwt !== serviceRoleKey) {
+    try {
+      const authClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: `Bearer ${jwt}` } },
+      });
+      const { data: userData } = await authClient.auth.getUser(jwt);
+      if (userData?.user) {
+        const { data: isAdmin } = await authClient.rpc("is_admin");
+        if (!isAdmin) {
+          return new Response(
+            JSON.stringify({ ok: false, step: "auth", message: "원장만 새로고침할 수 있습니다." }),
+            { status: 403, headers: { ...cors, "Content-Type": "application/json" } },
+          );
+        }
+      }
+    } catch (_e) {
+      // 토큰 확인 자체가 실패해도 기존 자동 동기화(cron)를 막지 않도록 조용히 통과
+    }
+  }
+
   const sb = createClient(supabaseUrl, serviceRoleKey);
 
   try {
