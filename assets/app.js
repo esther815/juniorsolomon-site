@@ -56,12 +56,12 @@ function tilesFor0(role){
  var T={
   parent:[['today','오늘 우리 아이','출결·다음 수업',I.home],['fb','수업 피드백','선생님이 보낸 수업 이야기',I.note],['asg','과제','선생님이 보낸 학습지',I.book],['notice','공지','학원 소식',I.bell],['time','시간표','수업 요일·예약',I.cal],
           ['req','보강·상담','결석 알림·상담 신청',I.chat],['att','출결 기록','달력으로 한눈에',I.check],['mine','내 정보','자녀 추가·로그아웃',I.me]],
-  teacher:[['fb','수업 피드백','오늘 수업 보내기',I.send],['asg','학습지 과제','보내기·제출 확인',I.book],['tboard','내 반 출결','반별 학생·최근 출결',I.users],['mk','보강','보강 시간·출석 체크',I.cal],['sreq','받은 상담','학부모가 보낸 신청',I.chat],['notice','공지','학원 소식',I.bell]],
-  desk:[['approve','가입 승인','학부모 가입 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],['mk','보강','보강권·보강 달력',I.cal],['wait','대기 명단','반별 대기',I.note],
+  teacher:[['fb','수업 피드백','오늘 수업 보내기',I.send],['asg','학습지 과제','보내기·제출 확인',I.book],['tboard','내 반 출결','반별 학생·최근 출결',I.users],['mk','보강','보강 시간·출석 체크',I.cal],['sreq','받은 상담','학부모가 보낸 신청',I.chat],['notice','공지','학원 소식',I.bell],['feed','알림 이력','무슨 알림이 왔는지 모아보기',I.bell]],
+  desk:[['approve','가입 승인','학부모 가입 확인',I.check],['feed','알림 이력','무슨 알림이 왔는지 모아보기',I.bell],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],['mk','보강','보강권·보강 달력',I.cal],['wait','대기 명단','반별 대기',I.note],
         ['board','반별 정원','마감·모집',I.users],['notice','공지','올리기·보기',I.send]],
-  manager:[['over','한눈에 현황','우리 지점',I.chart],['approve','가입 승인','학부모 가입 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],
+  manager:[['over','한눈에 현황','우리 지점',I.chart],['feed','알림 이력','무슨 알림이 왔는지 모아보기',I.bell],['approve','가입 승인','학부모 가입 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],
            ['mk','보강','보강권·보강 달력',I.cal],['wait','대기 명단','반별 대기',I.note],['board','반별 정원','마감·모집',I.users],['notice','공지','올리기·보기',I.send]],
-  admin:[['ops','운영 숫자','재원·위험·미납·빈자리',I.chart],['fbw','피드백 현황','이번 주 안 나간 반',I.check],['fb','수업 피드백','올리기·기록',I.send],['asg','학습지 과제','보내기·제출 확인',I.book],['over','한눈에 현황','지점별 비교',I.chart],['stat','숫자 기록','방문·가입·탈퇴',I.chart],['approve','가입 승인','학부모·직원 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],
+  admin:[['ops','운영 숫자','재원·위험·미납·빈자리',I.chart],['feed','알림 이력','무슨 알림이 왔는지 모아보기',I.bell],['fbw','피드백 현황','이번 주 안 나간 반',I.check],['fb','수업 피드백','올리기·기록',I.send],['asg','학습지 과제','보내기·제출 확인',I.book],['over','한눈에 현황','지점별 비교',I.chart],['stat','숫자 기록','방문·가입·탈퇴',I.chart],['approve','가입 승인','학부모·직원 확인',I.check],['sreq','상담·요청','앱 요청·홈페이지 상담',I.chat],
          ['mk','보강','보강권·보강 달력',I.cal],['wait','대기 명단','반별 대기',I.note],
          ['me','반별·출석부','정원·자료 올리기',I.users],['notice','공지','올리기·보기',I.send],['set','직원·설정','초대·알림·테스터',I.gear]]
  };
@@ -70,7 +70,7 @@ function tilesFor0(role){
 }
 var LABEL={parent:'For Parents',teacher:'Teacher',desk:'Office',manager:'Branch',admin:'Director'};
 var TITLE={ops:'운영 숫자',stu:'학생 정보',asg:'과제',special:'방학 특강',today:'오늘 우리 아이',notice:'공지',time:'시간표',req:'보강·상담',att:'출결 기록',mine:'내 정보',tboard:'내 반 출결',sreq:'상담·요청',
-           approve:'가입 승인',board:'반별 정원',over:'한눈에 현황',me:'반별·출석부',set:'직원·설정',mk:'보강',wait:'대기 명단',stat:'숫자 기록',fb:'수업 피드백',fbw:'피드백 현황'};
+           approve:'가입 승인',board:'반별 정원',over:'한눈에 현황',me:'반별·출석부',set:'직원·설정',mk:'보강',wait:'대기 명단',stat:'숫자 기록',fb:'수업 피드백',fbw:'피드백 현황',feed:'알림 이력'};
 function pAccess(){ var k=S.kids||[]; if(!k.length) return 'open'; if(k.some(function(x){return !x.access||x.access==='open'})) return 'open'; if(k.some(function(x){return x.access==='paused'})) return 'paused'; return 'closed' }
 
 function badge(k){
@@ -1162,7 +1162,21 @@ document.addEventListener('contextmenu',function(e){ if(S&&S.asgOpen&&e.target.c
 window.addEventListener('beforeprint',function(){ capWarn('인쇄') });
 
 /* ── 화면 그리기 ── */
-var VIEWS={special:vSpecial,today:vToday,notice:vNotice,time:vTime,req:vReq,att:vAtt,mine:vMine,sreq:vSreq,over:vOver,set:vSet,mk:vMk,wait:vWait,stat:vStat,ops:vOps,stu:vStu,asg:vAsg,fb:vFb,fbw:vFbw,
+function vFeed(){
+ var h='<h2>알림 이력</h2><p class="sub" style="margin:-6px 0 14px">최근 30일 · 눌러서 바로 들어갑니다</p>';
+ var L=S.feed;
+ if(!L) return h+'<div class="card"><p class="sub">불러오는 중…</p></div>';
+ if(!L.length) return h+'<div class="card"><p class="sub">최근 30일 안에 온 알림이 없습니다.</p></div>';
+ var ICO={notice:'📢',sreq:'💬',approve:'✅',asg:'📝'};
+ return h+L.map(function(x){
+  var act=(x.kind==='asg'&&x.goarg)?' data-asgr="'+esc(x.goarg)+'"':' data-go="'+esc(x.go)+'"';
+  return '<button type="button" class="card" style="display:block;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer"'+act+'>'+
+   '<div class="row"><b>'+(ICO[x.kind]||'•')+' '+esc(x.title)+'</b><span class="sub" style="flex:none">'+ago(x.created_at)+'</span></div>'+
+   (x.detail?'<div class="sub" style="margin-top:4px">'+esc(x.detail)+'</div>':'')+
+  '</button>';
+ }).join('');
+}
+var VIEWS={special:vSpecial,today:vToday,notice:vNotice,time:vTime,req:vReq,att:vAtt,mine:vMine,sreq:vSreq,over:vOver,set:vSet,mk:vMk,wait:vWait,stat:vStat,ops:vOps,stu:vStu,asg:vAsg,fb:vFb,fbw:vFbw,feed:vFeed,
  tboard:function(){return '<h2>내 반 출결</h2><div class="legacy"><div id="tboard"></div></div>'+tip('학생 정보는 캡처하거나 학원 밖으로 옮기지 않습니다.')},
  approve:function(){return '<h2>가입 승인</h2><div id="bulkSlot"></div><div class="legacy"><div id="admin"></div></div>'},
  board:function(){return '<h2>반별 정원</h2><div class="legacy"><div id="board"></div></div>'},
@@ -1199,6 +1213,7 @@ function after(){
  if(t==='stu'&&S.stuId&&(!S.stuC||S.stuC.id!==S.stuId)&&S.stuLoad!==S.stuId){ S.stuLoad=S.stuId; rpc('student_card',{p_id:S.stuId}).then(function(x){ S.stuC=x; S.stuLoad=null; if(S.tab==='stu') render() }).catch(function(er){ S.stuLoad=null; S.stuC={id:S.stuId,err:(er&&er.message||'').replace(/^.*?: /,'')||'불러오지 못했습니다'}; if(S.tab==='stu') render() }) }
  if(t==='stu'&&S.stuId&&C.role!=='parent'&&S.stuMonthlyId!==S.stuId){ S.stuMonthlyId=S.stuId; S.stuMonthly=null; rpc('admin_student_monthly_report',{p_student_id:S.stuId}).then(function(x){ S.stuMonthly=x; if(S.tab==='stu') render() }).catch(function(er){ S.stuMonthly={err:(er&&er.message||'').replace(/^.*?: /,'')||'불러오지 못했습니다'}; if(S.tab==='stu') render() }) }
  if(t==='wait'&&!S.wlFresh){ S.wlFresh=1; rpc('waitlist_board').then(function(d){ S.wl=d; if(S.tab==='wait') render() }).catch(function(){ toast('대기 명단을 불러오지 못했습니다') }) }
+ if(t==='feed'&&!S.feedFresh){ S.feedFresh=1; rpc('recent_activity').then(function(d){ S.feed=d||[]; if(S.tab==='feed') render() }).catch(function(){ S.feed=[]; if(S.tab==='feed') render() }) }
  if(t==='set'){ L.inviteBtn('tinv','tinvm','new_teacher_invite','t','강사'); L.inviteBtn('dinv','dinvm','new_desk_invite','d','관리자'); L.kakaoSetup(); L.betaList(); L.usage();
    $('#pv').onclick=function(){ L.openForm(null,true) } }
  if(t==='mine'){ L.bindInstall(); bindLogout();
@@ -1209,7 +1224,7 @@ function after(){
 }
 function bindLogout(){ C.L.bindLogout() }
 function loadMb(){ if(C.pv) { S.mb={staff:C.role!=='teacher',slots:[],tickets:[],students:[],classes:[]}; return Promise.resolve() } return rpc('makeup_board').then(function(d){ S.mb=d }).catch(function(){ S.mb=S.mb||null }) }
-function go(t){ S.asgOpen=null; S.asgNew=0; S.mbFresh=0; S.wlFresh=0; S.stFresh=0; S.fbFresh=0; S.fbwFresh=0; S.tab=t;
+function go(t){ S.asgOpen=null; S.asgNew=0; S.mbFresh=0; S.wlFresh=0; S.stFresh=0; S.fbFresh=0; S.fbwFresh=0; S.feedFresh=0; S.tab=t;
  if(C.role==='teacher'&&!C.pv){ if(t==='tboard') ckMark('classes'); if(t==='mk') ckMark('makeup') }
  history.pushState({jsTab:t},'',''); render(); window.scrollTo(0,0) }
 
